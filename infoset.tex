@@ -1,0 +1,312 @@
+%!TEX root = reference.tex
+\chapter{JSON}
+\index{JSON}\index{Using the JSON type}
+
+The JSON Infoset type, or just \q{json} type, allows values to be represented in a way that is easily digestible by many web-based tools -- including browsers. The \q{json} type is semantically equivalent to the JSON structure defined in \cite{rfc4627}. However, the \q{json} type represents a statically typed representation of JSON values.
+
+In addition to basic handling of JSON values, \Sr provides a form of path notation that allows \q{json} values to be probed and updated.
+
+\section{The \q{json} Type}
+\label{infosetType}
+\index{json type@\q{json} type}
+
+Program~\vref{infosetProg} defines the \q{json} type.
+\begin{program}
+\begin{alltt}
+type json is 
+      iFalse or
+      iTrue or
+      iNull or
+      iColl(dictionary of (string,json)) or
+      iSeq(list of json) or
+      iText(string) or
+      iNum(long) or
+      iFlt(float);
+\end{alltt}
+\caption{The \q{json} Type\label{infosetProg}}
+\end{program}
+
+\begin{aside}
+JSON values are not strongly typed in the sense that the value associated with the \q{Width} of the \q{Thumbnail} is a string even though one might expect widths to be integral. However, JSON values are checked to be consistent with the \q{json} type -- like all other values.
+\end{aside}
+
+For example, the JSON value:
+\begin{alltt}
+\{
+  "Image": \{
+    "Width":  800,
+    "Height": 600,
+    "Title":  "View from 15th Floor",
+    "Thumbnail": \{
+      "Url":    "http://www.example.com/image/481989943",
+      "Height": 125,
+      "Width":  "100"
+    \},
+    "IDs": [116, 943, 234, 38793]
+  \}
+\}
+\end{alltt}
+can be represented using the \q{json} value shown in Figure~\vref{infosetEx}.
+
+\begin{figure}[hbt]
+\begin{alltt}
+iColl(dictionary of \{
+  "Image" -> iCol(dictionary of \{
+    "Width" -> iNum(800l);
+    "Height" -> iNum(600l);
+    "Title" -> iText("View from 15th Floor");
+    "Thumbnail" -> iColl(dictionary of \{
+      "Url" -> iText("http://www.example.com/image/481989943");
+      "Height" -> iNum(125l);
+      "Width" -> iText("100");
+    \});
+    "IDs" -> iSeq(list of [ 
+      iNum(116l), iNum(943l), iNum(234l), iNum(38793)
+    ])
+  \})\})
+\end{alltt}
+\caption{An Example \q{json} Value}
+\label{infosetEx}
+\end{figure}
+
+\begin{aside}
+The JSON standard specification is mute on the topic of numeric precision. We choose to represent integers as \q{long} values and floating point values as \q{float} (which is equivalent to \q{double} precision arithmetic).
+\end{aside}
+
+\section{Infoset paths}
+\label{infoPath}
+\index{path access to json@path access to \q{json}}
+
+Infoset values are typically deeply nested structures involving both accessing dictionary-like collections and arrays. In order to make working with \q{json} values simpler we introduce the concept of an json path -- an \q{infoPath}.
+
+An \q{infoPath} is a list of path elements -- each of which represents either an index into a sequence of \q{json} elements or the name of a member of a collection of elements. This is captured in the definition of the \q{infoPathKey}, as defined in Program~\vref{infoPathProg}.
+\begin{program}
+\begin{alltt}
+type infoPathKey is kString(string) or kInt(integer);
+
+type infoPath is alias of list of infoPathKey;
+\end{alltt}
+\caption{The \q{infoPathKey} and \q{infoPath} Types\label{infoPathProg}}
+\end{program}
+
+For example, the path expression that denotes the url of the thumbnail in Figure~\vref{infosetEx} is:
+\begin{alltt}
+list of [kString("Image"), kString("Thumbnail"), kString("Url")]
+\end{alltt}
+and the path that denotes the first id from the \q{IDs} sequence is:
+\begin{alltt}
+list of [kString("Image"), kString("IDs"), kInt(0)]
+\end{alltt}
+
+Infoset paths are used in several of the functions that are defined on \q{json} values.
+
+\section{Standard Functions on Infoset Values}
+\index{json@\q{json}!standard functions}
+Several contracts are implemented for \q{json} values; including \q{indexable}, \q{iterable}, \q{indexed\_iterable}, \q{pPrint} and \q{coercion}.
+
+\subsection{\q{\_index} access to \q{json}}
+\index{json@\q{json}!standard functions!_index@\q{\_index}}
+\index{_index@\q{\_index}}
+
+The \q{\_index} function applies an \q{infoPath} to an \q{json} to obtain a portion of the \q{json} value. It's type is:
+\begin{alltt}
+\_index has type (infoPath,json)=>json
+\end{alltt}
+\q{\_index} is part of the \q{indexable} contract -- see Section~\vref{indexableContract}.
+
+For example, the value of the first element of the value shown in Figure~\vref{infosetEx} is gotten with the expression (assuming that the value is bound to the variable \q{I}:
+\begin{alltt}
+I[list of [kString("Image"), kString("IDs"), kInt(0)]]
+\end{alltt}
+This has value
+\begin{alltt}
+iNum(116L)
+\end{alltt}
+
+\begin{aside}
+The above expression is a synonym of
+\begin{alltt}
+\_index(I,list of [kString("Image"), kString("IDs"), kInt(0)])
+\end{alltt}
+\end{aside}
+
+\subsection{\q{\_set\_indexed} -- Set a Value in an \q{json}}
+\index{json@\q{json}!standard functions!_set_indexed@\q{\_set\_indexed}}
+\index{_set_indexed@\q{\_set\_indexed}}
+
+The \q{\_set\_indexed} function updates a value in an \q{json} -- depending on a path -- and returns the updated \q{json}.
+The type of \q{\_set\_indexed} is given by:
+\begin{spec}
+\_set\_indexed has type (json,info path,json)=>json
+\end{spec}
+\q{\_set\_indexed} is part of the \q{indexable} contract.
+
+\begin{aside}
+This function does not update the original; it returns a new value.
+\end{aside}
+
+To use this function to change the title of the value in Figure~\vref{infosetEx} (again assuming that it is bound to an updateable variable \q{I}) one might use the action:
+\begin{alltt}
+I[list of [kString("Image"), kString("Title")]] := iText("A Better One")
+\end{alltt}
+which is a synonym for the action:
+\begin{alltt}
+I := I[list of [kString("Image"), kString("Title")]->iText("A Better One")]
+\end{alltt}
+which, in turn, is a synonym for:
+\begin{alltt}
+I := \_set_indexed(I,list of [kString("Image"),kString("Title")],
+                  iText("A Better One"))
+\end{alltt}
+
+\subsection{\q{\_delete\_indexed} -- Remove a Value from an \q{json}}
+\index{json@\q{json}!standard functions!_delete_indexed@\q{\_delete\_indexed}}
+\index{_delete_indexed@\q{\_delete\_indexed}}
+
+The \q{\_delete\_indexed} function removes a value in an \q{json} -- depending on a path -- and returns the modified \q{json}.
+\begin{aside}
+This function does not update the original; it returns a new value.
+\end{aside}
+The type of \q{\_delete\_indexed} is given by:
+\begin{alltt}
+\_delete\_indexed has type (json,info path)=>json
+\end{alltt}
+\q{\_delete\_indexed} is part of the \q{indexable} contract.
+
+To use this function to remove the last ID from \q{IDs} in Figure~\vref{infosetEx} one might use the action:
+\begin{alltt}
+remove I[list of [kString("Image"), kString("IDs"), kInt(3)]]
+\end{alltt}
+which is a synonym for the action:
+\begin{alltt}
+I := I[without list of [kString("Image"),kString("IDs"), kInt(3)]]
+\end{alltt}
+
+\subsection{\q{\_index\_member} -- Test a Path in an \q{json}}
+\index{json@\q{json}!standard functions!_index_member@\q{\_index\_member}}
+\index{_index_member@\q{\_index\_member}}
+
+The \q{\_index\_member} pattern succeeds if there is a designated element of the \q{json} and matches it against a pattern.
+
+The type of \q{\_index\_member} is given by:
+\begin{alltt}
+\_index\_member has type (json)<=(json,infopath)
+\end{alltt}
+\q{\_index\_member} is part of the \q{indexable} contract.
+
+The \q{\_index\_member} pattern is typically used in query conditions; such as:
+\begin{alltt}
+if I[list of [kString("Image")]] matches L then
+\end{alltt}
+This is equivalent to the condition:
+\begin{alltt}
+if (I,list of [kString("Image")]) matches \_index\_member then
+\end{alltt}
+
+\subsection{\q{\_iterate} -- Over an \q{json}}
+\index{json@\q{json}!standard functions!_iterate@\q{\_iterate}}
+\index{_iterate@\q{\_iterate}}
+
+The \q{\_iterate} function is used when iterating over the elements of an \q{json}. 
+
+The type of \q{\_iterate} is given by:
+\begin{alltt}
+\_iterate has type for all s such that
+  (json,(json,IterState of s)=>IterState of s,
+   IterState of s) => IterState of s
+\end{alltt}
+The \q{\_iterate} function is part of the \q{iterable} contract -- see Section~\vref{iterableContract}.
+
+The \q{json} variant of the \q{\_iterate} function calls the `client function' for all of the `leaf' elements of an \q{json} value. For example, in the condition:
+\begin{alltt}
+X in I
+\end{alltt}
+where \q{I} is the \q{json} value shown in Figure~\vref{infosetEx}, then the client function will be called successively on the \q{json} values:
+\begin{alltt}
+iNum(800l)
+iNum(600l)
+iText("View from 15th Floor")
+iText("http://www.example.com/image/481989943")
+iNum(125l)
+iText("100")
+iNum(116l)
+iNum(943l)
+iNum(234l)
+iNum(38793)
+\end{alltt}
+The query:
+\begin{alltt}
+list of \{ all X where iText(X) in I \}
+\end{alltt}
+will have value:
+\begin{alltt}
+list of [ 
+  "View from 15th Floor",
+  "http://www.example.com/image/481989943",
+  "100"
+]
+\end{alltt}
+
+\subsection{\q{\_indexed\_iterate} -- Over an \q{json}}
+\index{json@\q{json}!standard functions!_indexed_iterate@\q{\_indexed\_iterate}}
+\index{_indexed_iterate@\q{\_indexed\_iterate}}
+
+The \q{\_indexed\_iterate} function is used when iterating over the elements of an \q{json}. A key difference between this and \q{\_iterate} is that \q{\_indexed\_iterate} involves the paths to each of the leaf elements of the JSON value.
+
+The type of \q{\_indexed\_iterate} is given by:
+\begin{alltt}
+\_indexed\_iterate has type for all s such that
+  (json,(infoPath,json,IterState of s)=>IterState of s,
+   IterState of s) => IterState of s
+\end{alltt}
+The \q{\_indexed\_iterate} function is part of the \q{indexed\_iterable} contract -- see Section~\vref{iterableContract}.
+
+The \q{\_indexed\_iterate} function calls the `client function' for all of the `leaf' elements of an \q{json} value; providing an \q{infoPath} expression for each leaf element processed.
+
+The \q{\_indexed\_iterate} function is typically used in conditions of the form:
+\begin{alltt}
+K -> V in I
+\end{alltt}
+where \q{K} is a pattern that matches the key (\q{infoPath}), \q{V} is a pattern that matches the (leaf) value, and \q{I} is the \q{json} being queried.
+
+For example, in the condition:
+\begin{alltt}
+K->V in I
+\end{alltt}
+where \q{I} is the \q{json} value shown in Figure~\vref{infosetEx}, then the client function will be called successively on the \q{infoPath->json} values:
+\begin{alltt}
+list of [kString("Image"), kString("Width")] -> iNum(800l)
+list of [kString("Image"), kString("Height")] -> iNum(600l)
+list of [kString("Image"), kString("Title")] ->
+       iText("View from 15th Floor")
+list of [kString("Image"), kString("Thumbnail"), kString("Url")] -> 
+       iText("http://www.example.com/image/481989943")
+list of [kString("Image"), kString("Thumbnail"), kString("Height")] -> 
+       iNum(125l)
+list of [kString("Image"), kString("Thumbnail"), kString("Width")] -> 
+       iText("100")
+list of [kString("Image"), kString("IDs"), kInt(0)] -> iNum(116l)
+list of [kString("Image"), kString("IDs"), kInt(1)] -> iNum(943l)
+list of [kString("Image"), kString("IDs"), kInt(2)] -> iNum(234l)
+list of [kString("Image"), kString("IDs"), kInt(3)] -> iNum(38793)
+\end{alltt}
+The \q{\_indexed\_iterate} function is therefore useful when you want to both process all the leaves in an \q{json} but also to know where they are.
+
+
+\section{Parsing and Displaying}
+The standard contract for displaying values -- \q{pPrint} -- is implemented for the \q{json} type. In addition, a \q{string} value may be parsed as a \q{json} by using the coercion expression:
+\begin{alltt}
+"\{"Id" : 34 \} as json
+\end{alltt}
+has value:
+\begin{alltt}
+iColl(dictionary of \{ "Id" -> iNum(34L) \})
+\end{alltt}
+
+\subsection{\q{ppDisp} -- Display a \q{json} Value}
+The \q{pPrint} contract is implemented for \q{json} values. The type of \q{ppDisp} is given by:
+\begin{alltt}
+ppDisp has type (json)=>pP
+\end{alltt}
+The \q{pPrint} contract is described in Section~\vref{pPrintContract}. This implementation means that when a \q{json} value is displayed, it is shown in legal JSON syntax.
+

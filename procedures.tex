@@ -1,0 +1,21 @@
+%!TEX root = reference.tex
+\chapter{Action Procedures}
+\label{procedures}
+
+An action procedure is an action script -- a program for performing actions. Analogously to functions and other rule types, procedures are written as a set of action rules.
+
+\begin{figure}[htbp]
+   \includegraphics[width=0.9\textwidth]{diagrams/procedureFig}
+   \caption{Action Procedure}
+   \label{procedureFig}
+\end{figure}
+
+\section{Action Procedures and Type Safety}
+
+A procedure is type safe if the action(s) in the body are type safe -- in the environment augmented by the variables in the head of the procedure.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{name}{\q{action [}T\sub1,\ldots,T\subn\q{]}}}
+\AxiomC{\typesafe{E\minsert{\cup}H\sub1:T\sub1\minsert{\cup}\ldots\minsert{\cup}H\subn:T\subn}{A}}
+\BinaryInfC{\typesafe{E}{name\q{(}H\sub1,\ldots,H\subn\q{) begin }A\q{ end}}}
+\end{prooftree}

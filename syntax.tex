@@ -1,0 +1,319 @@
+%!TEX root = reference.tex
+\chapter{Syntax}
+\label{syntax}
+This appendix gathers together the syntax productions of the \Sr language.
+
+\section{Lexical}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Ignorable}&\arrow&\emph{LineComment}\\
+&\choice&\emph{BlockComment}\\
+&\choice&\emph{WhiteSpace}
+\end{eqnarray*}
+\caption{Ignorable Characters}\label{ignorableFigA}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{LineComment}&\arrow&(\q{--\spce}\choice\q{--\bsl{}t})\,\emph{char}\ldots\emph{char}\,\q{\bsl{}n}
+\end{eqnarray*}
+\caption{Line Comment}
+\label{lineCommentFigA}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{BlockComment}&\arrow&\q{/*}\ \emph{char}\ldots\emph{char}\,\q{*/}
+\end{eqnarray*}
+\caption{Block comments}
+\label{blockCommentFigA}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{NumericLiteral}&\arrow&\emph{Decimal}\\
+&\choice&\emph{Hexadecimal}\\
+&\choice&\emph{FloatingPoint}\\
+&\choice&\emph{FixedPoint}\\
+&\choice&\emph{ArbitraryPrecision}\\
+&\choice&\emph{CharacterCode}
+\end{eqnarray*}
+\caption{Numeric Literals}
+\label{numberFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Decimal}&\arrow&\emph{Digit}\ldots\emph{Digit}\plus\\
+\emph{Digit}&\arrow&\q{0}\choice\q{1}\choice\q{2}\choice\q{3}\choice\q{4}\choice\q{5}\choice\q{6}\choice\q{7}\choice\q{8}\choice\q{9}
+\end{eqnarray*}
+\caption{Decimal Integers}
+\label{decimalFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Hexadecimal}&\arrow&\q{0x}\,\emph{Hex}\ldots\emph{Hex}\plus\\
+\emph{Hex}&\arrow&\q{0}\choice\q{1}\choice\q{2}\choice\q{3}\choice\q{4}\choice\q{5}\choice\q{6}\choice\q{7}\choice\q{8}\choice\q{9}\choice\q{a}\choice\q{b}\choice\q{c}\choice\q{d}\choice\q{e}\choice\q{f}
+\end{eqnarray*}
+\caption{Hexadecimal numbers}
+\label{hexadecimalFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{FixedPoint}&\arrow&\emph{Digit}\ldots\emph{Digit}\plus\q{.}\,\emph{Digit}\ldots\emph{Digit}\plus\q{f}\,\q{0}\ldots\q{0}
+\end{eqnarray*}
+\caption{Fixed Point numbers}
+\label{fixedPointFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{FloatingPoint}&\arrow&\emph{Digit}\ldots\emph{Digit}\plus\q{.}\,\emph{Digit}\ldots\emph{Digit}\plus[\q{e}\,[\q{-}]\,\emph{Digit}\ldots\emph{Digit}\plus]
+\end{eqnarray*}
+\caption{Floating Point numbers}
+\label{floatingPointFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{ArbitraryPrecision}&\arrow&\emph{Digit}\ldots\emph{Digit}\plus\,\q{.}\,\emph{Digit}\ldots\emph{Digit}\plus\q{a}
+\end{eqnarray*}
+\caption{Arbitrary Precision Numbers}
+\label{arbitraryPrecisionFig}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{CharacterCode}&\arrow&\q{0c}\,\emph{CharRef}
+\end{eqnarray*}
+\caption{Character Codes}
+\vspace{-2ex}
+\label{characterCodeFig}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{eqnarray*}
+\emph{CharRef}&\arrow&\emph{Char}\ \choice\ \emph{Escape}\\
+\emph{Escape}&\arrow&\q{\bsl}\q{a}\choice\bsl\q{b}\choice\bsl\q{d}\choice\q{\bsl}\q{e}\choice\q{\bsl}\q{f}\choice\q{\bsl}\q{n}\choice\q{\bsl}\q{r}\choice\q{\bsl}\q{t}\choice\q{\bsl{}v}\choice\q{\bsl"}\choice\q{\bsl}\$\choice\q{\bsl}\emph{Char}\\
+&\choice&\q{\bsl u}\emph{Hex}\ \emph{Hex}\ \emph{Hex}\ \emph{Hex}
+\end{eqnarray*}
+\caption{Character Reference}\label{charRefFig}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{String}&\arrow&\q{"}\emph{StrChar}\ldots\emph{StrChar}\q{"}\\
+&\choice&\q{0'}\,\emph{Digit}\ldots\emph{Digit}\plus\q{"}\,\emph{Char}\ldots\emph{Char}\\
+\emph{StrChar}&\arrow&\emph{CharRef}\ \choice\,\emph{Interpolation}\\
+\emph{Interpolation}&\arrow&\q{\$} \emph{Identifier}\\
+&\choice&\q{\$(}\emph{Expression}\q{)}
+\end{eqnarray*}
+\caption{String Literal}
+\label{stringFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{RegularExpression}&\arrow&\q{`}\emph{Regex}\q{`}\\
+\emph{Regex}&\arrow&\q{.}\\
+&\choice&\emph{CharRef}\\
+&\choice&\emph{DisjunctiveGroup}\\
+&\choice&\emph{CharacterClass}\\
+&\choice&\emph{Binding}\\
+&\choice&\emph{Regex}\ \emph{Cardinality}\\
+&\choice&\emph{Regex}\ \emph{Regex}
+\end{eqnarray*}
+\caption{Regular Expressions}
+   \label{regFig}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Identifier}&\arrow&\emph{LeadChar}\,\emph{BodyChar}\ldots\emph{BodyChar}\\
+\emph{LeadChar}&\arrow&\emph{LetterNumber}\\
+&\choice&\emph{LowerCase}\\
+&\choice&\emph{UpperCase}\\
+&\choice&\emph{TitleCase}\\
+&\choice&\emph{OtherNumber}\\
+&\choice&\emph{OtherLetter}\\
+&\choice&\emph{ConnectorPunctuation}\\
+&\choice&\q{\_}\\
+\emph{BodyChar}&\arrow&\emph{LeadChar}\\
+&\choice&\emph{ModifierLetter}\\
+&\choice&\emph{Digit}
+\end{eqnarray*}
+\caption{Identifier}
+\label{identifierFig}
+\end{figure}
+
+\section{Types}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Type}&\arrow&\emph{TypeExpression}\ [\,\q{where}\ \emph{ContractConstraint}\,]\\
+\emph{TypeExpression}&\arrow&\emph{SimpleType}\\
+&\choice&\emph{GenericType}\\
+&\choice&\emph{TypeVariable}\\
+&\choice&\emph{TupleType}\\
+&\choice&\emph{FunctionType}\\
+&\choice&\emph{ProcedureType}\\
+&\choice&\emph{TypeInterfaceType}\\
+&\choice&\emph{UniversalType}
+\end{eqnarray*}
+\caption{Types of Types}
+\label{typeFig}
+\end{figure}
+
+
+\begin{figure}[hbp]
+\begin{eqnarray*}
+\emph{TypeAnnotation}&\arrow&\emph{Identifier}\ \q{has}\ \q{type}\ \emph{Type}
+\end{eqnarray*}
+\caption{Type Annotation Statement}
+\label{typeAnnotationFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{SimpleType}&\arrow&\emph{Identifier}
+\end{eqnarray*}
+\caption{Simple Types}
+\label{simpleTypeFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{TupleType}&\arrow&\q{(}\,\emph{Type}\,\q{,}\ldots\q{,} \emph{Type}\,\q{)}
+\end{eqnarray*}
+\caption{Tuple Type}
+\label{tupleTypeFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{TypeInterfaceType}&\arrow&\q{\{}\,\emph{TypeAnnotation}\sequence{;}\emph{TypeAnnotation}\ \q{\}}
+\end{eqnarray*}
+\caption{TypeInterface Type}
+\label{typeInterfaceTypeFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{FunctionType}&\arrow&\q{(}\,\emph{Type}\sequence{,}\emph{Type}\ \q{) =>}\ \emph{Type}\\
+&\choice&\q{\{}\,\emph{TypeAnnotation}\sequence{;}\emph{TypeAnnotation}\ \q{\}=>}\ \emph{Type}
+\end{eqnarray*}
+\caption{Function Type}
+\label{functionTypeFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{ProcedureType}&\arrow&\q{action(}\,\emph{Type}\sequence{,}\emph{Type}\ \q{)}\,[\uphat{}\emph{Type}\,]\\
+&\choice&\q{action\{}\,\emph{TypeAnnotation}\sequence{;}\emph{TypeAnnotation}\ \q{\}}\,[\uphat{}\emph{Type}\,]
+\end{eqnarray*}
+\caption{Action Procedure Type}
+\label{procedureTypeFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{GenericType}&\arrow&\emph{identifier}\ \q{of}\,\emph{TypeArgument}\\
+\emph{TypeArgument}&\arrow&\emph{Type}\\
+&\choice&\q{(}\,\emph{Type}\q{,}\ldots\q{,}\emph{Type}\plus\q{)}
+\end{eqnarray*}
+\caption{Generic Type Names}
+\label{genericTypeFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{TypeVariable}&\arrow&\q{\%}\,\emph{Identifier}\ [\emph{Requirements}]\\
+\emph{Requirements}&\arrow&\q{requiring}\, \emph{ContractReference}\\
+\emph{ContractReference}&\arrow&\emph{Contract}\ \choice\,\q{(}\,\emph{Contract}\,\q{,}\ldots\q{,}\,\emph{Contract}\ \q{)}
+\end{eqnarray*}
+\caption{Type Variables}
+\label{typeVariableFig}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{UniversalType}&\arrow&\q{(forall}\ \emph{TypeVar}\sequence{,}\emph{TypeVar} \q{suchthat}\ \emph{Type}\q{)}
+\end{eqnarray*}
+\caption{Universal Type}
+\label{universalTypeFig}
+\end{figure
+
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{TypeDefinition}&\arrow&\q{type}\ \emph{Identifier}\ \q{is}\,\emph{TypeSpec}\\
+\emph{TypeSpec}&\arrow&\emph{ValueSpecifier}\ \q{or}\ldots\q{or}\,\emph{ValueSpecifier}\\
+&\choice&\q{alias}\ \q{of}\ \emph{Type}
+\end{eqnarray*}
+\caption{Type Definition Statement}
+\label{typeDefinitionFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{ValueSpecifier}&\arrow&\emph{EnumeratedSymbol}\\
+&\choice&\emph{LabeledTuple}\\
+&\choice&\emph{LabeledAggregate}\\
+\emph{EnumeratedSymbol}&\arrow&\emph{Identifier}
+\end{eqnarray*}
+\caption{Value Specifiers}
+\label{valueSpecifierFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{LabeledTuple}&\arrow&\emph{Identifier}\q{(}\emph{Type}\,\q{,}\ldots\q{,}\emph{Type}\,\q{)}
+\end{eqnarray*}
+\caption{Positional Constructor Function}
+\label{positionalConFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{LabeledAggregate}&\arrow&\emph{Identifier}\q{\{}\,\emph{TypeElement}\ \q{;}\ldots\q{;}\,\emph{TypeElement}\ \q{\}}\\
+\emph{TypeElement}&\arrow&\emph{TypeAnnotation}\\
+&\choice&\emph{Identifier}\ \q{default}\ \q{is}\ \emph{Expression}
+\end{eqnarray*}
+\caption{Aggregate Constructor}
+\label{aggregateConFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Contract}&\arrow&\q{contract}\ \emph{Identifier}\ \q{of}\ \q{\%}\emph{Identifier}\ \q{is}\\
+&&\q{\{}\,\emph{TypeElement}\sequence{;}\emph{TypeElement}\,\q{\}}
+\end{eqnarray*}
+\caption{Type Contract Statement}
+\label{ContractFig}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{ContractConstraint}&\arrow&\q{where}\ \emph{TypeVariable}\ \q{requires}\ \emph{ContractReference}
+\end{eqnarray*}
+\caption{Contract Constraint}
+\label{contractConstraint}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{ContractImplementation}&\arrow&\q{contract}\ \emph{Identifier}\ \q{for}\ \emph{TypeExp}\ \q{has}\ \q{implementation}\\
+&&\q{\{}\,\emph{Statement}\,\q{;}\ldots\q{;}\,\emph{Statement}\,\q{\}}
+\end{eqnarray*}
+\caption{Type Contract Implementation Statement}
+\label{ContractImplementationFig}
+\end{figure}
+
+

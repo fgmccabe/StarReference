@@ -1,0 +1,729 @@
+%!TEX root = reference.tex
+\chapter{Patterns}
+\label{patterns}
+\index{patterns}
+Patterns are templates that are used to match against a value; possibly binding one or more variables to components of the matched value. Patterns are used as guards in equations, as filters in query expressions and in \q{for} loops. Patterns represent one of the fundamental mechanisms that can guide the course of a computation.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Pattern}&\arrow&\ntRef{ScalarPattern}\\
+&\choice&\ntRef{Variable}\\
+&\choice&\ntRef{ConstructorPattern}\\
+&\choice&\ntRef{EnumeratedSymbolPattern}\\
+&\choice&\ntRef{RecordPattern}\\
+&\choice&\ntRef{GuardedPattern}\\
+&\choice&\ntRef{MatchingPattern}\\
+&\choice&\ntRef{TypeCastPattern}\\
+&\choice&\ntRef{TypeAnnotatedPattern}\\
+&\choice&\ntRef{PatternApplication}\\
+&\choice&\ntRef{SequencePattern}\\
+&\choice&\ntRef{QuotedPattern}
+\end{eqnarray*}
+\caption{Patterns}
+\label{patternsFig}
+\end{figure}
+
+\paragraph{Patterns and Types}
+\label{patternType}
+\index{patterns!type of}
+Every pattern has a type associated with it. This is the type of values that the pattern is valid to match against. In the type safety productions involving patterns, we use the same meta predicate: $\typeprd{E}{P}{T}$ as for expressions.
+
+\section{Variables in Patterns}
+\label{patternVariables}
+\index{pattern!variable pattern}
+\index{variables}
+Variables in patterns are used to bind variables to elements of the input being matched against.
+
+Due to the scope hiding rule -- see Section~\vref{scopeHiding} -- it is required that all variables occurring in a pattern are not `already in scope'.
+
+\begin{aside}
+A repeated occurrence of a variable in a pattern is equivalent to a call to the \q{=} predicate. For example, the pattern:
+\begin{alltt}
+(X,Y,X)
+\end{alltt}
+is equivalent to the \ntRef{GuardedPattern} (see Section~\vref{guardPattern}):
+\begin{alltt}
+(X,Y,X1) where X=X1
+\end{alltt}
+The \q{=} predicate is defined in the standard \q{equality} contract (see Section~\vref{equalityPredicates}); and therefore, the call and the pattern may not be valid if \q{equality} is not implemented for the type of \q{X}.
+\end{aside}
+
+\subsection{Scope of Pattern Variables}
+\index{variables!scope of}
+A pattern always occurs in the context of a \emph{scope extension} -- a new potential scope for variables. For example, in the equation:
+\begin{alltt}
+fact(N) is N*fact(N-1)
+\end{alltt}
+the pattern on the left hand side of the equation:
+\begin{alltt}
+fact(N)
+\end{alltt}
+introduces variables that are in scope on the right hand side of the equation:
+\begin{alltt}
+N*fact(N-1)
+\end{alltt}
+
+The actual scope of a pattern variable depends on the syntactic structure in which the pattern occurs: 
+\begin{description}
+\item[equations]
+Pattern variables introduced in the left hand side of an equation are in scope on the right hand side of the equation and in any semantic guards associated with the equation. See Section~\vref{equations}.
+\item[action procedures]
+Pattern variables introduced in the head of an action procedure are in scope in the body of the rule. See Section~\vref{procedures}.
+\item[\q{for} loop]
+Variables introduced in the pattern of a \q{for} loop extend to the body of the loop. see Section~\vref{forLoop}.
+\item[query expressions]
+\index{query!constraint}
+Variables introduced in the body of a query condition -- see Section~\vref{conditions} -- are in scope throughout the body of the query and within the bound expression.
+\item[event rule]
+Variables that are introduced in event patterns and conditions in event rules -- see Section~\vref{actorRules} -- are in scope throughout the event rule; including the body of the event rule.
+\end{description}
+
+\subsection{Anonymous Variable Pattern}
+\label{anonymousVariable}
+The special identifier -- \q{\_} -- is used on those occasions where a filler of some kind is needed. \emph{Every} occurrence of \q{\_} refers to a different variable. A match with \q{\_} is always successful, but the value itself is ignored.
+
+\subsubsection{Type Safety}
+The type of a variable pattern is automatically \emph{inferred} from the expected type for the pattern.
+
+\section{Scalar Literal Patterns}
+\label{scalarPatterns}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{ScalarPattern}&\arrow&\ntRef{StringLiteral}\\
+&\choice&\ntRef{NumericLiteral}
+\end{eqnarray*}
+\caption{Scalar Literal Patterns}
+\label{scalarLiteralPtnFig}
+\end{figure}
+
+
+\subsection{Literal String Patterns}
+\label{literalStringPattern}
+\index{string@\q{string}!pattern}
+\index{patterns!literal string}
+
+A literal string as a pattern matches exactly that string; the type of a string pattern is \q{string}.
+
+\begin{aside}
+The operators that are used to denoted string interpolation expressions (see Section~\vref{StringInterpolation}) must \emph{not} be used in string patterns. In particular, the dollar and hash characters \emph{must} be quoted in a string pattern.
+
+For example, in the equation:
+\begin{alltt}
+hasDollar("has\$") is true
+\end{alltt}
+the string pattern \q{"has\$"} is not legal. You should use:
+\begin{alltt}
+hasDollar("has\bsl\$") is true
+\end{alltt}
+
+On the other hand, regular expression patterns are treated with special semantics (see Section~\vref{regularExpressions}).
+\end{aside}
+
+\subsection{Literal Numbers}
+\label{literalNumberPattern}
+\index{number pattern}
+\index{patterns!literal number}
+
+A literal number as a pattern matches exactly that number.
+
+The type of the pattern depends on the type of the number literal: \q{integer} literals have type \q{integer}, \q{float} literals have type \q{float} and so on.
+
+
+\section{Regular Expression Patterns}
+\label{regularExpressions}
+\index{patterns!regexp}
+\index{patterns!string}
+A regular expression denotes a pattern that can potentially match a \q{string}. Regular expressions are written using a notation that is very close to the standard regexp notation; the regular expression itself is enclosed in backquote characters: \q{`}
+
+For example, a regular expression that matches the common ASCII notion of identifier would be:
+\begin{alltt}
+`[a-zA-Z_][a-zA-Z_0-9]*`
+\end{alltt}
+
+Most of the commonly used regular expression operators are supported -- character classes, star iteration and so on. In addition, there is a smooth integration of variables in regular expressions -- it is possible to mark a sub-expression to be bound to a variable.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{RegularExpression}&\arrow&\q{`}\ntRef{Regex}\q{`}\\
+\ntDef{Regex}&\arrow&\q{.}\\
+&\choice&\ntRef{CharRef}\\
+&\choice&\ntRef{DisjunctiveGroup}\\
+&\choice&\ntRef{CharacterClass}\\
+&\choice&\ntRef{Binding}\\
+&\choice&\ntRef{Regex} \ntRef{Cardinality}\\
+&\choice&\ntRef{Regex}\ \ntRef{Regex}
+\end{eqnarray*}
+\caption{Regular Expressions}\label{regexpFig}
+\end{figure}
+
+\index{regular expression!character reference}
+The simplest form of a regular expression is simply a character; which is denoted using a character reference. See Section~\vref{CharacterReference}.
+
+\subsection{Character Class}
+\label{characterClass}
+\index{regular expression!character class}
+A character class denotes a range of characters that will match the regular expression. Character classes may be designated explicitly -- using the \q{[a-z]} style notation -- or may refer to one of the standard pre-defined character classes.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{CharacterClass}&\arrow&\q{[}[\q{\uphat}]\ntRef{RegChar}\ldots\ntRef{RegChar}\q{]}\\
+&\choice&\q{\bsl}\q{d}\,\choice\,\q{\bsl}\q{D}\\
+&\choice&\q{\bsl}\q{s}\,\choice\,\q{\bsl}\q{S}\\
+&\choice&\q{\bsl}\q{w}\,\choice\,\q{\bsl}\q{W}\\
+\ntDef{RegChar}&\arrow&\ntRef{CharRef}\ [\q{-}\ntRef{CharRef}\,]
+\end{eqnarray*}
+\caption{Character Class}
+\label{charClassFig}
+\end{figure}
+
+The standard character classes are listed in Table~\vref{charClassTable}.
+
+\begin{table}[htbp]
+\centering{
+\caption{Standard Character Classes}\label{charClassTable}
+\vspace{0.5ex}
+\begin{tabular}{|c|l|}
+\hline
+Char Class&Meaning\\
+\hline
+\tt \bsl{}d&Digit character \q{[0-9]}\\
+\tt \bsl{}D&Non-digit character\\
+\tt \bsl{}s&Whitespace character\\
+\tt \bsl{}S&Non-whitespace character\\
+\tt \bsl{}w&Word character \q{[a-zA-Z\_0-9]}\\
+\tt \bsl{}W&Non-Word character \q{[\uphat{}a-zA-Z\_0-9]}\\
+\hline
+\end{tabular}
+}
+\end{table}
+If the first character in a character class is the \q{\uphat} character, then the sense of the class is inverted: it matches all characters \emph{except} those mentioned in the remaining characters of the class.
+\begin{aside}
+In order to have a character class that positively looks for a \q{\uphat} character, it may either be escaped, as in:
+\begin{alltt}
+[\bsl\upht]
+\end{alltt}
+or the class arranged so that \q{\uphat} is not the first character:
+\begin{alltt}
+[ab\uphat{}c]
+\end{alltt}
+
+Analogously, in order to positively specify the \q{-} character in a character class it should either be escaped:
+\begin{alltt}
+[a\bsl{}-b]
+\end{alltt}
+or put at the beginning of the character class (possibly after a leading \q{\uphat}):
+\begin{alltt}
+[-ab]
+\end{alltt}
+\end{aside}
+
+\subsection{Disjunctive Regular Expressions}
+\label{disjunctiveRegexp}
+\index{regular expression!disjunctive}
+Two or more regular expressions separated by the \q{|} character denote \emph{disjunctive groups}. 
+
+Disjunctive groups are enclosed in parentheses.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{DisjunctiveGroup}&\arrow&\q{(}\,\ntRef{Regex}\sequence{|}\ntRef{Regex}\,\q{)}
+\end{eqnarray*}
+\caption{Disjunctive Regular Expression}
+\label{regexpDisjunctionFig}
+\end{figure}
+
+\subsection{Regular Expression Cardinality}
+A regular expression can be optional or repeated a number of times.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Cardinality}&\arrow&\q{?}\ \choice\ \q{*}\ \choice\ \q{+}
+\end{eqnarray*}
+\caption{Regular Expression Cardinality}
+\label{regexpCardinalityFig}
+\end{figure}
+
+The cardinality operators always refer to the regular expression immediately to the left of the operator. They control how many times that expression should be matched:
+\begin{description}
+\item[\q{?}] A cardinality of \q{?} means that the regular expression to the left is optional. For example,
+\begin{alltt}
+`[-+]?`
+\end{alltt}
+will match a \q{-} or \q{+} character if present.
+\item[\q{*}]
+A cardinality of \q{*} means that the regular expression to the left may be matched zero or more times.
+
+For example, the pattern:
+\begin{alltt}
+`[0-9]*`
+\end{alltt}
+will match any number of digit characters.\footnote{ASCII digit characters that is. Unicode contains many other digit characters not matched by this regular expression.} The classic regular for an identifier is:
+\begin{alltt}
+`[a-zA-Z_][a-zA-Z0-9_]*`
+\end{alltt}
+meaning a letter followed by any number of letters and digits.
+
+\begin{aside}
+This is a so-called `greedy match': the pattern matches as many as possible of the pattern. This makes a difference if the pattern immediately following a star pattern may also match or partially match the starred pattern:
+\begin{alltt}
+`[a-f]*[a-z]*`
+\end{alltt}
+\end{aside}
+\item[\q{+}] The \q{+} cardinality means that the regular expression to the left must be matched at least once, but can be matched any number of times beyond that.
+
+For example, the definition of an \q{integer} literal in many programming languages looks like:
+\begin{alltt}
+`[-+]?[0-9]+`
+\end{alltt}
+I.e., an optional leading sign, followed by at least one decimal digit character.
+\end{description}
+
+\subsection{Variables in Regular Expressions}
+\label{variableRegexp}
+\index{regular expression!variables}
+\index{variables!in regular expressions}
+A variable in a regular expression is denoted by a colon character followed by the identifier. The entire regular expression is enclosed in parentheses.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Binding}&\arrow&\q{(}\ntRef{Regex}\ \q{:}\ \ntRef{Identifier}\q{)}
+\end{eqnarray*}
+\caption{Variable Binding}
+\label{ergexpBindingFig}
+\end{figure}
+
+If the match is successful, then the variable is bound to the part of the string that corresponds to the regular expression within the parentheses. The type of the variable is \q{string}.
+
+For example, to pick out the third character of a \q{string}, and bind it to the variable \q{T}, we can use the pattern:
+\begin{alltt}
+`..(.:T).*`
+\end{alltt}
+Any arbitrary subexpression can be extracted; for example, the regular expression:
+\begin{alltt}
+`.*(a+:T).*`
+\end{alltt}
+looks for the first substring consisting of \q{a} characters.
+\begin{aside}
+It is not defined if a variable regular expression is itself repeated, or is part of an optional regular expression. For example, the meaning of:
+\begin{alltt}
+`([a-z]+:I)?`
+\end{alltt}
+is undefined (since the variable pattern itself is optional, it is possible to match a string against this pattern without binding the variable \q{I}).
+\end{aside}
+
+\section{Constructor Patterns}
+\label{tuplePattern}
+\index{tuple!pattern}
+\index{patterns!tuple}
+A constructor pattern denotes an occurrence of a value that has been declared within an algebraic type definition (see Section~\vref{algebraicTypeDefinitions}). 
+
+A constructor pattern mimics the form of the constructor definition itself: for a \ntRef{LabeledTuple} it consists of an identifier followed by a sequence of patterns, enclosed in parentheses and separated by commas, denoting the arguments to the \ntRef{LabeledTuple}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{ConstructorPattern}&\arrow&\ntRef{TuplePattern}\\
+&\choice&\ntRef{RecordPattern}
+\end{eqnarray*}
+\caption{Constructor Pattern}
+\label{constructorPtnFig}
+\end{figure}
+
+\begin{aside}
+Tuple patterns are the only way that a tuple value may be inspected and elements of it extracted. There are no indexing operators over tuples (whether labeled or not) because it is not possible to give a consistent typing to such operators.
+\end{aside}
+
+\subsection{Tuple Patterns}
+\label{posConPattern}
+\index{patterns!positional constructor}
+\index{positional constructor patterns}
+A tuple pattern consists of a constructor label followed by the argument patterns -- as introduced in the appropriate algebraic type definition.
+
+The special, unlabeled, form of tuple pattern omits the label and refers to the `anonymous' tuple type.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{TuplePattern}&\arrow&\ntRef{Identifier}\q{(}\ntRef{Pattern}\sequence{,}\ntRef{Pattern}\,\q{)}\\
+&\choice&\q{(}\,\ntRef{Pattern}\sequence{,}\ntRef{Pattern}\,\q{)}
+\end{eqnarray*}
+\caption{Tuple Pattern}
+\label{tuplePtnFig}
+\end{figure}
+
+\subsubsection{Type Safety}
+Positional constructors must be declared in an algebraic type definition (see Section~\vref{algebraicTypeDefinitions}). The required arity and types of the arguments of the positional constructor are determined from that type definition.
+
+\subsubsection{Anonymous Tuple Patterns}
+\label{anonTuplePattern}
+
+Anonymous tuple patterns can be used to extract values from tuple values (see Section~\vref{TupleTerms}). For example, the pattern \q{(X,Y)} in the query expression:
+\begin{alltt}
+all of X where (X,Y) in R
+\end{alltt}
+matches against the elements of \q{R} -- assuming that it is a \q{list} --
+\index{lists}
+and `binds' the local variables \q{X} and \q{Y} to the first and second tuple member of each successive elements of \q{R}.
+
+\begin{aside}
+As noted in Section~\vref{tupleType}, anonymous tuples are essentially syntactic sugar for automatically defined algebraic types. The above query is equivalent to:
+\begin{alltt}
+all of X where \$2(X,Y) in R\footnote{Noting, of course, that \q{\$2} is not a legal \Sr identifier.}
+\end{alltt}
+
+\end{aside}
+
+\section{Enumerated Symbol Patterns}
+\label{enumPattern}
+\index{patterns!enumerated symbol}
+\index{enumerated symbol pattern}
+
+An enumerated symbol -- as a pattern -- matches the same symbol only. Enumerated symbol patterns are technically degenerate forms of tuple patterns; the empty parentheses are simply omitted for syntactic convenience.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{EnumeratedSymbolPattern}&\arrow&\ntRef{Identifier}
+\end{eqnarray*}
+\caption{Enumerated Symbol Pattern}
+\label{enumSumbolPtn}
+\end{figure}
+
+\section{Record Patterns}
+\label{aggregateConPattern}
+\index{patterns!record constructor}
+\index{record constructor pattern}
+A record pattern consists of the record label, followed by attribute patterns enclosed in braces.
+
+Each attribute pattern takes the form:
+\begin{alltt}
+\emph{att}=\emph{Pattern}
+\end{alltt}
+where \emph{Pattern} is a pattern that the \q{\emph{att}} attribute must satisfy.
+
+Unlike positional constructor patterns, it is not required for all of the attributes to be mentioned in a record constructor pattern. At its limit, a pattern of the form:
+\begin{alltt}
+label\{\}
+\end{alltt}
+becomes a test that the \q{label} record literal is present -- with no constraints on the attributes of the record.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{RecordPattern}&\arrow&\ntRef{Identifier}\q{\{}\,\ntRef{AttributePattern}\sequence{;}\ntRef{AttributePattern}\,\q{\}}\\
+&\choice&\ntRef{AnonymousRecordPattern}\\
+\ntDef{AttributePattern}&\arrow&\ntRef{Identifier}\ \q{=}\ \ntRef{Pattern}
+\end{eqnarray*}
+\caption{Record Patterns}
+\label{aggregateConPtnFig}
+\end{figure}
+
+\subsubsection{Type Safety}
+A record constructor pattern is type consist if the record has been declared, and if each of the fields in the pattern have been declared to be part of the record -- and the corresponding patterns are type consistent.
+
+\subsection{Anonymous Record Patterns}
+\label{anonAggPtn}
+\index{matching anonymous records}
+\index{pattern!anonymous record}
+\index{anonymous record pattern}
+An anonymous record pattern is written in an analogous form to the regular record pattern, except that there is no label prefixed to it.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{AnonymousRecordPattern}&\arrow&\q{\{}\,\ntRef{AttributePattern}\,\sequence{;}\ntRef{AttributePattern}\,\q{\}}
+\end{eqnarray*}
+\caption{Anonymous Record Patterns}
+\label{anonAggregateConPtnFig}
+\end{figure}
+
+\noindent
+For example, 
+\begin{alltt}
+\{name=N;address=A\} in R
+\end{alltt}
+uses an anonymous record pattern to match elements of the list \q{R}.
+
+\begin{aside}
+Unlike with most other patterns, the type checker is generally \emph{not} able to reliably infer the type of an anonymous record pattern. As a result, it must \emph{always} be the case that the anonymous record pattern occurs in a context where the type may be inferred. In the above example, the type of the anonymous record pattern:
+\begin{alltt}
+\{name=N;address=A\}
+\end{alltt}
+can be inferred from the context it occurs in, and the type of \q{R}. However, if \q{R}'s type is not already known by other means, then a syntax error will result.
+
+\begin{aside}
+The reason for this is that, like other record patterns, an anonymous record pattern need not contain an element for every attribute defined.
+\end{aside}
+\end{aside}
+
+
+\section{Guarded Patterns}
+\label{guardPattern}
+\index{patterns!guarded}
+\index{guarded patterns}
+
+A guarded pattern attaches a semantic condition on a pattern. It consists of a pattern, followed by the \q{where} keyword and a predication condition -- all enclosed in parentheses.
+
+Guarded patterns are useful in enhancing the specificity of patterns -- which apart from guarded patterns are purely syntactic in nature.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{GuardedPattern}&\arrow&\q{(}\,\ntRef{Pattern}\ \q{where}\ \ntRef{Condition}\ )
+\end{eqnarray*}
+\caption{Guarded Patterns}
+\label{guardPtnFig}
+\end{figure}
+
+\subsubsection{Type Safety}
+A guarded pattern has a type assignment based on the type of the left hand side, and the type safety of the condition.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{P}{T}}
+\AxiomC{\typesafe{E}{\emph{C}}}
+\BinaryInfC{\typeprd{E}{P\ \q{where}\ C}{T}}
+\end{prooftree}
+
+The type safety of conditions is covered in more detail in Chapter~\vref{conditions}.
+
+\section{Matching Pattern}
+\label{matchingPattern}
+\index{patterns!matching}
+\index{matching patterns}
+
+The \q{matching} pattern allows the same input to be matched against two patterns. This is typically used to combine a variable assignment pattern with a structured pattern.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{MatchingPattern}&\arrow&\q{(}\,\ntRef{Pattern}\ \q{matching}\ \ntRef{Pattern}\ )
+\end{eqnarray*}
+\caption{Matching Patterns}
+\label{matchingPtnFig}
+\end{figure}
+
+\subsubsection{Type Safety}
+The two patterns in a \q{matching} pattern are used to match the same input -- hence they must be of the same type.
+
+\section{Type Cast Pattern}
+\label{typeCastPattern}
+\index{patterns!type cast}
+\index{type cast!pattern}
+\index{cast@\q{cast}!pattern}
+
+A type cast pattern is a form of semantic pattern where the type of the pattern is explicitly marked.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{TypeCastPattern}&\arrow&\ntRef{Pattern}\ \q{cast}\ \ntRef{Type}
+\end{eqnarray*}
+\caption{Type Cast Pattern}
+\label{typeCastPtnFig}
+\end{figure}
+
+A pattern of the form:
+\begin{alltt}
+\emph{Ptn} cast \emph{Type}
+\end{alltt}
+implies a type cast from the type of the matched value to the type of \q{\emph{Ptn}}.
+
+\begin{aside}
+Like \ntRef{TypeCastExpression}s, a type cast pattern can never result in a \emph{value coercion}. In addition, a \ntRef{TypeCastPattern} only `makes sense' in the situation where either the cast type is \q{any} or the type of the value being matched is type \q{any}.
+\end{aside}
+
+%\subsubsection{Type Safety}
+%The type of a type cast pattern is implicitly determined by the expected type of the pattern. The type of the embedded pattern is set by the type cast itself.
+%
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{P}{T\sub{P}}}
+%\AxiomC{\entail{E,\theta\sub0}{T\sub{P}\subsume T\leadsto\theta\sub{o}}}
+%\BinaryInfC{\typeprd{E}{Ex\q{ cast }T}{T}}
+%\end{prooftree}
+%
+%This rule states that the type of a type cast pattern may be of type $T$, provided that $T\sub{P}\subsume{}T$, i.e., the expected type is at least as general as the actual type of the pattern.
+
+\section{Type Annotated Pattern}
+\label{typeAnnotatedPattern}
+\index{patterns!type annotated}
+\index{type annotation!pattern}
+\index{cast@\q{cast}!pattern}
+
+A type annotated pattern is a form of semantic pattern where the type of the pattern is explicitly annotated.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{TypeAnnotatedPattern}&\arrow&\q{(}\ntRef{Pattern}\ \q{has type}\ \ntRef{Type}\q{)}
+\end{eqnarray*}
+\caption{Type Annotated Pattern}
+\label{typeAnnotatedPtnFig}
+\end{figure}
+
+A pattern of the form:
+\begin{alltt}
+(\emph{Ptn} has type \emph{Type})
+\end{alltt}
+implies that \q{\emph{Ptn}} has type \emph{Type}.
+
+\begin{aside}
+One important role for \ntRef{TypeAnnotatedPattern}s is to explicitly declare the type of a pattern variable\footnote{Recall that all variable declarations take the form of a pattern.} This specifically permits a variable to be given a higher-ranked type. For example, in:
+\begin{alltt}
+poly((F has type for all t such that (t)=>t)) is (F(1),F("alpha"))
+\end{alltt}
+would not be well typed without the explicit type annotation on the argument \q{F} because type inference cannot infer polymorphic types.
+\end{aside}
+\begin{aside}
+The parentheses are necessary for this form of pattern because of the relative priority of \q{has type} operator which is higher than is usually permitted in the context of patterns.
+\end{aside}
+
+\subsubsection{Type Safety}
+The type of a type annotated pattern is implicitly determined by the expected type of the pattern. The type of the embedded pattern is set by the type cast itself.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{P}{T\sub{P}}}
+\AxiomC{\entail{E,\theta}{T\sub{P}\equivt{} T}}
+\BinaryInfC{\typeprd{E}{P\q{ has type }T}{T}}
+\end{prooftree}
+
+This rule states that the type of a type annotated pattern is its annotated type.
+
+\section{Pattern Abstraction Application}
+\label{patternApplication}
+\index{patterns!application}
+\index{pattern abstraction application}
+
+A pattern abstraction application is a pattern where a \ntRef{PatternAbstraction} is being applied.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{PatternApplication}&\arrow&\ntRef{Expression}\q{(}\ntRef{Pattern}\sequence{,}\ntRef{Pattern}\q{)}
+\end{eqnarray*}
+\caption{Pattern Application Pattern}
+\label{patternApplicationFig}
+\end{figure}
+
+A pattern of the form:
+\begin{alltt}
+\emph{PtnAb}(\emph{Ptn\sub1}\sequence{,}\emph{Ptn\subn})
+\end{alltt}
+denotes the application of a pattern abstraction -- identified by \q{\emph{PtnAb}} -- to the argument patterns \q{\emph{Ptn\subi}}
+
+\begin{aside}
+The applied pattern abstraction is denoted by \emph{Expression} in Figure~\vref{patternApplicationFig}. If the pattern application is in the head of a rule -- such as an equation -- then the pattern abstraction must be a \emph{Variable}: in fact a \emph{free variable} of the rule.
+\end{aside}
+
+\begin{aside}
+It is possible for a pattern abstraction to `return' computed values; i.e., values that are not directly in the original data being matched. For example, the pattern abstraction:
+\begin{alltt}
+parent(P) from C where (P,C) in children;
+\end{alltt}
+will match anyone that is known to have a parent -- in the \q{children} collection -- and will return the parent of the child. A match using this:
+\begin{alltt}
+"john" matches parent(PJ)
+\end{alltt}
+will result in the variable \q{PJ} being bound to \q{"john"}'s parent -- if it is known. Only one of \q{"john"}'s parents will be found, however.
+\end{aside}
+
+
+The type signature for a pattern abstraction is of the form:
+\begin{alltt}
+(t\sub1\sequence{,}t\subn) <= t
+\end{alltt}
+where the \q{t\subi} are return values from the match and \q{t} is the type of the value being matched.
+
+Where a pattern application is part of a larger pattern the match type refers to a single value being matched. However, in the case of the \q{matches} condition, it is possible to match against multiple values:
+\begin{alltt}
+(E\sub1\sequence{,}E\sub{m}) matches P(V\sub1\sequence{,}V\subn)
+\end{alltt}
+In this case, the type of the pattern abstract \q{P} would be of the form:
+\begin{alltt}
+(Vt\sub1\sequence{,}Vt\subn) <= (Et\sub1\sequence{,}Et\sub{m})
+\end{alltt}
+
+
+\subsubsection{Type Safety}
+The type of a application pattern is determined by the type of the applied pattern abstraction.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{\q{P}}{\q{(}t\sub1,\ldots,t\subn\q{)<=}T}}
+\AxiomC{\typeprd{E}{P\sub1}{t\sub1}\sequence{\quad}\typeprd{E}{P\subn}{t\subn}}
+\BinaryInfC{\typeprd{E}{\q{P(P\sub1}\sequence{,}\q{P\subn)}}{T}}
+\end{prooftree}
+
+\begin{aside}
+Pattern abstraction applications are also important in the `abstract data type' pattern. In that pattern, a contract is used to define one or more pattern abstractions and programs using that contract are, in effect, shielded from knowing the concrete types involved.
+\end{aside}
+
+
+\section{Sequence Patterns}
+\label{sequencePattern}
+\index{sequence!patterns}
+\index{patterns!sequence}
+\index{of@\q{of}!pattern}
+
+A sequence pattern represents a use of the standard \q{sequence} contract to match sequences of values.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{SequencePattern}&\arrow&\ntRef{SequenceType}\ \q{of}\,\q{[}\ntRef{PtnSequence}\q{]}\\
+\ntDef{PtnSequence}&\arrow&[\ntRef{Pattern}\q{..,}\,]\ntRef{Pattern}\sequence{,}\ntRef{Pattern}[\q{,..}\,\ntRef{Pattern}]
+\end{eqnarray*}
+\caption{Sequence Pattern}
+\label{sequencePatternFig}
+\end{figure}
+
+Like \ntRef{SequenceExp}s, a \ntRef{sequencePattern} is syntactic sugar for terms involving the \q{sequence} contract -- which is defined in Program~\vref{sequenceContractDef}.
+
+A pattern of the form:
+\begin{alltt}
+\emph{Label} of [\emph{Ptn\sub1}\sequence{;}\emph{Ptn\subn}\q{]}
+\end{alltt}
+is equivalent to the pattern:
+\begin{alltt}
+\_pair(\emph{Ptn\sub1}, \ldots, \_pair(\emph{Ptn\subn},\_empty())\ldots)
+\end{alltt}
+\emph{provided that \emph{Label} is the label of a type that implements the \q{sequence} contract}. Included in that contract are two pattern abstractions -- denoting the empty sequence (\q{\_empty()}) and a non-empty sequence (\q{\_pair()}).
+
+
+\subsubsection{Type Safety}
+Since a sequence pattern is essentially a macro for the use of the \q{sequence} contract, its type safety is determined by the \q{sequence} contract.
+
+\section{Quoted Syntax Patterns}
+\label{quotedPatterns}
+
+Analogously to quoted expressions -- see Section~\vref{quotedText} -- a quoted syntactic form may be used as a pattern.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{QuotedPattern}&\arrow&\q{quote(}\ntRef{Pattern}\q{)}\\
+&\choice&\q{<|}\ntRef{Pattern}\q{|>}
+\end{eqnarray*}
+\caption{Quoted Patterns}
+\label{quotedPtnFig}
+\end{figure}
+
+A pattern of the form:
+\q{<| \emph{SyntacticForm} |>}
+denotes a pattern of type \q{quoted}\footnote{The \q{quoted} type is defined in Program~\vref{quotedProg}.} where the input must match \q{\emph{SyntacticForm}}.
+
+As with quoted expressions, it is possible to put a `hole' in a quoted pattern by using the \q{unquote} or \q{?} forms. For example, the pattern:
+\begin{alltt}
+<| ?A * 45 |>
+\end{alltt}
+will match with a quoted form such as:
+\begin{alltt}
+(Alpha+Beta)*45
+\end{alltt}
+by binding the unquoted variable \q{A} with the equivalent of:
+\begin{alltt}
+<| (Alpha+Beta) |>
+\end{alltt}
+\begin{aside}
+The parentheses used in the original expression remain explicit in the quoted form. This pattern is equivalent to the pattern:
+\begin{alltt}
+applyAst(\_, nameAst(\_, "\$1"), array of [
+  applyAst(\_, nameAst(\_, "+"),
+    array of [nameAst(\_,"Alpha"), nameAst(\_,"Beta")])
+  ])
+\end{alltt}
+\begin{aside}
+The location of the abstract syntax tree terms is \emph{not} matched in a quoted pattern. This is denoted by the use of anonymous variables in the location argument.
+\end{aside}
+\begin{aside}
+Anonymous tuples have as their label a name of the form \q{"\$\emph{arity}"} where \emph{arity} is the number of elements in the anonymous tuple.
+\end{aside}
+\end{aside}
+The type of the variable \q{A} must also be \q{quoted}.
+

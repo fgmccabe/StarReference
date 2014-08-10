@@ -1,0 +1,415 @@
+%!TEX root = reference.tex
+\chapter{Concurrent Execution}
+\label{concurrent}
+\index{concurrent execution}
+\index{execution!parallel}
+
+Concurrent and parallel execution of \Sr programs involves two inter-related concepts: the \q{task} and the \q{rendezvous}. A \q{task} is a form of \ntRef{ComputationExpression} with support for parallel and asynchronous execution.  A \q{rendezvous} represents a `meeting place' between two or more independent activities. In particular, messages may be exchanged between \q{task}s at a \q{rendezvous}.
+
+The concurrency concepts and features are inspired by similar features found in Concurrent ML \cite{reppy:99}; which, in turn, have similar underpinnings as Hoare's Concurrent Sequential Processes \cite{hoare:85}.
+
+\section{Accessing Concurrency Features}
+
+\begin{aside}
+In order to access the concurrency features described in this chapter it is required to \q{import} the \q{concurrency} package:
+\begin{alltt}
+import concurrency;
+\end{alltt}
+\end{aside}
+
+\section{Tasks}
+\label{tasks}
+The foundation for concurrency is the \ntRef{TaskExpression}. A \q{task} is a \ntRef{ComputationExpression} that denotes a computation that may be performed in parallel with other computations.
+
+\subsection{Task Expressions}
+\label{taskExpressions}
+
+A \q{task} expression consists of a \q{task}-labeled \ntRef{ActionBlock}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Expression}&\arrowplus&\ntRef{TaskExpression}\\
+\ntDef{TaskExpression}&\arrow&\q{task}\ \q{\{}\ \ntRef{Action}\,\sequence{;}\,\ntRef{Action}\,\q{\}}
+\end{eqnarray*}
+\caption{Task Expression}
+\label{taskExpressionFig}
+\end{figure}
+
+\ntRef{TaskExpression}s denote computations that are expected to be performed asynchronously or in parallel.
+
+A \q{task} is `created' with the \q{task} notation:
+\begin{alltt}
+T is task\{ logMsg(info,"This is a task action") \}
+\end{alltt}
+\begin{aside}
+Apart from \q{background} tasks (see Section~\vref{backgroundTask}), a \ntRef{TaskExpression} is not `started' until it is \q{perform}ed or \q{valof} is applied.
+\end{aside}
+In order to start the task, the task must be \q{perform}ed:
+\begin{alltt}
+perform T
+\end{alltt}
+This is the same as for all \ntRef{ComputationExpression}s.
+
+\ntRef{TaskExpression}s may have values; and may be composed and constructed like other expressions. For example, the function:
+\begin{alltt}
+tt(X) is task\{
+  Y is 2;
+  valis X+Y;
+\}
+\end{alltt}
+represents a rather elaborate way of adding 2 to a number. As with \q{T} above, the expression:
+\begin{alltt}
+I is tt(3)
+\end{alltt}
+is not an \q{integer} but an \q{integer}-valued \ntRef{TaskExpression}. The value returned may be extracted using \q{valof}:
+\begin{alltt}
+Five is valof I
+\end{alltt}
+As with all \ntRef{ComputationExpression}s, if there is a possibility that the \ntRef{TaskExpression} will fail, then the \q{on abort} variant of \q{valof} should be used:
+\begin{alltt}
+Five is valof I 
+  on abort \{ E do \{ 
+    logMsg(info,"Was not expecting this");
+    valis nonInteger
+  \}
+\}
+\end{alltt}
+
+\subsection{The \q{task} type}
+\label{taskType}
+The \q{task} type is a standard type that is used to represent \ntRef{TaskExpression}s. It also represents the `concurrency Monad'.
+
+\begin{alltt}
+task has kind type of type
+\end{alltt}
+
+\begin{aside}
+Although the \q{task} type is implemented as a normal type, it's definition is hidden as its internals are not relevant to the programmer. Hence, it is declared using the \ntRef{HasKind} statement rather than with a \ntRef{AlgebraicType} definition.
+\end{aside}
+
+\section{Task-related Functions}
+\label{taskFunctions}
+\index{task functions}
+
+\subsection{Background Task}
+\label{backgroundTask}
+The \q{background} function takes a \q{task} and performs it in the background (i.e., in parallel with the invoking call). The value of the \q{background} task is the same as the value of the backgrounded task.
+\begin{alltt}
+background has type for all t such that (task of t)=>task of t
+\end{alltt}
+\begin{aside}
+\q{background} is a standard prefix operator; defined as:
+\begin{alltt}
+\#prefix((background),900);
+\end{alltt}
+hence a call to \q{background} may be written without parentheses.
+\end{aside}
+
+\section{Rendezvous}
+\label{rendezvous}
+
+A rendezvous is a coordination point between two or more independent tasks. Typically, these represent message communication but can involve time-outs, i/o operations and so on.
+
+\subsection{The \q{rendezvous} Type}
+\label{rendezvousType}
+The \q{rendezvous} type is a standard type that denotes a rendezvous. 
+\begin{alltt}
+rendezvous has kind type of type;
+\end{alltt}
+\begin{aside}
+It is an opaque type -- i.e., its existence is public, but its definition is not.
+\end{aside}
+
+\subsection{Waiting for a Rendezvous}
+\label{waitfor}
+The \q{wait for} function is used to wait at a rendezvous until the rendezvous `occurs'.
+
+\begin{alltt}
+wait for has type for all t such that (rendezvous of t)=>task of t
+\end{alltt}
+
+\begin{aside}
+The \q{wait for} function name is also a multi-word prefix operator defined:
+\begin{alltt}
+\#prefix("wait for",999);
+\end{alltt}
+\end{aside}
+
+Waiting for a \q{rendezvous} is the central mechanism that multiple \q{task}s may use to coordinate their activities.
+
+The result of waiting for a \q{rendezvous} is also a \q{task}. This means, for example, that there can be a distinction between a `coordination point' between \q{task}s and the computation enabled by that coordination.
+
+\subsection{The \q{alwaysRv} Rendezvous Function}
+\label{alwaysRendezvous}
+\index{rendezvous!alwaysRv@\q{alwaysRv}}
+
+The \q{alwaysRv} returns a \q{rendezvous} that is always `ready'. It has a single argument which is returned -- wrapped as a \q{task} -- by \q{wait for}.
+
+\begin{alltt}
+alwaysRv has type for all t such that (t)=>rendezvous of t
+\end{alltt}
+
+In effect, the \q{alwaysRv} rendezvous obeys the law:
+\begin{equation*}
+\q{wait for alwaysRv(X)}\ \equiv\ \q{task\{ valis X\,\}}
+\end{equation*}
+
+\subsection{The \q{neverRv} Rendezvous}
+\label{neverRendezvous}
+\index{rendezvous!never@\q{never}}
+
+The \q{neverRv} \q{rendezvous} is \emph{never} `ready'.
+
+\begin{alltt}
+neverRv has type for all t such that rendezvous of t
+\end{alltt}
+
+\begin{aside}
+Waiting for a \q{neverRv} rendezvous is rarely useful by itself; but is especially useful when combined with \q{guardRv}.
+\end{aside}
+
+\subsection{The \q{chooseRv} Rendezvous Function}
+\label{chooseRvFun}
+\index{rendezvous!choose@\q{choose}}
+\index{multiple rendezvous}
+\index{selecting from many rendezvous}
+
+The \q{chooseRv} rendezvous function is used to combine a collection of rendezvous into a single non-deterministic disjunction. Waiting for a \q{chooseRv} rendezvous is successful if one of its `arms' is successful.
+
+\begin{alltt}
+chooseRv has type for all s,t such that (s)=>rendezvous of t
+                  where sequence over s determines rendezvous of t
+\end{alltt}
+
+The argument to \q{chooseRv} is a \q{sequence} of \q{rendezvous} values -- any of which may activate in order to activate the \q{chooseRv}.
+
+The \q{chooseRv} rendezvous combinator is important because it allows a one-of selection from multiple alternatives. 
+
+\begin{aside}
+Waiting on a \q{chooseRv} rendezvous is successful when one of the \q{rendezvous} in its argument collection becomes available -- i.e., a call of \q{wait for} on the \q{chooseRv} collection completes when \q{wait for} would complete on one of the elements of that collection.
+
+If more than one element \q{rendezvous} is ready then one of them will be selected non-deterministically. 
+\end{aside}
+
+\begin{aside}
+The \q{chooseRv} \q{rendezvous} is analogous to the Unix-style \q{select} function; except that rather than being limited to waiting for an I/O descriptor to be ready, the \q{chooseRv} rendezvous allows many different forms of rendezvous to be selected from.
+\end{aside}
+
+For example, the rendezvous expression:
+\begin{alltt}
+chooseRv(list of [sendRv(Ch,"M"), timeoutRv(10)])
+\end{alltt}
+can be used to represent a combination of trying to send a message on the \q{Ch} channel -- see Section~\vref{sendRvFun} -- or if no one received the message within 10 milliseconds then giving up on the send.
+
+\subsection{The \q{guardRv} Rendezvous}
+\label{guardRvFun}
+\index{rendezvous!guardRv@\q{guardRv}}
+\index{guarded rendezvous}
+
+A \q{guardRv} function is used to dynamically compute a \q{rendezvous}. Applied just before a rendezvous is waited on, the \q{quardRv} allows the precise rendezvous to be computed dynamically.
+
+\begin{alltt}
+guardRv has type for all t such that
+                 (task of rendezvous of t) => rendezvous of t
+\end{alltt}
+
+The argument to \q{guardRv} is a \q{task}; the \q{valof} of which is the actual \q{rendezvous}. Guards are evaluated -- \q{valof}'ed -- immediately prior to actually waiting for the \q{rendezvous}. 
+
+A classic use of \q{guardRv} is to enable a semantic condition to be satisfied before enabling a particular \q{rendezvous}. For example, if it `did not make sense' to accept a message on a channel unless a particular \q{queue} was non-empty could be represented with:
+\begin{alltt}
+var Q := queue of [];
+\ldots
+testQ() is task\{
+  if empty(Q) then
+    valis neverRv
+  else
+    valis recvRv(Ch)
+\}
+\ldots
+wait for guardRv(testQ())
+\end{alltt}
+
+\subsection{The \q{wrapRv} Rendezvous Function}
+\label{wrapRvFun}
+\index{wrap rendezvous}
+\index{rendezvous!wrap}
+
+A \q{wrapRv} can be used to `convert' a \q{rendezvous} of one type to another form. This is often used to enable one \q{rendezvous} to `count as' another \q{rendezvous}.
+
+\begin{alltt}
+wrapRv has type for all a,b such that 
+                (rendezvous of a, (a) => task of b) => rendezvous of b
+\end{alltt}
+
+The first argument of \q{wrapRv} is the \q{rendezvous} that is actually waited on. The second argument is a function that takes the result of that \q{rendezvous} and returns a new \q{task} using that return value.
+
+One use for the \q{wrapRv} function is to perform another \q{rendezvous} wait. For example:
+\begin{alltt}
+requestReply(SCh,RCh,Msg) is guardRv(sendRv(Ch,Msg),
+                                fn(_) => wait for recvRv(RCh))
+\end{alltt}
+will send a \q{Msg} on the `send channel' \q{SCh}; and once that message was successfully sent will wait for a reply on the \q{RCh} channel.
+
+\q{requestRepl} is a \q{rendezvous}-valued function; and so can be used in conjunction with other \q{rendezvous} expressions. For example, to send a message to two other \q{task}s but only wait for one result we might use:
+\begin{alltt}
+R is valof wait for chooseRv\{
+  requestReply(S1,RCh);
+  requestReply(S2,RCh)
+  \}
+\end{alltt}
+
+\subsection{The \q{withNackRv} Rendezvous}
+\label{nackRvFun}
+The \q{withNackRv} function can be used to discover if another rendezvous \emph{was not} triggered.
+\begin{alltt}
+withNackRv has type for all t such that 
+                    ((rendezvous of ())=>rendezvous of t)=>rendezvous of t
+\end{alltt}
+
+The argument to \q{withNackRv} is a function which is invoked during synchronization -- analogously to the \q{guardRv} function -- to construct the \q{rendezvous} to be monitored. If that \q{rendezvous} is \emph{not} selected -- in a call to \q{wait for} -- then a special \emph{abort} rendezvous \emph{is} selected. That abort rendezvous is the one that is passed in to the argument function.
+
+For example, in the expression:
+\begin{alltt}
+withNackRv(F)
+\end{alltt}
+\q{F} should be a function that takes a \q{rendezvous} and returns a \q{rendezvous}:
+\begin{alltt}
+F(A) is recvRv(Ch)
+\end{alltt}
+The type of \q{A} is \q{rendezvous of ()}.
+
+Waiting on \q{withNackRv(F)} is similar to a \q{wait for} the \q{rendezvous}
+\begin{alltt}
+recvRv(Ch)
+\end{alltt}
+
+If this \q{rendezvous} is selected then nothing further happens.
+
+However, if this \q{rendezvous} were in a \q{chooseRv} and a different \q{rendezvous} were selected then \q{A} becomes 'available'. In effect, \q{A} being active means that the \q{recvRv} was not activated.
+
+A slightly more complex example should illustrate this:
+\begin{alltt}
+showMsg(Ch) is let\{
+  F(A) is valof\{
+    _ is background task \{
+      ignore wait for A; -- will block unless recvRv not active
+      logMsg(info,"Did not receive message");
+    \}
+    valis recvRv(Ch)
+  \}
+\} in withNackRv(F)
+\end{alltt}
+If we used this to \q{wait for} a message; perhaps with a \q{timeoutRv}:
+\begin{alltt}
+wait for chooseRv(list of [
+  showMsg(Chnl),
+  timeoutRv(1000)
+])
+\end{alltt}
+then, if a timeout occurred the message
+\begin{alltt}
+Did not receive message
+\end{alltt}
+would appear in the log.
+
+\subsection{The \q{timeoutRv} Rendezvous}
+\label{timeoutRvFun}
+\index{rendezvous!timeout}
+
+The \q{timeoutRv} function returns a \q{rendezvous} that will be available a certain number of milliseconds after the start of the \q{wait for}.
+\begin{alltt}
+timeoutRv has type (long)=>rendezvous of ()
+\end{alltt}
+The timeout interval starts at some point after the \q{wait for} function has been entered; and it is guaranteed to be `available' some time \emph{after} the required number of milliseconds.
+\begin{aside}
+It is not possible to guarantee a precise timeout interval -- in the sense of some computation proceeding at exactly the right moment.
+
+Thus, any time-sensitive computation triggered by \q{timeoutRv} should takes its own measurement of the `current' time when it is activated.
+\end{aside}
+
+\noindent
+The \q{timeoutRv} is most often used in conjunction with other \q{rendezvous} functions;  typically a message receive or message send \q{rendezvous}.
+
+For example, the expression:
+\begin{alltt}
+wait for chooseRv(list of [
+  sendRv(Ch,"Hello"),
+  timeoutRv(100)
+]
+\end{alltt}
+represents an attempt to send the \q{"Hello"} message on the \q{Ch} channel; but the message send will be abandoned shortly after 100 milliseconds have elapsed.
+
+\subsection{The \q{atDateRv} Rendezvous Function}
+\label{atDateRvFun}
+\index{rendezvous!timeout}
+The \q{atDateRv} is similar to the \q{timeoutRv} rendezvous; except that instead of a fixed interval of milliseconds the timeout is expressed as a particular \q{date} value.
+\begin{alltt}
+atDateRv has type (date)=>rendezvous of ()
+\end{alltt}
+The \q{atDateRv} will be triggered some time after the specified date.
+
+\section{Channels and Messages}
+\label{channels}
+
+A channel is a typed communications channel between \q{task}s. In order for a \q{task} to `send a message' to another \q{task}, they would share the channel object itself and then the receiver would use \q{recvRv} to wait for the message and the sender would use \q{sendRv} to send the message.
+
+\subsection{The \q{channel} Type}
+\label{channelType}
+
+\begin{alltt}
+channel has kind type of type;
+\end{alltt}
+
+Like the \q{rendezvous} and \q{task} types, the \q{channel} type is \emph{opaque}.
+
+\subsection{The \q{channel} Function}
+\label{channelFun}
+
+The \q{channel} function is used to create channels. 
+\begin{alltt}
+channel has type for all t such that ()=>channel of t
+\end{alltt}
+Each created channel may be used for sending and receiving multiple messages. However, the channel is typed; i.e., only messages of that type may be communicated.
+
+Channels are multi-writer multi-reader channels: any number of tasks may be reading and writing to a channel. However, any given communication is between two tasks: one sender and one receiver.
+
+If more than one \q{task} is trying to send a message then it is non-deterministic which message is sent. If more than one \q{task} is trying to receive a message then only one will get the message.
+
+Message receives and sends may take place in either order. However, message communication is \emph{synchronous}. I.e., both sender and receiver are blocked until a communication occurs. 
+
+An immediate implication of synchronous communication is that there is no buffer of messages associated with \q{channel}s.
+
+\subsection{Receive Message Rendezvous}
+\label{recvRvFun}
+The \q{recvRv} function takes a \q{channel} and returns a \q{rendezvous} that represents a wait for a message on the \q{channel}.
+
+\begin{alltt}
+recvRv has type for all t such that (channel of t)=>rendezvous of t
+\end{alltt}
+
+To actually receive a message on a channel, first the \q{rendezvous} must be created, then it must be `waited for', and then the message itself is extracted from the resulting \q{task}:
+\begin{alltt}
+Data is valof wait for recvRv(\emph{Channel})
+\end{alltt}
+
+As noted in Section~\vref{channelFun}, if more than one \q{task} is actively waiting for a message on the same channel then it is non-deterministic which \q{task} will `get' the first message. All other \q{task}s will continue to be blocked until a subsequent message is sent.
+
+\subsection{Send Message Rendezvous}
+\label{sendRvFun}
+The \q{sendRv} function is used to send messages on \q{channel}s. 
+
+\begin{alltt}
+sendRv has type for all t such that (channel of t,t)=>rendezvous of ()
+\end{alltt}
+
+The result of a \q{sendRv} function is a \q{rendezvous}. Waiting on this \q{rendezvous} amounts to the attempt to send the message on the \q{channel}.
+
+\begin{aside}
+Note that the type of \q{rendezvous} returned by \q{sendRv} is 
+\begin{alltt}
+rendezvous of ()
+\end{alltt}
+I.e., there is no `value' associated with a successful send message.
+\end{aside}
+
+

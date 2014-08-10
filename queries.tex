@@ -1,0 +1,297 @@
+%!TEX root = reference.tex
+\chapter{Queries}
+\label{queries}
+\index{queries}
+A \ntRef{Query} is an expression that denotes a value implicitly -- by operations and constraints on other identified values. Typically, the result of a query is an \q{list} but it may be of any \ntRef{Type} -- provided that it implements the \q{sequence} contract.
+
+\section{Query Expression}
+There are several `flavors' of query: the \q{all} query (shown in Figure~\vref{relationQueryFig}) projects a sub-relation over one or more base collections; the \emph{N} \q{of} query extracts a list containing at most \emph{N} tuples from a collection; and the \q{any} query extracts a tuple that satisfies the query.
+
+The results of a query may be sorted and may be filtered for uniqueness.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Expression}&\arrowplus&\ntRef{Query}\\
+\ntDef{Query}&\arrow&\ntRef{SequenceType}\ \q{of}\ \q{\{}\ntRef{QueryExpression}\ \q{\}}\\
+&\choice&\ntRef{ReductionQuery}\\
+&\choice&\ntRef{QueryExpression}\\
+\ntDef{QueryExpression}&\arrow&\ntRef{AllSolutionsQuery}\\
+&\choice&\ntRef{BoundedCardinalityQuery}\\
+&\choice&\ntRef{SatisfactionQuery}
+\end{eqnarray*}
+\caption{Query Expression}\label{relationQueryFig}
+\end{figure}
+
+\noindent
+where the \ntRef{SequenceType} plays a similar role in identifying the type of the result to that in \ntRef{SequenceExpression}s. If the \ntRef{SequenceType} is the keyword \q{sequence} then the result type is undetermined -- the context of the \ntRef{Query} expression must determine the type of the result. Otherwise, \ntRef{SequenceType} identifies the name of a \ntRef{Type} -- which must implement the \q{sequence} contract -- that denotes the result type of the query.
+
+\subsection{All Solutions Queries}
+\label{allSolutions}
+\index{query!all solutions}
+The all solutions query expressions return results corresponding to all the different ways that a condition may be satisfied. There are variants corresponding to finding distinct solutions and having the result sets ordered.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{AllSolutionsQuery}&\arrow&[\,\q{all}\,|\,\q{unique}\,]\ \ntRef{Expression}\ \q{where}\ \ntRef{Condition}\ [\ntRef{Modifier}]\\
+\ntDef{Modifier}&\arrow&\q{order}\ [\q{descending}]\ \q{by}\ \ntRef{Expression}\ [\q{using}\ \ntRef{Expression}]
+\end{eqnarray*}
+\caption{All Solutions Query}\label{allSolutionsFig}
+\end{figure}
+
+For example, given a \q{list} bound to the variable \q{Tble}:
+\begin{alltt}
+Tble is list of [
+  ("john",23),
+  ("sam",19),
+  ("peter",21)
+]
+\end{alltt}
+the query
+\begin{alltt}
+all Who where (Who,A) in Tble and A>20
+\end{alltt}
+is a query over the \q{Tble} list defined above. Its value is an \q{list}:
+\begin{alltt}
+list of [
+  "john",
+  "peter"
+]
+\end{alltt}
+\q{"john"} and \q{"peter"} are in the result because both \q{("john",23)} and \q{("peter",21)} are in \q{Tble} and satisfy the condition that \q{A} is greater than 20.
+
+\begin{aside}
+If the query were expressed in a \ntRef{SequenceExpr} style:
+\begin{alltt}
+list of \{ all Who where (Who,A) in Tble and A>20\}
+\end{alltt}
+then the result returned is a \q{list}:
+\begin{alltt}
+list of [
+  "john",
+  "peter"
+]
+\end{alltt}
+instead.
+\end{aside}
+
+\index{queries!bound expression}
+In principle, any expression may follow the \q{all} clause in a query. The `bound expression' may mention variables that are `bound' within the query constraint.
+
+\subsubsection{Ordered Result Sets}
+The \q{order by} modifier is associated with a \emph{path expression} -- like the bound expression it is evaluated in the context of a successful solution to the condition. The results of an \q{order}ed query expression are sorted according to the values of this path expression. The type of this expression must be one that admits to being compared -- i.e., the type must implement the \q{comparable} contract.
+
+For example, to return an ordered \q{cons} list\footnote{The type of the resulting collection is depends on whether the \ntRef{Query} is governed by an enclosing \ntRef{SequenceType} if available, or of type \q{array} by default.} of people over the age of 20 we can use the query expression:
+\begin{alltt}
+cons of \{ all Who where (Who,A) in Tble and A>20 order by A\}
+\end{alltt}
+which would give the result:
+\begin{alltt}
+cons of [
+  "peter",
+  "john"
+]
+\end{alltt}
+
+The \q{using} modifier may be used in conjunction with the \q{order by} modifier to override the default concept of less than. If given, the \q{using} keyword should be followed by a \q{boolean}-valued function defined over the same type as the \q{order by} expression.
+
+For example, to override the use of \q{<} in the \q{order by} query above, with say \q{>}, we can use:
+\begin{alltt}
+cons of \{ all Who where (Who,A) in Tble and A>20 order by A using (>)\}
+\end{alltt}
+which would give the result
+\begin{alltt}
+cons of [
+  "john",
+  "peter"
+]
+\end{alltt}
+
+\subsubsection{Duplicate Elimination}
+\label{duplicateElim}
+\index{eliminating duplicates in queries}
+\index{query!eliminating duplicates}
+\index{unique@\q{unique} queries}
+
+The \q{unique} keyword is used to signal a query where duplicate elements are eliminated from the answer set.
+
+For example, the query:
+\begin{alltt}
+unique Sib where (P,Who) in parent and (P,Sib) in parent and Who!=Sib
+\end{alltt}
+would have the effect of eliminating duplication caused by the fact that most people have two recorded parents.
+
+The \q{unique} query requires that the type of the `bound expression' implements the \q{comparable} contract -- i.e., that \q{<} is defined for the type.
+
+\begin{aside}
+The \q{unique} query is potentially more expensive than the \q{all} query -- since it involves post-processing the results as the \q{all} query to perform the duplicate elimination.
+\end{aside}
+
+%\subsubsection{Type Safety}
+%By default, the type of an \q{all} query is an \q{array} type; it requires that the condition be type safe:
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{B}{T}}
+%\AxiomC{\typesat{E}{C}}
+%\BinaryInfC{\typeprd{E}{\q{all}\ B\ \q{where}\ C}{\q{list of }T}}
+%\end{prooftree}
+%
+%The type safety rule for \q{unique} queries very similar, except that the bound element must be of a type that implements the \q{comparable} contract:
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{B}{T\ \q{where comparable over }T}}
+%\AxiomC{\typesat{E}{C}}
+%\BinaryInfC{\typeprd{E}{\q{unique}\ B\ \q{where}\ C}{\q{list of }T}}
+%\end{prooftree}
+%
+%\index{query!sorted}
+%\index{sorted queries}
+%\index{creating a sorted list from a query}
+%In the case of an \q{ordered} query, the path expression must implement \q{comparable} and the result is a \q{list}:
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{B}{T}}
+%\AxiomC{\typesat{E}{C}}
+%\AxiomC{\typeprd{E}{P}{P\sub{T}\ \q{where comparable over }P\sub{T}}}
+%\TrinaryInfC{\typeprd{E}{\q{all}\ B\ \q{where}\ C\ \q{order by}\ P}{\q{list of }T}}
+%\end{prooftree}
+%
+\subsection{Bounded Cardinality Queries}
+The \emph{N} \q{of} quantifier delivers \emph{at most} N solutions to the query. For example, the query:
+\begin{alltt}
+5 of X where (P,X) in children
+\end{alltt}
+returns an \q{array} of the first 5 children of \q{P}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{BoundedCardinalityQuery}&\arrow&\ntRef{QueryQuantifier}\ \q{where}\ \ntRef{Condition}\ [\ntRef{Modifier}]\\
+\ntDef{QueryQuantifier}&\arrow&[\,\q{unique}\,]\ \ntRef{Expression}\ \q{of}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{Bounded Cardinality Query}\label{boundedCardinalityFig}
+\end{figure}
+
+\subsubsection{Duplicate Elimination}
+If the \q{unique} keyword is used with the bounded cardinality then duplication elimination is performed \emph{before} counting the results. I.e., a query of the form:
+\begin{alltt}
+unique 5 of X where (P,X) in children
+\end{alltt}
+is guaranteed to find 5 unique answers -- assuming that there are at least 5 unique ways of solving the \q{(P,X) in children} condition.
+
+\subsubsection{Ordered Result Sets}
+If the \q{ordered by} modifier is \emph{not} present, there is no defined ordering for the answers in the result. In particular, if \emph{N} answers are requested, they could be any \emph{N} answers that satisfy the condition.
+
+If an \q{order by} clause is specified then the result consists of the `smallest' results. I.e., if there are 5 answers to the query:
+\begin{alltt}
+all X where (P,X) in children
+\end{alltt}
+then the query
+\begin{alltt}
+3 of X where (P,X) in children order by X
+\end{alltt}
+results in an \q{array} of 3 elements that are guaranteed to be smaller or equal to any remaining answers.
+
+If the \q{order descending} modifier is used then the `largest' results will be the ones returned.
+\begin{aside}
+Of course, in order to compute this smallest set, all the answers must first be computed. The result set sorted and only then the first elements picked.
+\end{aside}
+
+%\subsubsection{Type Safety}
+%The type of a bounded query is a \q{list} type; it requires that the condition be type safe, and that the bound is an \q{integer}:
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{N}{\q{integer}}}
+%\AxiomC{\typeprd{E}{B}{T}}
+%\AxiomC{\typesat{E}{C}}
+%\TrinaryInfC{\typeprd{E}{N\ \q{of}\ B\ \q{where}\ C}{\q{list of }T}}
+%\end{prooftree}
+%
+%In the case of an \q{ordered} bounded query, the path expression must implement \q{comparable} and the result is a \q{list}:
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{N}{\q{integer}}\quad\typeprd{E}{B}{T}}
+%\AxiomC{\typesat{E}{C}}
+%\AxiomC{\typeprd{E}{P}{P\sub{T}\,\q{where comparable over }P\sub{T}}}
+%\TrinaryInfC{\typeprd{E}{N\ \q{of}\ B\ \q{where}\ C\ \q{order by}\ P}{\q{list of }T}}
+%\end{prooftree}
+
+
+\subsection{Satisfaction Query}
+The \q{anyof} quantifier\footnote{The \q{any of} quantifier may be spelled out as two words: \q{any} \q{of}.} returns a \emph{single} result corresponding to a solution of the query -- i.e., an \q{anyof} quantified query expression is effectively an instance of the \emph{bound} expression evaluated in a context representing a solution to the condition.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{SatisfactionQuery}&\arrow&\q{anyof}\ \ntRef{Expression}\ \q{where}\ \ntRef{Condition}\ [\ntRef{Modifier}]\ [\ntRef{Default}]\\
+\ntDef{Default}&\arrow&\q{default}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{Satisfaction Query}\label{satisfactionQueryFig}
+\end{figure}
+
+For example, to find a child of \q{P} one could use the expression:
+\begin{alltt}
+any of X where (P,X) in children
+\end{alltt}
+
+The \q{default} clause is used in the case that the \ntRef{Condition} is \emph{not} satisfiable. For example, assuming that we did not have a record of \q{"fred"}'s parents, then the query
+\begin{alltt}
+anyof P where (P,"fred") in children default "not known"
+\end{alltt}
+would result in the answer \q{"not known"}.
+
+\subsubsection{A Sorted Satisfaction Query}
+In the case of an \q{anyof} quantified query expression, the use of the \q{order by} clause can be to select the `smallest' solution to the query: the result of an \q{any} query that is governed by an \q{order by} clause is effectively the \emph{least} solution to the query. If the \q{order descending} modifier is used then the result is the largest solution to the query.
+
+For example, to find the youngest child of \q{"john"} we can use the query:
+\begin{alltt}
+anyof X where ("john",X) in children and (X,A) in ages order by A
+\end{alltt}
+
+\subsubsection{Type Safety}
+A satisfaction query's type is simply the type of the bound expression. As with other queries, it requires that the condition is safe:
+\begin{prooftree}
+\AxiomC{\typeprd{E$\,\cup{}\,$varsIn(C)}{B}{T}}
+\AxiomC{\typesat{E}{C}}
+\BinaryInfC{\typeprd{E}{\q{anyof}\ B\ \q{where}\ C}{T}}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{\typeprd{E$\,\cup{}\,$varsIn(C)}{B}{T}}
+\AxiomC{\typesat{E}{C}}
+\AxiomC{\typeprd{E}{D}{T}}
+\TrinaryInfC{\typeprd{E}{\q{anyof}\ B\ \q{where}\ C\ \q{default}\ D}{T}}
+\end{prooftree}
+
+In the case of an \q{order}ed satisfaction query, the path expression must implement \q{comparable}:
+\begin{prooftree}
+\AxiomC{\typeprd{E$\,\cup{}\,$varsIn(C)}{B}{T}}
+\AxiomC{\typesat{E}{C}}
+\AxiomC{\typeprd{E}{P}{P\sub{T}\ \q{where comparable over }P\sub{T}}}
+\TrinaryInfC{\typeprd{E}{\q{anyof}\ B\ \q{where}\ C\ \q{order by}\ P}{T}}
+\end{prooftree}
+
+\section{Reduction Query}
+\label{reductionQuery}
+\index{accumulating over a query}
+\index{applying a function to the results of a query}
+
+A \ntRef{ReductionQuery} differs from other forms of query in that the results of satisfying the \ntRef{Condition} are `fed' to a function rather than being returned as some form of collection.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{ReductionQuery}&\arrow&\q{reduction}\ \ntRef{Expression}\ \q{of}\ \ntRef{QueryExpression}
+\end{eqnarray*}
+\caption{Reduction Query}\label{reductionQueryFig}
+\end{figure}
+
+The reduction function should have the type:
+\begin{alltt}
+(t\sub{E},t\sub{E})=>t\sub{E}
+\end{alltt}
+were \q{t\sub{E}} is the type of the bound expression in the \ntRef{QueryExpression}.
+
+For example, to add up all the salaries in a department, one could use a query of the form:
+\begin{alltt}
+reduction (+) of \{ all E.salary where E in employees \}
+\end{alltt}
+
+\begin{aside}
+The reducing function is only applied if there is more than one solution to the query. In this sense, it is closer in semantics to \q{leftFold1} than to \q{leftFold} -- see Section~\vref{foldableContract}.
+\end{aside}
+
+\begin{aside}
+The \ntRef{ReductionQuery} may be used with all the normal variants of \ntRef{QueryExpression}.
+\end{aside}

@@ -1,0 +1,127 @@
+%!TEX root = reference.tex
+\chapter{System Functions}
+\label{systemFunctions}
+
+\section{Time Functions}
+\label{timeFunctions}
+\index{time functions}
+
+\subsection{\q{nanos} -- Time since start}
+\begin{alltt}
+nanos has type ()=>long
+\end{alltt}
+
+The \q{nanos} function returns the number of nanoseconds since the application started.
+\begin{aside}
+Note that the returned time may not actually be accurate to the nearest nanosecond. The precise accuracy depends on the accuracy of the clock available to the operating system.
+\end{aside}
+\begin{aside}
+For long running applications, the \q{nanos} clock may `roll-over' after approximately 290 years.
+\end{aside}
+
+
+\subsection{\q{sleep} -- Sleep for a period of time}
+
+\begin{alltt}
+sleep has type (long)=>()
+\end{alltt}
+The \q{sleep} action procedure causes the current activity to suspend for a specified number of milliseconds. 
+\begin{aside}
+Other activities, in particular other \q{actor} activities will continue while this activity is suspended.
+\end{aside}
+
+\section{Logging}
+An application may log output to standard logging facilities using the \q{logMsg} action procedure.
+
+\subsection{\q{level} -- type}
+\index{level type@\q{level} type}
+\label{levelType}
+
+The \q{level} type defines a set of logging levels that may be used to indicate the severity of the logged message.
+\begin{alltt}
+type level is finest
+  or finer
+  or fine
+  or config
+  or info
+  or warning
+  or severe;
+\end{alltt}
+
+The different logging levels have an intended interpretation designed to facilitate users of applications manage the type and quantity of logging flow:
+\begin{description}
+\item[finest] is used for very fine grained logging, typically debugging.
+\item[finer] is used for fine grained logging.
+\item[fine] is used for reporting of internally significant events within an application.
+\item[config] is used to report application configuration events.
+\item[info] is used to report important application events.
+\item[warning] is used to report a recoverable error condition.
+\item[severe] is used to report an unrecoverable error.
+\end{description}
+
+\subsection{\q{logMsg} -- log an event}
+\label{logMsg}
+\begin{alltt}
+logMsg has type (level,string)=>()
+\end{alltt}
+
+\q{logMsg} is similar to \q{logger}, except that the category is fixed to \q{com.starview.starrules}.
+
+For example, to log an \q{info} level message one can use
+\begin{alltt}
+logMsg(info,"You need a tune-up")
+\end{alltt}
+
+\section{Shell Commands}
+\label{shellCommand}
+
+The \q{exec} function allows a \Sr program to execute other processes and to access the return code from the sub-process.
+
+\subsection{\q{exec} -- Execute Sub-Process}
+\label{exec}
+\index{exec@\q{exec}!sub-process}
+\index{sub-process execution}
+
+The \q{exec} function executes a sub-process and returns the integer return code from running the command.
+
+\begin{alltt}
+exec has type (string,dictionary of (string,string))=>integer;
+\end{alltt}
+
+The first argument is the command line to execute. The format of this, and the valid commands to execute, is system dependent.
+
+The second argument is a \q{dictionary} of environment variables and their values. If the dictionary is empty then the environment variables of the current program are inherited by the sub-process.
+
+The return value from executing the command is returned by \q{exec}. By convention, a return value of zero means that the command succeeded.
+
+\begin{aside}
+The \q{exec}'ed command is executed to completion \emph{before} the \q{exec} call returns. If it is desired to execute a sub-process asynchronously then use the \q{spawn} action:
+\begin{alltt}
+spawn\{ exec("ls -l", dictionary of \{\}) \}
+\end{alltt}
+\end{aside}
+
+
+\subsection{\q{getenv} -- Get Environment Variable}
+\label{getenv}
+\index{environment variable}
+\index{getenv@\q{getenv}!environment variable}
+
+\begin{alltt}
+getenv has type (string,string)=>string
+\end{alltt}
+
+Get the value of an environment variable. The first argument is the name of the variable, the second is a default value should the variable not exist.
+
+\subsection{\q{exit} -- Terminate this Process}
+\label{exit}
+\index{exit@\q{exit} application}
+
+The \q{exit} action procedure does not return. Instead, it results in the termination of the process performing the \q{exit}.
+
+
+\begin{alltt}
+exit has type (integer)=>()
+\end{alltt}
+
+The argument of \q{exit} is used as the value of the process itself. An \q{exit} value of zero implies that the process terminated successfully.

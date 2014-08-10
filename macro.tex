@@ -1,0 +1,444 @@
+%!TEX root = reference.tex
+\chapter{Macro Language}
+\label{MacroLanguage}
+The macro language supports the rewriting of parse tree structures -- prior to type checking.
+\begin{aside}
+The fact that macro processing applies before type checking implies that it is both possible and required to translate non-native \Sr program fragments into \Sr programming constructs.
+\end{aside}
+
+\begin{aside}
+As a result it is not possible to use the macro  language to construct a program expression that is unparsable -- although it may not be compilable.
+\end{aside}
+
+There are two variants of macro program -- macro rules and macro functions. 
+A macro rule is a rule that applies to a fragment of the text of the program itself. A macro function is a regular \Sr function whose type signature is 
+\begin{alltt}
+(quoted)=>quoted
+\end{alltt}
+
+Macro rules take the form:
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{MacroRule}&\arrow&\q{\#}\ntRef{MacroPattern}\ \q{==>}\ \ntRef{MacroReplace}\\
+&\choice&\q{\#} \ntRef{Equation}
+\end{eqnarray*}
+\caption{Macro Rule}
+\label{macroRuleFig}
+\end{figure}
+
+\noindent
+where \ntRef{MacroPattern} is a pattern that is applied to abstract syntax tree fragments and \ntRef{MacroReplace} is a replacement template. The macro pattern can bind macro variables, check for literals, and even search within the term. The \ntRef{MacroReplace} is generally a template term that may have variables which can be instantiated by the variables from the pattern.
+
+\begin{aside}
+We use the term `fragment of text' here somewhat carefully. All macro patterns can only match syntactically valid subsections of source text. A macro pattern denotes a match on the abstract syntax tree of a source program, not a match on textual source.
+\end{aside}
+
+\section{Macro Patterns}
+Macro rules are written using the same operators that `regular' programs use. A macro pattern of the form:
+\begin{alltt}
+# ?A+?B ==> \ldots
+\end{alltt}
+is, in fact, more or less the same as the macro pattern 
+\begin{alltt}
+# plus(?A,?B) ==>
+\end{alltt}
+but for the fact that \q{+} is a binary operator and is written in infix form. Of course, \q{+} is not the same symbol as \q{plus}; but the pattern \q{?A+?B} is equivalent to:
+\begin{alltt}
+# #(+)#(?A,?B) ==> \ldots
+\end{alltt}
+See Section~\vref{macroParentheses}. In effect,  macro patterns are not sensitive to operator declarations.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{MacroPattern}&\arrow&\ntRef{Identifier}\ \choice\ \ntRef{String}\ \choice\ \ntRef{Integer}\ \choice\ \ntRef{FloatingPoint}\ \choice\ \ntRef{CharRef}\\
+&\choice&\q{integer}\ \choice\ \q{long}\ \choice\ \q{float}\ \choice\ \q{decimal}\\
+&\choice&\q{identifier}\ \choice\ \q{char}\ \choice\ \q{string}\\
+&\choice&\ntRef{MacroPattern}\q{(}\ntRef{MacroPattern}\sequence{,}\ntRef{MacroPattern}\q{)}\\
+&\choice&\ntRef{MacroPattern}\q{\{}\ntRef{MacroPattern}\sequence{,}\ntRef{MacroPattern}\q{\}}\\
+&\choice&\ntRef{MacroPattern}\ \q{@}\ \ntRef{MacroPattern}\\
+&\choice&\ntRef{MacroPattern}\ \q{@@}\ \ntRef{MacroPattern}\\
+&\choice&[\ \ntRef{MacroPattern}\ ]\ \q{?}\ \ntRef{Identifier}\\
+&\choice&\q{?}\ntRef{Identifier}\q{./}\ntRef{MacroPattern}\\
+&\choice&\q{\#(}\ntRef{MacroPattern}\q{)\#}
+\end{eqnarray*}
+\caption{Macro Patterns}
+\label{macroPatternFig}
+\end{figure}
+
+\subsection{Literal Macro Patterns}
+\label{literalMacroPtn}
+\index{macro!pattern!literal}
+Literal identifiers, numbers and strings may act as macro patterns.
+
+A literal number or string matches exactly the same literal value in the abstract syntax tree.
+\begin{aside}
+Identifiers may act as literal patterns -- provided that they have not previously been marked as a macro variable. If an \ntRef{Identifier} is declared as a macro variable then an occurrence of the variable acts as a test for equality.
+\end{aside}
+\begin{aside}
+A literal number or string \emph{may not} be the sole pattern of a \ntRef{MacroRule}. I.e., a \ntRef{MacroRule} of the form:
+\begin{alltt}
+# 34 ==> 56
+\end{alltt}
+is not legal.
+\end{aside}
+
+\subsection{Macro Variable Pattern}
+A pattern of the form 
+\begin{alltt}
+?Var
+\end{alltt}
+will match any structure and bind the macro variable \q{Var} to that structure. If there is more than one occurrence of the macro variable then they must all have the same value. For example, the following macro replaces a redundant sum with a multiplication:
+\begin{alltt}
+#?X + ?X ==> 2*X.
+\end{alltt}
+A second variation of the macro variable pattern allows any macro pattern to be applied and the matched result to be bound to a variable:
+\begin{alltt}
+\#(\emph{Ptn})\#?\emph{Var}
+\end{alltt}
+\begin{aside}
+The parentheses are good practice: the priority of \q{?} as an infix operator is 100, which means that most operator expressions will require the parentheses.
+\end{aside}
+
+Subsequent references to a macro variable, including on the \emph{right hand side} of a macro rule do not require the \q{?} prefix.
+
+\subsection{Application Macro Pattern}
+\label{applicMacroPtn}
+\index{macro!pattern|application}
+
+An `applicative pattern' -- i.e., a pattern that resembles a function call -- matches abstract syntax terms that are similarly applicative. For example, the pattern in the macro rule:
+\begin{alltt}
+\# foo(?X,?Y) ==> bar(Y,X)
+\end{alltt}
+will match abstract syntax terms that consist of the identifier \q{foo} applied to two arguments.
+\begin{aside}
+This rule will \emph{not} match \q{foo} terms involving 0 or 1 arguments, nor more than 2 arguments.
+\end{aside}
+\begin{aside}
+The application macro pattern actually applies (sic) to \emph{any} application expression regardless of the use of operators or the role of the application. For example, the rule:
+\begin{alltt}
+\# ?X + ?Y ==> plus(X,Y)
+\end{alltt}
+involves the use of the binary operator \q{+}. However, the operator pattern is equivalent to a rule of the form:
+\begin{alltt}
+\# +(?X,?Y) ==> plus(X,Y)
+\end{alltt}
+except that the grammar prohibits operators being used as `regular' functions. The binary \q{+} rule can, however, be written:
+\begin{alltt}
+\# \#(+)\#(?X,?Y) ==> plus(X,Y)
+\end{alltt}
+\end{aside}
+
+\noindent
+Other bracket pairs also support analogous application syntax; and the macro patterns to suit. For example, the macro rule:
+\begin{alltt}
+\# A[?Ix] ==> B(Ix)
+\end{alltt}
+matches `square bracket terms' such as \q{A[2]} and \q{A[foo("alpha")]}; replacing them by \q{B(2)} and \q{B(foo("alpha"))} respectively.
+
+The macro rule:
+\begin{alltt}
+\# #(?Op)#[?Ix] ==> \_index(Op,Ix)
+\end{alltt}
+is based on the standard macros used to provide the traditional array indexing notation in terms of the standard \q{indexable} contract (see Section~\vref{indexableContract}).
+
+\subsection{Nested Search}
+The pattern
+\begin{alltt}
+?V./\emph{Ptn}
+\end{alltt}
+binds the macro variable \emph{V} to the term being matched, provided that, within the term being matched there is a sub-expression that matches \q{\emph{Ptn}}. This pattern is especially useful for useful for transformations that are not locally specifiable. The location of the matched sub-pattern can be referenced in the nested replacement (see Section~\vref{NestedReplacement}).
+
+\begin{aside}
+The left hand side of the \q{./} operator \emph{must} be a macro variable.
+\end{aside}
+
+\subsection{Number Patterns}
+The pattern 
+\begin{alltt}
+integer
+\end{alltt}
+will match a \emph{literal} integer in the program.
+This pattern will only match numeric literals, it will not match an expression whose value is an integer.
+\begin{aside}
+This pattern would normally be used in conjunction with a macro variable pattern -- as it is not value specific.
+\end{aside}
+For example, the pattern
+\begin{alltt}
+integer?V
+\end{alltt}
+would bind the macro variable \q{V} to \q{12} if matching the literal 12, but would not match
+\begin{alltt}
+6*2
+\end{alltt}
+The other numeric patterns \q{long}, \q{float} and \q{decimal} similarly match literals of the appropriate type.
+
+\subsection{Identifier Pattern}
+The pattern
+\begin{alltt}
+identifier
+\end{alltt}
+matches any identifier. Note that the \q{identifier} pattern will \emph{not} match any keywords of the language.
+
+\subsection{The \q{char} and \q{string} Macro Patterns}
+The \q{char} macro pattern matches any literal character value.
+
+The \q{string} macro pattern matches any literal string value.
+\begin{aside}
+A \q{string} pattern will not match a string literal that includes any \ntRef{StringIterpolation} expressions. Although it could be used to match parts of such a string literal.
+\end{aside}
+
+
+\subsection{Parentheses}
+\index{macro!parentheses}
+The `normal' parentheses -- \q{()} -- are \emph{not} ignored by the parser. I.e., a term of the form:
+\begin{alltt}
+(A+B)
+\end{alltt}
+is \emph{not} the same to the macro processor as the term
+\begin{alltt}
+A+B
+\end{alltt}
+Thus the macro rule:
+\begin{alltt}
+# (?X) ==> \ldots
+\end{alltt}
+matches terms that have been enclosed in parentheses, and matches \q{(A+B)} by binding the macro variable \q{X} to \q{A+B}. It does \emph{not} match \q{A+B}.
+
+\subsection{Macro Parentheses}
+\label{macroParentheses}
+\index{macro!parentheses!macro}
+The macro parentheses -- \q{\#(\ldots)\#} -- \emph{are} ignored by the parser. I.e., a term of the form
+\begin{alltt}
+\#(A+B)\#
+\end{alltt}
+\emph{is} syntactically equivalent to \q{A+B}.
+
+Macro parentheses are used in macro rules for cases where the operator priorities of normal expressions interacts with the priorities of macro rules. 
+
+For example, the macro rule:
+\begin{alltt}
+# #(select all from ?P in ?S)# ==> list of \{ for P in S do elemis P \}
+\end{alltt}
+uses \q{\#()\#} parentheses to isolate the \q{select} pattern being matched within the rule.
+
+Another use for \q{\#()\#} is in matching the function part of an application. For example, the macro rule pattern
+\begin{alltt}
+\ldots \#(?F)\#(?A1,?A2) \ldots
+\end{alltt}
+matches any binary function application and binds the macro variable \q{F} to the function part of the application and binds macro variables \q{A1} and \q{A2} to the first and second arguments.
+
+\begin{aside}
+Note that it is \emph{not} permitted for a macro variable to be the top-level pattern in a macro rule. The rule:
+\begin{alltt}
+# \#(?F)\#(?A1,?A2) ==> bar(A1,A2)
+\end{alltt}
+is not permitted because the top-level operator in the rule is a macro variable -- \q{?F}. This form of pattern is very useful in sub-patterns of the macro rule.
+\end{aside}
+
+
+\subsection{Applicative Pattern}
+
+The macro operator \q{@@} matches any applicative expression. The left hand sub-pattern matches the operator part of the applicative and the right hand side matches the arguments.
+
+For example, the macro pattern:
+\begin{alltt}
+\ldots ?F@@?A \ldots
+\end{alltt}
+matches any applicative expression -- including expressions involving standard symbols such as \q{=>} or \q{is}.
+
+\begin{aside}
+The \q{@@} operator may not be the \emph{most significant} operator in a macro rule.
+\end{aside}
+
+
+
+
+\section{Macro Replacements}
+Generally, a macro replacement is simply a fragment of program text with macro variable references embedded where input should be carried over.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{MacroReplace}&\arrow&\ntRef{Identifier}\ \choice\ \ntRef{String}\ \choice\ \ntRef{Integer}\ \choice\ \ntRef{FloatingPoint}\ \choice\ \ntRef{CharRef}\\
+&\choice&\ntRef{MacroReplace}\q{(}\ntRef{MacroReplace}\sequence{,}\ntRef{MacroReplace}\q{)}\\
+&\choice&\ntRef{MacroReplace}\q{\{}\ntRef{MacroReplace}\sequence{,}\ntRef{MacroReplace}\q{\}}\\
+&\choice&\ntRef{MacroReplace}\ \q{@@}\ \ntRef{MacroReplace}\\
+&\choice&\q{?}\ \ntRef{Identifier}\\
+&\choice&\ntRef{Identifier}\q{./}\ntRef{MacroReplace}\\
+&\choice&\q{\#(}\ntRef{MacroReplace}\q{)\#}\\
+&\choice&\ntRef{MacroReplace} \q{\#\#} \q{\{} \ntRef{MacroRule} \sequence{;}\ntRef{MacroRule} \q{\}}
+\end{eqnarray*}
+\caption{Macro Replacement Terms}
+\label{macroReplaceFig}
+\end{figure}
+
+
+\subsection{Macro Variable}
+An occurrence of a macro variable in the replacement pattern is replaced by the fragment of program that was matched by the corresponding macro variable pattern. For example,
+\begin{alltt}
+# foo(?X) ==> bar(X)
+\end{alltt}
+replaces occurrences of the form
+\begin{alltt}
+foo(\{a="alpha"\})
+\end{alltt}
+with
+\begin{alltt}
+bar(\{a="alpha"\})
+\end{alltt}
+
+\subsection{Nested Replacement}
+\label{NestedReplacement}
+A replacement expression of the form:
+\begin{alltt}
+?V./\emph{Rep}
+\end{alltt}
+can be used to replace a nested sub-expression that was matched by a \q{./} pattern. The replacement text consists of the whole of the expression matched -- held as the value of the variable \q{?V} -- except that the part of the original that had been matched by the nested pattern is replaced by \q{\emph{Rep}}.
+
+\subsection{Generated Symbols}
+\index{macro!generated symbol}
+The macro replacement pattern
+\begin{alltt}
+#\$ \emph{ident}
+\end{alltt}
+results in a new identifier of the form
+\begin{alltt}
+\emph{ident1234}
+\end{alltt}
+where the number that is added to the \q{\emph{ident}} argument of \q{\#\$} is guaranteed to be unique within a single compilation \emph{and} that multiple occurrences of \q{\#\$\emph{ident}} within a single macro rule will be replaced by the \emph{same} identifier.
+
+This is useful for macros that generate new symbols. For example, the macro rule:
+\begin{alltt}
+#unfold(?Ex./Ave(?Tm)) ==> let\{#\$ave=Average(Tm)\} in Ex./#$ave;
+\end{alltt}
+would have the effect of `lifting' a call to the \q{Ave} function and making it into a \q{let} expression. I.e., it would rewrite
+\begin{alltt}
+10+Ave(foo(X))
+\end{alltt}
+to
+\begin{alltt}
+let\{ ave34=Average(foo(X))\} in 10+ave34
+\end{alltt}
+
+\subsection{Interned Strings}
+\index{macro!interning string as symbol}
+The macro replacement expression:
+\begin{alltt}
+#\tlda \emph{Exp}
+\end{alltt}
+where \emph{Exp} is a \q{string}-valued \emph{macro expression} is replaced by an identifier whose name is the string value of \emph{Exp}.
+
+For example, the macro rule:
+\begin{alltt}
+#applyOf(?Exp) ==> #\tlda("Apply"#+Exp)
+\end{alltt}
+can be used to construct an identifier whose prefix is \q{Apply}. The variable assigned to in:
+\begin{alltt}
+var applyOf(2) := 34
+\end{alltt}
+is \q{Apply2}.
+
+\subsection{Location}
+\label{locationMacro}
+\index{macro!location}
+
+The replacement pattern 
+\begin{alltt}
+#__location__
+\end{alltt}
+is replaced by a string that denotes the location of the original term that was matched by this macro rule.
+
+Typically this string indicates the file name and the line number of the term.
+
+\subsection{Macro Let}
+\label{ScopedMacros}
+A replacement pattern of the form:
+\begin{alltt}
+\emph{Rep} ## \{ \emph{Rules} \}
+\end{alltt}
+acts as though the replacement were just \q{\emph{Rep}}. However, in the continued processing of \q{\emph{Rep}}, there may be additional macro substitution. The locally defined rules take precedence over other rules.
+
+\subsubsection{Free Variables in Macro Rules}
+Rules within the sub-scope may reference macro variables defined in outer macro rules. These free variables retain the value that they were given as part of the macro rule pattern matching.
+
+For example, the inner rule in:
+\begin{alltt}
+# foo(?X) ==> bar(given) ## \{
+  #given ==> X;
+\}
+\end{alltt}
+refers to the macro variable \q{X} that is bound during the match with \q{foo}. The rule for \q{given} may reference \q{X} which is free in the \q{given} rule but bound by the \q{foo} rule.
+
+\subsection{Code Macros}
+\label{codeMacros}
+In addition to the macro language defined here, it is also possible to define macro processing rules using `regular' \Sr. So-called code macros are normal \Sr programs whose type is 
+\begin{alltt}
+(quoted)=>quoted
+\end{alltt}
+Code macros use a prefix \q{\#} to mark them as being macro functions rather than just being normal functions.
+
+For example, the macro definition:
+\begin{alltt}
+\#glom(?AA,?BB) ==> glue(AA,BB) ## \{
+    \#glue(X,Y) is glm(X,Y);
+    
+    glm(A,<|()|>) is A;
+    glm(<|()|>,A) is A;
+    glm(<|?L;?R|>,A) is <|?L;?glm(R,A)|>;
+    glm(A,B) is <|?A;?B|>;
+  \};
+\end{alltt}
+is part of the standard macro library that `glues' two macro terms together.
+\begin{aside}
+The \q{glom} macro is very useful when generating sequences of definitions for example -- because the generation definitions must be separated by semi-colons.
+\end{aside}
+Notice that in this example we do not mark the \q{glm} function with a \q{\#}. This is because \q{glm} is an internal function that is not intended to be accessible directly. Only macro code functions that are intended to be accessed directly should be marked as code macros. This allows other functions -- whose type signatures may not make them suitable for macro processing -- to be mixed in with code macros.
+
+Another difference between code macros and normal macro rules is that one has to be explicit about using the quoted form. Furthermore, as above, the programmer has to use the \q{?} form to de-quote variables in the replacement even when they have been mentioned in the left-hand side.
+
+\begin{aside}
+Generally, code macros tend to be `lower-level' than normal macro rules. However, expression evaluation is inherently faster than macro replacement; and the ability to use auxiliary structures -- such as \q{map}s of program fragments -- during macro processing make code macros preferable in cases where substantial transformations are being implemented.
+\end{aside}
+
+\section{Macro Evaluation}
+\label{macroEvaluation}
+During the macro pattern matching process it is quite possible for multiple macro rules to match a given fragment of source text.
+\begin{aside}
+The `source text' referred to here is actually an abstract syntax tree -- or part of. Abstract syntax trees have a standard type: \q{quoted} -- see Section~\vref{quotedText}.
+\end{aside}
+
+Macro evaluation is an `outside-in' process in which rules are applied in the order that they are written -- with local rules overruling imported rules.
+
+\begin{enumerate}
+\item Macro replacement is focused on a so-called `current term' -- the fragment of the abstract syntax tree that is the current candidate for replacement.
+\item
+The set of available macro rules is used to rewrite the current term. A macro rule is applicable to the current term if its pattern matches the term.
+\item
+If the applicable macro is a code macro then the code macro function is entered and its return value is used as the replacement.
+\item
+If there are no applicable macros, then -- in the case of an applicative term -- each of the arguments of the term are rewritten.
+\item If any of the arguments are successfully rewritten by a macro-rule, or if a rule applied to the current term as a whole, then the macro process is repeated on the rewritten term.
+\end{enumerate}
+
+In more detail, the rules for determining which macros may be applied is governed by the following ordering:
+\begin{enumerate}
+\item
+Within a scoped macro -- see Section~\vref{ScopedMacros} -- macro rules that are defined within the sub-scope take precedence over other macro rules.
+\item 
+Any macros that are defined at the top-level of a package.
+\item
+Macros that are part of imported packages.
+\item
+Macro rules that are defined earlier in a given scope take precedence over rules defined later in the scope.
+\end{enumerate}
+
+\subsection{The Most Significant Macro Operator}
+\label{mostSignificant}
+\index{macro!most significant operator}
+In any given macro pattern, there is a \emph{most significant operator} that represents the outermost symbol of the terms that the pattern matches.
+
+For a simple pattern such as \q{integer}, or simply \q{34}, the pattern itself is the most significant operator.
+
+For a compound pattern, such as \q{foo(?A1,?A2)} the most significant operator of the function part of the pattern is the most significant operator (in this case it is the literal identifier \q{foo}.
+
+The macro language imposes a restriction on macro rules -- the most significant operator of the pattern on the left hand side of the rule \emph{must} be a literal identifier pattern.
+

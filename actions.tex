@@ -1,0 +1,756 @@
+%!TEX root = reference.tex
+\chapter{Actions}
+\label{actions}
+\index{action}
+
+An action is the performance of an operation in a particular context. 
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Action}&\arrow&\ntRef{NullAction}\ \choice\ \ntRef{ActionBlock}\\
+\ntDef{Action}&\choice&\ntRef{LocalVariable}\ \choice\ \ntRef{TypeAnnotation}\\
+&\choice&\ntRef{Assignment}\ \choice\ \ntRef{InvokeAction}\ \choice\ \ntRef{IgnoreAction}\\
+&\choice&\ntRef{ForLoop}\ \choice\ \ntRef{WhileLoop}\ \choice\ \ntRef{ConditionAction}\\
+&\choice&\ntRef{CaseAction}\ \choice\ \ntRef{LetAction}\\
+&\choice&\ntRef{ValisAction}\ \choice\ \ntRef{AssertAction}\\
+&\choice&\ntRef{RaiseAction}\ \choice\ \ntRef{TryAction}
+\end{eqnarray*}
+\caption{Action}
+\label{actionFig}
+\end{figure}
+
+\subsubsection{Actions and Type Safety}
+\label{actionTypeSafety}
+The meaning of type safety is somewhat different for actions than for expressions and functions: by definition, actions do not denote values in the way that expressions do.
+
+However, type safety still applies to actions. In particular, different actions have different \emph{type constraints} that must be satisfied; for example, an assignment action is \emph{type safe} if the type of the variable is consistent with the expression and if the variable is a re-assignable variable.
+
+We use the meta-predicate \safeinf{} to indicate that a particular action is type safe. An assertion of the form:
+\[\typesafe{E}{A}\]
+means that the action $A$ is type-consistent given the environment $E$. In fact, this predicate is equivalent to a normal type derivation involving the \q{()} type:
+\[\typesafe{E}{A}\ \iff\ \typeprd{E}{A}{\q{()}}\]
+
+\section{Binding Actions}
+Many actions are operators that change the state of one of more variables. However, some actions may bind variables -- that is, establish a new variable.
+
+The most important binding actions are local variable definitions (Section~\vref{localVar}) and assignments (Section~\vref{assignment}).
+
+\subsection{Local Variable Definition}
+\label{localVar}
+\index{action!local variable}
+\index{variables in actions}
+
+A local variable may be introduced within a block -- see Section~\vref{blockAction} -- using the same syntax as a variable declaration statement -- see Section~\vref{VariableDeclaration}.
+\begin{aside}
+It is named a local variable simply because it's scope is limited to the block of actions that contain the declaration.
+\end{aside}
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{LocalVariable}&\arrow&\q{var}\ \ntRef{Identifier}\ \q{:=}\ \ntRef{Expression}\\
+&\choice&[\q{var}]\,\ntRef{Pattern}\ \q{is}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{Local Variable}
+\label{localVariableFig}
+\end{figure}
+
+The scope of a local variable declaration is from the local declaration itself to the end of the containing \emph{ActionBlock}.
+
+\begin{aside}
+It is an error for a variable to be referenced within its own definition. Recursive definitions are not permitted as \ntRef{LocalVariable}s.
+\end{aside}
+
+A local variable declared using the \q{var}\ldots\q{:=} form is \emph{re-assignable}; whereas a variable declared using the \q{is} form is not. The type of a re-assignable variable is a \q{ref}erence type (see Section~\vref{referenceType}). For example, given the \ntRef{LocalVariable} declaration:
+\begin{alltt}
+X := 3
+\end{alltt}
+then the variable \q{X} has type \q{ref integer}.
+
+If the left hand side of an \q{is} local variable definition is an identifier, or is an unlabeled tuple, then the \q{var} prefix is not required. However, it is good practice to use \q{var} in situations that may be confusing.
+
+\begin{aside}
+Note that the left hand side of an \q{is} definition is a \q{Pattern}, not simply an \q{Identifier}. One primary use for this form is to allow the `unpacking' of function results. For example, the function \q{ddivide} returns a pair of values: the quotient and the remainder result of dividing the first argument by the second:
+\begin{alltt}
+ddivide(X,Y) is (X/Y,X\%Y)
+\end{alltt}
+We can unpack the results of a call to \q{ddivide} using a \ntRef{TuplePattern} on the left hand side of the declaration:
+\begin{alltt}
+var (Q,R) is ddivide(34,3)
+\end{alltt}
+which would have the effect of binding \q{Q} to 11, and \q{R} to 1.
+\begin{aside}
+The reason that we get \q{integer} division with this call to \q{ddivide} is that the arguments to \q{ddivide} -- \q{34} and \q{3} -- are \q{integer}. The slightly different call:
+\begin{alltt}
+var (FQ,FR) is ddivide(34.0,3.0)
+\end{alltt}
+relies on \q{float}int point \q{arithmetic} and results in binding \q{FQ} to 11.333333, and \q{FR} to 1.0.
+\end{aside}
+\end{aside}
+
+\begin{aside}
+Local variables may be reassigned by an assignment action anywhere \emph{in the same} block as the variable declaration itself. For example, the following, somewhat complex, scenario:
+\begin{alltt}
+valof\{
+  var X := 0;
+  var inc is (procedure() do \{ X:=X+1; \})
+  valis X
+\}
+\end{alltt}
+the assignment to \q{X} within the \q{inc} procedure is permitted; even though it  side-effect a variable not defined directly within the procedure.
+\end{aside}
+
+\subsubsection{Declaring Variables}
+\index{variable!declaration}
+The type of a \ntRef{Variable} can be declared in an action sequence using a \ntRef{TypeAnnotation} statement prior to the declaration itself:
+\begin{alltt}
+X has type ref integer;
+var X := 3
+\end{alltt}
+
+\subsubsection{Type Safety}
+A variable declaration is type safe if the type of the variable is the same as the type of the expression giving its value.
+\begin{aside}
+Of course, it is often the case that the type of a variable is determined from its declaration; so type safety is typically more an issue for other references to the variable identifier than for the variable declaration itself.
+\end{aside}
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{Ex}{T}}
+\AxiomC{\typeprd{E}{P}{T}}
+\BinaryInfC{\typesafe{E}{\q{var} P\ \q{is}\ Ex}}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{Ex}{T}}
+\AxiomC{\typeprd{E}{V}{\q{ref}\ T}}
+\BinaryInfC{\typesafe{E}{\q{var}\ V\ \q{:=}\ Ex}}
+\end{prooftree}
+
+\subsection{Assignment}
+\label{assignment}
+\index{action!assignment}
+\index{assignment}
+The assignment action \q{:=} replaces the contents of a variable with a new value. For example:
+\begin{alltt}
+Count := Count+3
+\end{alltt}
+changes the value associated with the variable \q{Count} to \q{Count+3} -- where \q{Count+3} refers to the `old' value of \q{Count}.
+
+There are a number of variations on the basic form of assignment; it is possible to `replace' an element of a \q{list} or an attribute of a record. However, semantically, all the different syntactic forms of assignment have a common root: that of changing a variable to have a different value.
+
+Figures~\vref{assignmentFig}, \vref{recordTargetFig}, and \vref{IndexTargetFig} show the different syntactic forms of an assignment action.
+
+\begin{aside}
+Assignment is restricted to replacing the value of a \q{ref}erence typed variable or record field.
+\end{aside}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Assignment}&\arrow&\ntRef{VariableAssignment}\\
+&\choice&\ntRef{IndexedAssignment}\\
+&\choice&\ntRef{RecordAssignment}\\
+\ntDef{VariableAssignment}&\arrow&\ntRef{Variable}\ \q{:=}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{Assignment Action}
+\label{assignmentFig}
+\end{figure}
+
+\subsubsection{Type Safety}
+A variable assignment is safe iff the type of the variable is a \q{ref}erence type that is consistent with the expression denoting the variable's new value.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{V}{\q{ref}\ T}}
+\AxiomC{\typeprd{E}{Vl}{T}}
+\BinaryInfC{\typesafe{E}{V\q{ := }Vl}}
+\end{prooftree}
+
+\subsection{Updating Records}
+\label{recordUpdate}
+\index{record values!update}
+\index{update record values}
+An individual field of a record may be updated using the dot-notation on the left hand side of an assignment action -- provided that the type of the field is a \q{ref} type. In effect, assignment to a record field is permitted only if the field was marked as being updateable.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{RecordAssignment}&\arrow&\ntRef{Expression}\,\q{.}\,\ntRef{Identifier}\, \q{:=}\ \ntRef{Expression}\\
+\end{eqnarray*}
+\caption{Record Assignment}\label{recordTargetFig}
+\end{figure}
+
+
+\subsubsection{Type Safety}
+For a record update to be type safe, the field being updated must have \q{ref}erence type.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{R}{T\sub{R}\ \q{where }T\sub{R}\q{ implements \{}N\q{ has type ref }T\sub{N}\q{\}}}}
+\AxiomC{\typeprd{E}{V}{T\sub{N}}}
+\BinaryInfC{\typesafe{E}{R\q{.}N\ \q{:=}\ V}}
+\end{prooftree}
+\begin{aside}
+It is \emph{not} necessary for a variable holding the record to be itself re-assignable.
+\end{aside}
+
+\subsection{Updating Indexable Collections}
+\label{sequenceUpdate}
+\index{sequences!update}
+\index{update sequences}
+An \q{indexable} sequence may be updated using the square index notation on the on the left hand side of an assignment action.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{IndexedAssignment}&\arrow&\ntRef{Expression}\q{[}\ntRef{Expression}\q{]}\q{:=}\ \ntRef{Expression}\\
+&\choice&\q{remove}\ \ntRef{Expression}\q{[}\ntRef{Expression}\q{]}
+\end{eqnarray*}
+\caption{Index Assignment}\label{IndexTargetFig}
+\end{figure}
+
+An assignment of the form:
+\begin{alltt}
+A[ix] := 34
+\end{alltt}
+is syntactic short-hand for
+\begin{alltt}
+A := A[with ix->34]
+\end{alltt}
+which, in turn, is shorthand for:
+\begin{alltt}
+A := \_set\_indexed(A,ix,34)
+\end{alltt}
+
+An assignment of the form:
+\begin{alltt}
+remove C[ix]
+\end{alltt}
+means to delete the identified element of the collection and is syntactic shorthand for the assignment:
+\begin{alltt}
+A := A[without ix]
+\end{alltt}
+which, in turn, is shorthand for:
+\begin{alltt}
+A := \_delete\_indexed(A,ix)
+\end{alltt}
+
+\begin{aside}
+As noted in Section~\vref{indexableContract}, the sequence assignment is not restricted to sequences with \q{integer} indices. The same assignment statement also applies to \q{dictionary} updates.
+\end{aside}
+
+\subsubsection{Type Safety}
+For an indexable update to be type safe, the left hand side of the assignment must refer to a variable with a \q{ref}erence type -- see Section~\vref{referenceType} -- and whose type implements the \q{indexable} contract -- see Program~\vref{indexableContractDef}.
+
+\begin{prooftree}
+\def\defaultHypSeparation{\,}
+\AxiomC{\typeprd{E}{s}{\q{ref}\ S\,\q{where indexable over}\ S\ \q{determines}\ \q{(}K\q{,}V\q{)}}}
+\AxiomC{\typeprd{E}{k}{K}}
+\AxiomC{\typeprd{E}{v}{V}}
+\TrinaryInfC{\typesafe{E}{s\q{[}k\q{]}\ \q{:=}\ v}}
+\end{prooftree}
+
+
+\section{Control Flow Actions}
+\label{controlFlow}
+
+\subsection{Action Block}
+\label{blockAction}
+\index{action!block}
+\index{block action}
+An action block simply consists of a sequence of actions, separated by semicolons and enclosed within the pair of keywords \q{\{} and \q{\}}.
+
+The actions in an action block are executed in sequence.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{ActionBlock}&\arrow&\q{\{}\ \ntRef{Action}\ \q{;}\ldots\q{;} \ntRef{Action}\ \q{\}}
+\end{eqnarray*}
+\caption{Action Block}
+\label{blockActionFig}
+\end{figure}
+
+\subsubsection{Scope}
+An \ntRef{ActionBlock} represents a \ntRef{Scope}. Any \ntRef{LocalVariable}s that are defined within an \ntRef{ActionBlock} are not defined outside the \ntRef{ActionBlock}.
+
+\subsubsection{Type Safety}
+An action block is type safe if each of the actions within it are type safe.
+
+\begin{prooftree}
+\AxiomC{\typesafe{E}{A\sub1}}
+\AxiomC{\ldots}
+\AxiomC{\typesafe{E}{A\subn}}
+\TrinaryInfC{\typesafe{E}{\q{\{ }A\sub1;\ldots;A\subn\q{ \}}}}
+\end{prooftree}
+
+\subsection{Null Action}
+\label{nullAction}
+\index{nothing@\q{nothing}}
+
+The \q{nothing} action does nothing. It is type safe by default.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{NullAction}&\arrow&\q{nothing}\ \choice\ \q{\{\}}
+\end{eqnarray*}
+\caption{Null Action}
+\label{nullActionFig}
+\end{figure}
+
+\subsection{Let Action}
+\label{letActionion}
+\index{actions!let action@\q{let} action}
+\index{let action@\q{let} action}
+
+A \q{let} action allows an action to be defined in terms of  auxiliary definitions.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{LetAction}&\arrow&\q{let}\ \ntRef{ThetaEnvironment}\ \q{in}\ \ntRef{Action}\\
+&\choice&\ntRef{Action}\ \q{using}\ \ntRef{ThetaEnvironment}\\
+\end{eqnarray*}
+\caption{Let Action}
+\label{letActionFig}
+\end{figure}
+
+\index{theta environment}
+A \q{let} action (or its cousin the \q{using} action) consists of an action that is performed in the enhanced context of a set of auxiliary definition. It is directly analogous to the \ntRef{LetExpression}.
+
+
+\subsubsection{Type Safety}
+The primary safety requirement for a \q{let} action is that the statements that are defined within the body are type consistent. This is the same requirement for any theta environment.
+
+\subsection{Procedure Invocation}
+\label{invokeProcedure}
+\index{action!invoke procedure}
+\index{invoke procedure action}
+A procedure invocation is the invocation of an action procedure -- effectively a sub-routine call.
+
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{InvokeAction}&\arrow&\ntRef{Expression}\q{(}\ \ntRef{Expression}\sequence{,}\ntRef{Expression}\ \q{)}
+\end{eqnarray*}
+\caption{Procedure Invocation}
+\label{invokeProcedureFig}
+\end{figure}
+
+
+\subsubsection{Type Safety}
+\label{procedureApplyType}
+\index{type!procedure invocation}
+An action procedure invocation is type safe if the types of the arguments of the application match the argument types of the action procedure.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{\q{P}}{t\sub{P}}}
+\AxiomC{\typeprd{E}{\q{A}}{t\sub{A}}}
+\AxiomC{\entail{E}{t\sub{P}\subsume{}t\sub{A}\q{=>()}}}
+\TrinaryInfC{\typesafe{E}{\q{P A}}}
+\end{prooftree}
+
+
+\subsubsection{Evaluation Order of Arguments}
+\index{procedure invokation!evaluation order}
+
+There is \emph{no} guarantee as to the order of evaluation of arguments to a procedure invocation. In fact, there is no guarantee that a given expression will, in fact, be evaluated. This is similar to the situation with function application.
+
+\begin{aside}
+In order to better support parallel execution, it is quite possible that arguments to an procedure invocation are evaluated in parallel; or that their evaluation will be delayed until the value of the argument expression could make a difference to a computation.
+\end{aside}
+
+\begin{aside}
+In general, the programmer should make the fewest possible assumptions about order of evaluation.
+\end{aside}
+
+\subsection{Ignore Action}
+\label{ignore}
+\index{ignore!ignore action}
+\index{ignore action}
+\index{action that ignores result}
+An \ntRef{IgnoreAction} is an action that simply ignores the value of its \ntRef{Expression} argument.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{IgnoreAction}&\arrow&\q{ignore}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{Ignore Action}\label{ignoreActionFig}
+\end{figure}
+
+\subsubsection{Type Safety}
+An \q{ignore} action is type safe if its ignore expression has a type.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{Ex}{Tp}}
+\UnaryInfC{\typesafe{E}{\q{ignore}\ Ex}}
+\end{prooftree}
+
+\begin{aside}
+Clearly, the purpose of \q{ignore} is to capture the effect of evaluating an expression. One common purpose of \q{ignore} is to allow a function to be invoked as a procedure call.
+\end{aside}
+
+\subsection{For Loop}
+\label{forLoop}
+\index{action!for loop@\q{for} loop}
+\index{for loop action@\q{for} loop action}
+\index{loop!for@\q{for}}
+A \q{for} loop is used to iterate over the elements of a collection. The collection may be of any of the standard `collection' types:  \q{list}, \q{cons} and \q{dictionary}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{ForLoop}&\arrow&\q{for}\ \ntRef{Condition}\ \q{do}\ \ntRef{Action}
+\end{eqnarray*}
+\caption{For Loop}\label{forLoopFig}
+\end{figure}
+\noindent
+For example, the loop:
+\begin{alltt}
+for ("j",X) in list of [ ("j","s"), ("k","t"), ("j","u") ] do
+  logMsg(info,X);
+\end{alltt}
+results in log messages (see Section~\vref{logMsg}) being printed for \q{"s"} and \q{"u"} (but not for \q{"t"} because \q{("j",X)} does not match against \q{("k","t")}).
+
+A variant of the \q{for} loop allows access to the `index' of the element being processed. For example, in the loop:
+\begin{alltt}
+for Ix->P in array of ["alpha", "beta", "gamma"] do
+  logMsg(info,"P=\$P, index=\$Ix");
+\end{alltt}
+the variable \q{Ix} is successively bound to the index of the element being processed. 
+
+A \q{for} loop implies a \emph{scope extension}: variables declared in the pattern have their scope extend to the body of the loop. In this case the variable \q{X} introduced in the pattern is available for use in the \q{logMsg} procedure call.
+
+A particularly common case of for loop is the numeric for loop:
+\begin{alltt}
+for Ix in range(0,10,1) do
+  logMsg(info,"\$Ix")
+\end{alltt}
+This will result in the integers 0 through 9 being displayed on the log.
+
+\subsubsection{Type Safety}
+A \q{for} loop is dependent on the \q{iterable} contract (see Section~\vref{iterableContract}; the type safety rules reflect this:
+\begin{prooftree}
+%\insertBetweenHyps{\hskip 0pt}
+\alwaysNoLine
+\AxiomC{\typeprd{E}{C}{T\sub{C}\ \q{where iterable over }T\sub{C}\q{ determines (}T\sub{ix}, T\sub{P}\q{)}}}
+\def\extraVskip{1ex}
+\UnaryInfC{{\typeprd{E}{P}{T\sub{P}} {\hskip 2.5in} \typesafe{E$\,\cup\,$varsin(P)}{Body}}}
+\alwaysSingleLine
+\UnaryInfC{\typesafe{E}{\q{for }P\ \q{in}\ C\ \q{ do }Body}}
+\end{prooftree}
+
+\q{for} loops using the indexed form depend on \q{indexed\_iterable}:
+\begin{prooftree}
+\alwaysNoLine
+\AxiomC{\typeprd{E}{C}{T\sub{C}\ \q{where indexed\_iterable over }T\sub{C}\q{ determines (}T\sub{ix}, T\sub{P}\q{)}}}
+\def\extraVskip{1ex}
+\UnaryInfC{{\typeprd{E}{P}{T\sub{P}} {\hskip 1in} {\typeprd{E}{Ix}{T\sub{Ix}}}{\hskip 1in}\typesafe{E$\,\cup\,$varsin(P)}{Body}}}
+\alwaysSingleLine
+\UnaryInfC{\typesafe{E}{\q{for }Ix\q{ -> }\ P\ \q{in}\ C\ \q{ do }Body}}
+\end{prooftree}
+
+
+\subsection{While Loop}
+\label{whileLoop}
+\index{action!while loop@\q{while} loop}
+\index{while loop action@\q{while} loop action}
+\index{loop!while@\q{while}}
+
+The \q{while} loop is used to repetitively evaluate a condition. The loop continues execution for so long as the governing \ntRef{Condition} is satisfiable. 
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{WhileLoop}&\arrow&\q{while}\ \ntRef{Condition}\ \q{do}\ \ntRef{Action}
+\end{eqnarray*}
+\caption{While Loop}
+   \label{whileLoopFig}
+\end{figure}
+
+A \q{while} loop only makes sense if there is a possibility of successive iterations of the body causing a change of state that would make the condition unsatisfiable. A common paradigm for this is the class of \emph{relaxation} algorithms: algorithms that continue until nothing changes:
+\begin{alltt}
+var done := false;
+while not done do\{
+  done := true;
+  if \ldots then
+    done := false;
+\}
+\end{alltt}
+
+Like the \q{for} loop, a \q{while} loop also implies a scope extension. Variables defined within the governing condition are available for use within the body of the loop.
+\begin{aside}
+During each iteration of the \q{while} loop, only the first `solution' to the governing \ntRef{Condition} is `used' and can therefore result in bindings of variables.
+\end{aside}
+
+\subsubsection{Type Safety}
+The governing condition must be \emph{satisfied}. Other than that, a \q{while} loop is type safe if the body is type safe.
+
+\begin{prooftree}
+\AxiomC{\typesat{E}{C}}
+\AxiomC{\typesafe{E$\,\cup\,$varsin(C)}{Body}}
+\BinaryInfC{\typesafe{E}{\q{while }C\q{ do }Body}}
+\end{prooftree}
+
+\subsection{Conditional Action}
+\label{ifThenElse}
+\index{action!conditional action}
+\index{conditional action}
+\index{if then else@\q{if} \q{then} \q{else} action}
+
+A conditional action is a straightforward \q{if}\ldots\q{then}\ldots\q{else} action: if the governing condition is satisfied the \q{then} branch is taken; otherwise the \q{else} branch is taken. The \q{else} branch is optional in a conditional action; if not present then no action is taken if the condition is not \q{true}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{ConditionalAction}&\arrow&\q{if}\ \ntRef{Condition}\ \q{then}\ \ntRef{Action}\ [\ \q{else}\ \ntRef{Action}\ ]
+\end{eqnarray*}
+\caption{Conditional Action}\label{conditionalActionFig}
+\end{figure}
+
+\begin{aside}
+The `test' part of a conditional action takes the form of a \emph{Condition}. This implies that the test may bind variables -- those variables are in scope within the `then' action but are not in scope for the `else' action.
+\end{aside}
+\begin{aside}
+In general, a condition may be satisfied in many different ways. The conditional action only looks for the `first' way of satisfying the condition.
+\end{aside}
+
+For example, we can use a \ntRef{Search} condition to verify that an element is in a collection. The fragment:
+\begin{alltt}
+if \{name="j"; amount=X\} in Scores then
+  \emph{Action}
+\end{alltt}
+tests to see if there is an entry that matches \q{\{name="j"; amount=X\}} in the \q{Scores} collection; and, if there is, binds the variable \q{X} appropriately within \q{\emph{Action}}.
+
+\subsubsection{Type Safety}
+A conditional action is type safe if the condition is safe, and if both the branches are type safe.
+
+\begin{prooftree}
+\AxiomC{\typesat{E}{C}}
+\AxiomC{\typesafe{E$\,\cup\,$varsin(C)}{Th}}
+\AxiomC{\typesafe{E}{El}}
+\TrinaryInfC{\typesafe{E}{\q{if }C\q{ then }Th\q{ else }El}}
+\end{prooftree}
+
+
+\subsection{Case Actions}
+\label{caseAction}
+\index{action!case@\q{case}}
+\index{case action@\q{case} action}
+
+A \q{case} action uses a selector expression and a set of action rules to determine which action to perform.
+\begin{aside}
+As with \q{case} expressions (see Section~\vref{caseExpression}). \q{case} actions are often constructed during the process of compiling other kinds of program.
+\end{aside}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{CaseAction}&\arrow&\q{case}\ \ntRef{Expression}\ \q{in}\ \ntRef{CaseActionBody}\\
+\ntDef{CaseActionBody}&\arrow&\q{\{}\ntRef{ActionArm}\sequence{\q{;}}\ntRef{ActionArm}\,\q{\}}\\
+\ntDef{ActionArm}&\arrow&\ntRef{Pattern}\ \q{do}\ \ntRef{Action}\\
+&\choice&\ntRef{Pattern}\ \q{default}\ \q{do}\ \ntRef{Action}
+\end{eqnarray*}
+\caption{Case Action}
+\label{caseActionFig}
+\end{figure}
+
+The `selector' expression is evaluated, and then, at most one of the \ntRef{CaseAction}s is selected based on whether the \ntRef{Pattern} matches or not. If one of these does match, then the corresponding \ntRef{Action} on the right hand side is performed.
+
+If none of the \ntRef{ActionArm}'s case patterns match, and if a \q{default} \ntRef{Action} is specified, then that action is performed. If a \q{default} is not specified then \q{nothing} is performed.
+
+Program~\vref{treeWalkProg} shows an example of using a \q{case} action to walk a tree in left-to-right ordering.
+\begin{program}
+\begin{alltt}
+type tree of t is empty or node(tree of t, t, tree of t);
+
+walk has type for all t such that (tree of t, (t)=>())=>()
+walk(T,P) \{
+  case T in \{
+    empty do nothing;
+    node(L,Lb,R) do \{
+      walk(L,P);
+      P(Lb); -- visit the node
+      walk(R,P)
+    \}
+  \}
+\};
+\end{alltt}
+\caption{A Left-to-Right Tree Walk Program\label{treeWalkProg}}
+\end{program}
+
+
+Each \ntRef{ActionArm}'s pattern may introduce variables; these variables are `in scope' only for the corresponding case action.
+
+Optionally, a \q{case} action may have a \q{default} clause. If none of the cases in the \ntRef{CaseActionBody} match then the \q{default} case is performed. If there is no \q{default} clause, then if none of the cases match \q{nothing} is performed -- and execution continues with the next action.
+
+
+\paragraph{Evaluation Order}
+The \ntRef{ActionArm}s in a \ntRef{CaseAction} are tried in the order that they are written -- with the exception of any \q{default} \ntRef{ActionArm} -- which is guaranteed to be attempted only if all others do not apply.
+
+\subsubsection{Type Safety}
+The type safety requirements of a \q{case} action are that the types of the patterns of each \ntRef{ActionArm} are the same, and are the same as the selector expression. In addition, the right hand sides of the \ntRef{ActionArm}s should also be consistently typed.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{S}{T}}
+\AxiomC{\typeprd{E}{P\subi}{T}}
+\AxiomC{\typesafe{E$\cup{}$varsIn(P\subi)}{A\subi}}
+\TrinaryInfC{\typesafe{E}{\q{case}\ S\ \q{in\{}\,P\sub1\ \q{do}\ A\sub1\sequence{;}P\subn\ \q{do}\ A\subn\ \q{\}}}}
+\end{prooftree}
+
+In the case that there is a \q{default} clause, then that too must be type safe:
+\begin{prooftree}
+\AxiomC{\typeprd{E}{S}{T}}
+\AxiomC{\typeprd{E}{P\subi}{T}}
+\AxiomC{\typesafe{E$\cup{}$varsIn(P\subi)}{A\subi}}
+\TrinaryInfC{\typesafe{E}{\q{case}\ S\ \q{in\{}\,P\sub1\ \q{do}\ A\sub1\sequence{;}P\sub{n-1}\ \q{do}\ A\sub{n-1}\, \q{;} P\subn\ \q{default do} A\subn\,\q{\}}}}
+\end{prooftree}
+
+\subsection{Valis Action}
+\label{valisAction}
+\index{action!valis@\q{valis}}
+\index{valis action@\q{valis} action}
+\index{returning value to \q{valof} expression}
+
+The \q{valis} action determines the value of the nearest textually enclosing  \ntRef{ValueExpression}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{ValisAction}&\arrow&\q{valis}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{Valis Action}
+\label{valisActionFig}
+\end{figure}
+
+On executing the \q{valis} action, the corresponding \ntRef{ValueExpression} `completes' -- no further actions within the \ntRef{ValueExpression} are executed.
+
+
+\begin{aside}
+The \q{valis} action has special significance within a \ntRef{ComputationExpression}. There the \ntRef{ValisAction} becomes syntactic sugar for an occurrence of the \q{\_encapsulate} function.
+\end{aside}
+
+\subsection{Assert Action}
+\label{assert}
+\index{action!assert action}
+\index{assert action}
+\index{checking code with assertions}
+An \emph{AssertAction} is an action that simply verifies that a particular condition is satisfied. If the assertion is not satisfiable then execution will terminate.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{AssertAction}&\arrow&\q{assert}\ \ntRef{Condition}
+\end{eqnarray*}
+\caption{Assert Action}\label{assertActionFig}
+\end{figure}
+
+\begin{aside}
+It is possible to control whether or not assertions are actually executed -- without modifying the source of the program.
+\end{aside}
+
+
+\subsubsection{Type Safety}
+An assert action is type safe if the condition is satisfiable.
+
+\begin{prooftree}
+\AxiomC{\typesat{E}{C}}
+\UnaryInfC{\typesafe{E}{\q{assert}\ C}}
+\end{prooftree}
+
+\section{Exceptions and Recovery}
+\label{exceptions}
+Exceptions represent a way of capturing the non-normal flow of computation. Where a computation may \emph{fail} this may be denoted by an \q{exception} being \q{raise}d during the computation. Raised exceptions may be captured by means of an \q{on abort} handler.
+\begin{aside}
+Exceptions and abort handling features are an important tool for expressing non-regular flows of computation. However, excessive use of this feature may result in programs that are hard to read.
+\end{aside}
+
+\subsection{The \q{exception} Type}
+\label{exceptionType}
+\index{exception type@\q{exception} type}
+\index{type!exception@\q{exception}}
+Exceptions and their handling center on the \q{exception} type. When an exception is \q{raise}d, there is an opportunity to communicate a value to the handling code; the \q{exception} is the means by which this is done.
+
+The definition of the \q{exception} type is given in Program~\vref{exceptionDef}.
+\begin{program}
+\begin{alltt}
+type exception is exception(string,any,location)
+\end{alltt}
+\caption{The definition of the standard \q{exception} type\label{exceptionDef}}
+\end{program}
+
+The first element of the \q{exception} constructor is intended to be used as a form of code: it is a string that represents the kind of exception. For internally generated errors, the value of this code is the string \q{"error"}. For user-defined programs, if no value is given to the code then \q{nonString} is used.
+
+The second element of the \q{exception} constructor is an arbitrary exception signal. It is of type \q{any} -- which suggests that it may be any value; however, in most cases, the exception signal is actually a \q{string}.
+
+The third element of the \q{exception} constructor is a \q{location} value. This is typically the source location within the program that gave rise to the exception.
+
+\subsection{Raise Exception}
+\label{raiseAction}
+\index{raise an exception}
+\index{actions!raise exception@\q{raise} exception}
+The \q{raise} action is used to cause an exception to be raised.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{RaiseAction}&\arrow&\q{raise}\ \ntRef{Expression}\\
+&\choice&\q{raise}\ \ntRef{Expression}\,\q{:}\,\ntRef{Expression}
+\end{eqnarray*}
+\caption{Raise Expression Action}
+\label{raiseActionFig}
+\end{figure}
+There are two forms to the \q{raise} action's argument: in the first form only the  exception signal is determined. The type of this signal may be any type -- it is represented as an \q{any} value within the \q{exception} value.
+
+In the second form, a \q{string} `code' is given also. This form permits programs to communicate a short flag to the handling mechanism as well as a value. If the code is not given then \q{nonString} is assumed.
+
+A \q{raise} action is equivalent to a call to the standard builtin-function \q{\_raise}. For example, the \q{raise} action:
+\begin{alltt}
+raise "An exceptional raise"
+\end{alltt}
+is equivalent to a call to 
+\begin{alltt}
+_raise(exception(nonString,"An exceptional raise" cast any,__location__))
+\end{alltt}
+where \q{\_\_location\_\_} is a special \q{location}-valued variable that denotes the source location of the expression itself; see Section~\vref{locationVar}.
+
+The action:
+\begin{alltt}
+raise "error":34
+\end{alltt}
+denotes the call:
+\begin{alltt}
+_raise(exception("error",34 cast any,__location__))
+\end{alltt}
+
+A \q{raise} action will cause the current action to abort. If the \q{raise} action is in the dynamic scope of a \ntRef{TryAction} then the protected \ntRef{Action} of that \ntRef{TryAction} is aborted and the recovery \ntRef{Action} is entered.
+
+\begin{aside}
+If the \q{raise} action occurs within a computation expression (see Chapter~\vref{computation}, then a \q{raise} action is equivalent to a call to the contract function \q{\_abort}.
+\end{aside}
+
+\begin{aside}
+The `code' portion of the \q{exception} value is useful in situations where programs must be internationalized. The code may represent an internal code value where the exception value itself is in the form of a presentation \q{string}.
+\end{aside}
+
+\subsection{Abort Handling Action}
+\label{except}
+\index{actions!exception handling}
+\index{handling exceptions}
+\index{try action@\q{try} action}
+The \q{try} \ldots{} \q{on abort} action allows recovery from actions and expressions that cause exceptions.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{TryAction}&\arrow&\q{try}\ \ntRef{Action}\ \q{on abort}\ \ntRef{CaseActionBody}
+\end{eqnarray*}
+\caption{Try Action}
+\label{tryActionFig}
+\end{figure}
+
+If an exception is caused during the execution of the protected \ntRef{Action} then the handler in entered. This handler takes the form of the body of a \ntRef{CaseAction} -- i.e., is a sequence of recovery clauses, each of which is a \ntRef{ActionArm}. The pattern part of the recovery clause is matched against the exception value; and the first pattern that matches is used to recover from the exception.
+
+Exceptions are caused either by an error condition -- such as when the equations of a function fail to match a call -- or by an explicit invocation of the \q{raise} action/expression.
+
+For example, in the fragment:
+\begin{alltt}
+try\{
+  A is first(nil); -- Will raise an exception
+  logMsg(info,"A is \$A");
+\} on abort \{
+  E do logMsg(info,"Had exception: \$E");
+\}
+\end{alltt}
+the evaluation of \q{first(nil)} will fail because \q{nil} is empty. As a result, the rest of the \ntRef{Action} it is embedded in is aborted and execution continues with the recovery clause.
+
+\subsubsection{Type Safety}
+An \q{try} action is type safe if both arms of the action are safe.
+
+\begin{prooftree}
+\AxiomC{\typesafe{E}{P}}
+\AxiomC{\typesafe{E}{X}}
+\BinaryInfC{\typesafe{E}{\q{try}\ P\ \q{on abort}\ X}}
+\end{prooftree}

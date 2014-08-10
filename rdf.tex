@@ -1,0 +1,70 @@
+%!TEX root = reference.tex
+\chapter{Concepts and Ontologies}
+\label{ontology}
+
+Many programs have embedded within them numerous `constant' values that often denote specific concepts. Often these concepts refer to data that the program expects to see in its input at some point, or will produce in its output.
+
+Related to this, an application may need to be \emph{internationalized} -- that is, be translated for use in different countries by people speaking different languages -- and/or \emph{localized} -- that is, be programmed to be sensitive to local defaults for things such as how dates are formatted, currencies, and so on.
+
+The \q{rdf} profile provides facilities for defining \emph{concepts}, \emph{relationships} between those concepts and \emph{path expressions} to capture \emph{concept navigation}. In addition, it allows \emph{ontologies} -- expressed as \q{N3} files -- to be incorporated into an application. 
+
+\section{RDF and N3}
+\label{rdfN3}
+RDF is a W3C standard for specifying simple ontologies using a very simple language: an RDF graph is a set of \emph{triples}; each triple consists of a subject, a predicate and an object -- all of which are \emph{concepts}. In the standard notation, RDF triples are written using an XML-based notation; however, there is a more convenient notation often used called \q{N3}. 
+\begin{alltt}
+\emph{subject} \emph{predicate} \emph{object}.
+\end{alltt}
+where \q{\emph{subject}}, \q{\emph{predicate}} and \q{\emph{object}} are all concepts. Such a statement is called a \emph{triple}. N3 supports several shortened forms of triples; for example, a statement such as:
+\begin{alltt}
+person:john family:parent-of person:jim, person:jane.
+\end{alltt}
+is equivalent to two triples:
+\begin{alltt}
+person:john family:parent-of person:jim.
+person:john family:parent-of person:jim.
+\end{alltt}
+and the statement:
+\begin{alltt}
+person:john family:parent-of person:jim;
+             dc:has-name "john".
+\end{alltt}
+is equivalent to:
+\begin{alltt}
+person:john family:parent-of person:jim.
+person:john dc:has-name "john".
+\end{alltt}
+The comma allows the same subject and predicate to refer to multiple objects and the semi-colon allows the same subject to have multiple predicate/objects associated with it.
+
+\section{\Sr Triple Notation}
+\label{n3Notation}
+\index{triple notation}
+\index{ontology!triples}
+\Sr supports a form of N3 notation together with a path notation that facilitates navigation of concept structures.
+
+However, the exact notation is necessarily different to the standard N3 notation -- the \Sr N3 notation has been `formatted' to fit with the syntactic conventions of the \Sr language. For convenience, we will continue to refer to the \Sr `version' of N3 notation as simply N3SR. 
+
+\begin{figure}[htbp]
+   \includegraphics[width=0.55\textwidth]{diagrams/n3GraphFig}
+   \caption{N3SR Graph Structure}
+   \label{n3GraphFig}
+\end{figure}
+
+\begin{figure}[htbp]
+   \includegraphics[width=0.75\textwidth]{diagrams/n3TripleFig}
+   \caption{Triple Statement}
+   \label{n3TripleFig}
+\end{figure}
+
+\begin{figure}[htbp]
+   \includegraphics[width=0.8\textwidth]{diagrams/n3NounPhraseFig}
+   \caption{Noun Phrase}
+   \label{n3NounPhraseFig}
+\end{figure}
+
+\begin{figure}[htbp]
+   \includegraphics[width=0.7\textwidth]{diagrams/n3ConceptFig}
+   \caption{Concept}
+   \label{n3ConceptFig}
+\end{figure}
+
+

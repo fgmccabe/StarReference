@@ -1,0 +1,181 @@
+%!TEX root = reference.tex
+\chapter{Date and Time}
+\label{dateAndTime}
+
+\section{The \q{date} Type}
+Date and time support revolves around the \q{date} built-in type. The type definition for \q{date} is straightforward:
+
+\begin{alltt}
+type date is date(\_long) or never
+\end{alltt}
+
+\begin{aside}
+The \q{\_long} argument to the constructor is a so-called `raw value', not to be confused with the \q{long} built-in type (see Section~\vref{longType}). The \q{\_long} value is the number of milliseconds since Jan 1, 1970.
+
+Under normal circumstances, programmers will never see the contents of the \q{date} constructor.
+\end{aside}
+
+The \q{never} enumerated symbol denotes a nonexistent date.
+
+There are standard implementations of the \q{pPrint} (see Section~\vref{pPrintContract}) and \q{coercion} {see Section~\vref{typeCoercionExpression}) contracts for the \q{date} type. Thus, it is possible to parse a \q{string} as a \q{date} using an expression:
+\begin{alltt}
+S as date
+\end{alltt}
+In particular, \q{coercion} is implemented to support conversion between \q{date}$\leftrightarrow$\q{string} and \q{date}$\leftrightarrow$\q{long}.
+
+\section{Date Functions}
+
+\subsection{\q{now} -- Current Time}
+\index{current time}
+\label{nowFun}
+Report the current time.
+\begin{alltt}
+now has type ()=>date;
+\end{alltt}
+
+Reports the current system time as a \q{date}.
+
+\subsection{\q{today} -- Time at Midnight}
+
+\begin{alltt}
+today has type ()=>date;
+\end{alltt}
+
+Reports the time at midnight this morning as a \q{date}.
+
+\subsection{\q{smallest} -- the earliest legal point in time}
+\label{smallestDate}
+\index{date@\q{date}!first date}
+The \q{smallest} \q{date} is the first legal point in time. It corresponds to midnight Jan 1, 1970.
+\begin{alltt}
+smallest has type date
+\end{alltt}
+\q{smallest} is part of the \q{largeSmall} contract -- see Program~\vref{largeSmallProg}.
+
+\subsection{\q{largest} -- the last legal point in time}
+\label{largestDate}
+\index{date@\q{date}!last date}
+
+\begin{alltt}
+largest has type date
+\end{alltt}
+\q{largest} is part of the \q{largeSmall} contract -- see Program~\vref{largeSmallProg}.
+
+The \q{largest} \q{date} is the last legal \q{date} value. It corresponds to August 16, 292278994 11:12:55 PM PST.
+
+
+\subsection{\q{\_format} -- Format a \q{date} as a \q{string}}
+\label{formatDate}
+\index{date!formatting}
+\index{formatting a date string}
+\index{convert to a date string}
+
+\begin{alltt}
+\_format has type (date,string)=>pP;
+\end{alltt}
+
+\begin{aside}
+\q{\_format} is part of the \q{formatting} contract -- see Program~\vref{formatContractProg}.
+\end{aside}
+
+The \q{\_format} function computes a readable string representation of a \q{date} as a string displaying the date and/or time. The second argument is a format string that guides how to format the string.
+
+The format string consists of letters, spaces and other characters; the letters control the representation of some aspect of the date, other non-letter characters are displayed as is in the result. Table~\vref{tableFormatTbl} contains the definitions of the available formatting characters.
+
+\begin{table}[h]
+\begin{center}
+\caption{Date Formatting Control Letters}\label{tableFormatTbl}
+\begin{tabular}{|llll|}
+\hline
+Letter&Date Component&Presentation&Examples\\
+\hline
+\tt G&Era designator&Text&\tt AD\\
+\tt y&Year&Year&\tt 1999; 01\\
+\tt M&Month in year&Month&\tt July; Jul; 07\\
+\tt w&Week in year&Number&\tt 25\\
+\tt W&Week in month&Number&\tt 2\\
+\tt D&Day in year&Number&\tt 191\\
+\tt d&Day in month&Number&\tt 2\\
+\tt F&Day of week in month&Number&\tt 1\\
+\tt E&Day in week&Text&\tt Tuesday; Tue\\
+\tt a&AM/PM&Text&\tt PM\\
+\tt H&Hour in day (0-23)&Number&\tt 0\\
+\tt k&Hour in day (1-24)&Number&\tt 24\\
+\tt h&Hour in day (1-12)&Number&\tt 11\\
+\tt m&Minute in hour&Number&\tt 34\\
+\tt s&Second in minute&Number&\tt 56\\
+\tt S&Millisecond in second&Number&\tt 543\\
+\tt z&General time zone&Text&\tt PDT; GMT-08:00\\
+\tt Z&RFC 822 time zone&Text&\tt -0800\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+The \q{\_format} function may be invoked implicitly in a string \ntRef{Interpolation} expression. For example, the expression:
+\begin{alltt}
+"\$(now()):dd-MMM-yyyy hh:mm:ss;"
+\end{alltt}
+is equivalent to the expression:
+\begin{alltt}
+\_format(now(),"dd-MMM-yyyy hh:mm:ss")
+\end{alltt}
+\begin{aside}
+This makes more of a difference when combined with other formatting and displaying, as in:
+\begin{alltt}
+logMsg(info,"Balance on \$(today()):dd-MMM-yy; is \euro\$Amnt:9,999.00;");
+\end{alltt}
+which will result in a line of the form:
+\begin{alltt}
+Balance on 24-Mar-13 is \euro{}23.56
+\end{alltt}
+being displayed.
+\end{aside}
+
+\subsubsection{Repeated Date Formatting Control Characters}
+The repeated pattern control characters sometimes change their meaning when repeated:
+\begin{description}
+\item[Text] If the control character is repeated 4 or more times then the \emph{long} form of display is used when appropriate. Otherwise a short form is used.
+\item[Year] If the control character is repeated 2 times -- i.e., if \q{yy} is used as the year format -- then the year is truncated to two digits. Otherwise, the year is printed in full.
+\item[Month] If the \q{M} control is repeated 3 or more times then the text name of the month is used; (full name for 4 or more repetitions, short name for 3 repetitions). Otherwise, a numeric number is displayed.
+\item[Number] The numeric value is displayed, with zero padding to ensure at least as many digits as format control characters.
+\end{description}
+
+\subsection{\q{parse\_date} -- Parse a \q{string} as a \q{date}}
+\label{parseDate}
+\index{date!formatting}
+\index{parse a date string}
+
+\begin{alltt}
+parse\_date has type (string,string)=>date;
+\end{alltt}
+
+The \q{parse\_date} function parses a \q{string} into a \q{date} value. The first argument is the \q{string} to parse, the second is a format control string used to guide the parsing of the date. The form of the format control string is the same as for \q{format\_date} (see Section~\vref{formatDate}).
+
+If the string cannot be parsed as a valid date using the control string, then the value returned is \q{never}.
+
+
+\subsection{\q{timeDiff} -- Compute difference between two \q{date}s}
+\label{timeDiff}
+\index{date!difference between two dates}
+
+\begin{alltt}
+timeDiff has type (date,date)=>long
+\end{alltt}
+
+The \q{timeDiff} function `subtracts' one \q{date} from another returning the difference as a number of milliseconds.
+
+\subsection{\q{timeDelta} -- Apply a delta to a \q{date}}
+\label{timeDelta}
+\index{date!add delta to a date}
+
+\begin{alltt}
+timeDelta has type (date,long)=>date
+\end{alltt}
+The \q{timeDelta} function adds an increment to a \q{date} -- expressed as a number of milliseconds -- and returns a new \q{date}.
+\begin{aside}
+The increment may be negative; for example, to compute yesterday's \q{date}, the following expression suffices:
+\begin{alltt}
+timeDelta(today(),-86400000L)
+\end{alltt}
+\end{aside}

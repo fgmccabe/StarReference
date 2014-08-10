@@ -1,0 +1,78 @@
+%!TEX root = reference.tex
+\chapter{Running Programs from the Command Line}
+\label{commandLineRunning}
+
+In many situations, the \Sr compiler is embedded within other systems. However it is also possible to compile and execute \Sr programs from the command line of a terminal shell.
+
+\label{commandLine}
+\index{running from command line}
+To run a program from the command line requires invoking the \Sr compiler system with a package that contains a \q{main} definition.
+
+\section{Invoking the \Sr Compiler}
+The \Sr compiler and run-time is typically invoked with a command line along the lines of:
+\begin{alltt}
+java -jar \emph{Directory}/star.jar \emph{prog.star} \emph{Arg\sub1}\sequence{\quad}\emph{Arg\subn}
+\end{alltt}
+where \emph{Directory} is the installation directory of the \Sr compiler's jar file. The  file \q{\emph{prog.star}} should contain a normal \q{package} definition (see Chapter~\vref{packages}) and that \q{package} should contain a definition for a \ntRef{Procedure} called \q{main}.
+
+For example, a simple \q{"hello world"} program may look like:
+\begin{alltt}
+hello is package\{
+  main() do 
+    logMsg(info,"hello world");
+\}
+\end{alltt}
+
+\begin{aside}
+The precise command-line magic needed to invoke the \Sr compiler system is dependent on the way that the \Sr compiler has been installed.
+\end{aside}
+
+\subsection{Command Line Arguments}
+\label{commandLineArgs}
+\index{command line arguments}
+
+A \Sr \q{main} program may have arguments passed to it from the command line. These arguments may be of any type -- expect that they must be fully ground (i.e., no type variables permitted -- provided that \ntRef{TypeCoercion} is supported for that type.
+
+For example, in the \q{sample} package:
+\begin{alltt}
+sample is package\{
+  main has type (long,string,float)=>();
+  main(L,S,F) do
+    logMsg(info,"first arg=\$L, second=\$S, third=\$F");
+\}
+\end{alltt}
+we can invoke this from the common line, passing in an integer, any string and a float:
+\begin{alltt}
+\ldots sample.star 23 "hello there" 23.5
+\end{alltt}
+resulting in:
+\begin{alltt}
+INFO: first=23, second="hello there", third=23.5
+\end{alltt}
+(along with other generated output).
+
+If the incorrect number of arguments is passed to \q{sample}, then a message is displayed:
+\begin{alltt}
+WARNING: usage: <sample> integer string float
+\end{alltt}
+If one of the arguments is not in the correct format for the expected type then a message such as:
+\begin{alltt}
+WARNING: 23.4 cannot be parsed as an integer
+\end{alltt}
+will be displayed.
+\begin{aside}
+In principle, \emph{any} type of argument may be passed as a command-line argument; provided that there is an implementation of the \q{coercion} contract for the conversion from \q{string} to that type. 
+
+This may include a type introduced by the programmer.
+\end{aside}
+
+\subsection{Compiler Flags}
+\label{compileFlags}
+The compiler supports a number of compiler flags that control some aspects of the behavior of the compiler. The compiler flags may be introduced when running the compiler from the command line using a \q{-D} notation.
+\begin{description}
+\item[\q{-DSTARPATH=}Path] The value of this flag is a string containing the locations of a series of code repositories. Each repository is either a compressed archive -- contained in a zip file with extension \q{.zar} -- or a directory. Each repository name is separated by a \q{:} character.
+\item[\q{-DSTAR=}Directory] The value of this flag is used to override the default working directory of the compiler.
+\item[\q{-DTRANSDUCER=}Exp] This defines a new resource URI scheme according to Section~\vref{newResoureScheme}.
+\item[\q{-DSHOW\_CANON}] This compiler flag may be useful in some situations: it causes a display of the program after macro processing and with inferred types. 
+\item[\q{-DVERSION=\ntRef{Version}}] This specifies that the program being compiled should be identified as being a particular version.
+\end{description}

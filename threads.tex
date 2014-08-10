@@ -1,0 +1,272 @@
+%!TEX root = reference.tex
+\chapter{Concurrent Execution}
+\label{threads}
+\index{Concurrent execution}
+\index{threads}
+
+Concurrent execution involves the use of \q{spawn} (and the related parallel execution operator \q{//}) to initiate concurrent execution; together with a set of features intended to constrain that concurrent execution.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Action}&\arrowplus&\ntRef{ParallelAction}\\
+&\choice&\ntRef{SpawnAction}\\
+&\choice&\ntRef{WaitAction}\\
+&\choice&\ntRef{SyncAction}%\\
+%&\choice&\ntRef{AtomicAction}
+\end{eqnarray*}
+\caption{Thread and Parallel Action}
+\label{threadActionFig}
+\end{figure}
+
+\section{Spawning Concurrent Execution}
+\label{threadSpawning}
+
+There are three `levels' of operator relating to initiating and terminating concurrent execution: the parallel execution operator \q{//}, the \q{spawn} action/expression and the \q{threadStart} and \q{threadWaitfor} operators.
+
+\subsection{Parallel Execution}
+\label{parallelExecution}
+
+The \q{//} operator is used to signal that two actions should proceed in parallel.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{ParallelAction}&\arrow&\ntRef{Action}\ \q{//}\ \ntRef{Action}
+\end{eqnarray*}
+\caption{parallel Execution Action}
+\label{parallelExecutionFig}
+\end{figure}
+
+An action of the form:
+\begin{alltt}
+\emph{LeftAction}//\emph{RightAction}
+\end{alltt}
+executes both of \q{\emph{LeftAction}} and \q{\emph{RightAction}} -- in some indeterminate, possibly interleaved, order. The action itself does not terminate until both \q{\emph{LeftAction}} and \q{\emph{RightAction}} have terminated.
+
+For example, to perform a \q{request} action (see Section~\vref{request}) to two different targets in parallel, one might use:
+\begin{alltt}
+\ldots;\{ request A to oneThing() \}//\{request B to otherThing()\};\ldots
+\end{alltt}
+It would be also possible to ask the \emph{same} target to perform operations in parallel but that raises issues relating to accessing shared resources. For one way of managing this, see Section~\vref{syncAction}. %and Section~\vref{transaction}.
+
+\section{Thread Spawning}
+\begin{aside}
+The \q{spawn} action/expression is slightly more low-level than the \q{//} operator. The \q{fork} primitive is lower-level still; and gives the finest level of control of initiating a concurrent execution.
+\end{aside}
+
+\subsection{The \q{thread} Type}
+\label{threadType}
+\index{threads!type of}
+
+The \q{thread} type is a standard type that is used to represent threads of execution. It does not have a standard constructor; and hence cannot be defined using normal type definition notation. However, it is generic; a type expression of the form:
+\begin{alltt}
+thread of integer
+\end{alltt}
+denotes the type of a thread which will ultimately yield an \q{integer} value when it completes. 
+
+\begin{aside}
+Not all threads yield a value; in which case the type expression is simply \q{thread}. (i.e., the type expressions \q{thread of \emph{type}} and \q{thread} refer to different kinds of threads -- in one case returning a value and in the other not.
+\end{aside}
+
+\subsection{Spawn Action}
+\label{spawnAction}
+\index{spawn action@\q{spawn} action}
+\index{parallel execution}
+
+A \q{spawn} action executes an \emph{Action} in parallel with the `main' action.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{SpawnAction}&\arrow&\q{spawn}\ \ntRef{Action}
+\end{eqnarray*}
+\caption{Spawning a thread}\label{spawnSyntaxFig}
+\end{figure}
+When executed, a \q{spawn} action completes `immediately' -- without waiting for the \q{spawn}ed action to complete. The \q{spawn}ed action itself is executed as a separate thread of activity.
+
+\subsubsection{Variables in a \q{spawn}ed action}
+\index{spawn action@\q{spawn} action!variables in a}
+\index{variables in a \q{spawn} action}
+
+Any variables that are \emph{free} in a \q{spawn}ed action are treated as read-only within the \q{spawn}ed action -- with the exception of \q{resource} variables (see Section~\vref{reassignableVars}). Thus an action of the form:
+\begin{alltt}
+\{
+  var X := 1;
+  \ldots
+  spawn \{ X := X+1; \}
+  \ldots
+\}
+\end{alltt}
+is not legal since the variable \q{X} is not a \q{resource} variable, and hence it may not be reassigned to within the \q{spawn}ed action.
+
+The value assigned to reassignable variables within a \q{spawn} action is `fixed' at the time that the \q{spawn} is performed.
+
+However, in the fragment:
+\begin{alltt}
+\{
+  resource var R := 1;
+  \ldots
+  spawn \{ R:=R+1; \}
+  \ldots
+\}
+\end{alltt}
+the variable \q{R} is a \q{resource} variable. Hence \q{R} may be reassigned to within the \q{spawn}ed action, and its value always reflects the last assignment to the variable.
+\begin{aside}
+Of course, this also represents a major risk to the safety of programs. The programmer should ensure that any reference or assignment to shared \q{resource} variables is in the context of an \q{atomic} action. Otherwise, there is a high risk of unexpected race conditions and corruption in the values of such variables.
+\end{aside}
+
+\subsubsection{Type Safety}
+
+\begin{prooftree}
+\AxiomC{\typesafe{E}{\emph{Action}}}
+\UnaryInfC{\typesafe{E}{\q{spawn}\ \emph{Action}}}
+\end{prooftree}
+
+\subsection{Spawn Expression}
+\label{spawnExpression}
+The \q{spawn} expression -- likes its action counterpart (see Section~\vref{spawnAction}) -- is used to spawn off an expression evaluation to be evaluated concurrently with the invoking computation.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Expression}&\arrowplus&\ntRef{SpawnExpression}\\
+\ntDef{SpawnExpression}&\arrow&\q{spawn}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{Spawning an expression}\label{spawnExpressionSyntaxFig}
+\end{figure}
+
+\subsubsection{Type Safety}
+The type of a \q{spawn} expression is \q{thread}. However, the \q{thread} type is generic, intended to denote the result of the \q{spawn}ed expression as it is re-captured by the corresponding \q{wait} expression.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{Ex}{T}}
+\UnaryInfC{\typeprd{E}{\q{spawn} Ex}{\q{thread of }T}}
+\end{prooftree}
+
+\subsection{Thread Wait Action}
+\label{threadWaitAction}
+\index{spawn action@\q{spawn} action!wait for termination}
+The \q{waitfor} action blocks until an identified thread has terminated. If the \q{thread} has a value associated with it, then that value also becomes the value returned by \q{waitfor}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Action}&\arrowplus&\ntRef{WaitAction}\\
+\ntDef{WaitAction}&\arrow&\q{waitfor}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{WaitFor action}\label{waitforActionSyntaxFig}
+\end{figure}
+
+\subsection{\q{wait} expression}
+\label{waitExpression}
+The \q{wait} expression takes a \q{thread} as an argument and has as its value the value returned by the \q{thread}. The \q{wait} expression does suspends execution until the \q{thread} has completed.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Expression}&\arrowplus&\ntRef{WaitExpression}\\
+\ntDef{WaitExpression}&\arrow&\q{waitfor}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{WaitFor expression}\label{waitforExpressionSyntaxFig}
+\end{figure}
+
+\subsubsection{Type Safety}
+The type of a \q{spawn} expression is \q{thread}. The type of a \q{wait} expression is the type of the value returned by the \q{thread}.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{E\sub{spawn}}{\q{thread of }T}}
+\UnaryInfC{\typeprd{E}{\q{wait}\ E\sub{spawn}}{T}}
+\end{prooftree}
+
+\subsection{The \q{sync}hronized Action}
+\label{syncAction}
+\index{sync action@\q{sync} action}
+
+The \q{sync} action is used to manage contention in accessing resources that are potentially shared across \q{spawn}ed actions. There are two forms of \q{sync} action -- a standard form and the guarded form. In both cases, \q{sync} revolves around access to a shared resource.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{SyncAction}&\arrow&\q{sync(}\ntRef{Expression}\q{)\{}\ntRef{SyncBody}\q{\}}\\
+\ntDef{SyncBody}&\arrow&\ntRef{SyncGuard}\sequence{;}\ntRef{SyncGuard}\\
+&\choice&\ntRef{Action}\\
+\ntDef{SyncGuard}&\arrow&\q{when}\ \ntRef{Condition}\ \q{do}\ \ntRef{Action}
+\end{eqnarray*}
+\caption{Synchronized Action}\label{syncActionSyntaxFig}
+\end{figure}
+
+The \q{sync} action's resource \emph{Expression} may evaluate to any term value; however, we recommend that `something obvious' is used. For example, in the context of a set of actions revolving around a \ntRef{ThetaRecord} the \q{this} keyword identifies the \ntRef{ThetaRecord} itself.
+
+Only one \q{sync} action may be executing at any given time on a given resource. If another \q{spawn}ed action is executing a \q{sync} action involving the same resource then this action is paused until that action completes.
+
+If the guarded form is used, each \ntRef{SyncGuard} defines a condition that must be satisfied in order for access to the shared resource to be valid. These guards are evaluated in a left-to-right order: the first guard to be satisfied fires its corresponding action.
+
+The process of acquiring exclusive access to a shared resource when using \ntRef{SyncGuard}s can be described:
+\begin{enumerate}
+\item A lock on the shared resource is acquired.
+\item For each \ntRef{SyncGuard}, its guard \ntRef{Condition} is evaluated:
+\begin{itemize}
+\item  If the guard is satisfied, then the corresponding guarded \ntRef{Action} is performed. At the end of which the lock on the shared resource is released and the \ntRef{SyncAction} is completed.
+\item If the guard is not satisfied, then the next \ntRef{SyncGuard} is considered.
+\end{itemize}
+\item If no remaining \ntRef{SyncGuard} exists; the lock on the shared resource is released, the \ntRef{SyncAction} is suspended, and a new attempt on a lock on the shared resource will be made after another thread has successfully acquired and released the lock. At which point, execution of the \ntRef{SyncAction} will be restarted.
+\end{enumerate}
+
+\begin{aside}
+This is equivalent to the `monitor' exclusion pattern for controlling access to shared resources.
+\end{aside}
+
+\begin{aside}
+The \q{sync} action is a fairly low-level mechanism. It can be difficult to use \q{sync} actions to achieve high performance. However, it can be used to build higher-level mechanisms such as semaphores and atomic transactions. For example, Program~\vref{semaphoreProg} shows how a semaphore can be implemented in terms of the \q{sync} action.
+%
+%We recommend using the \q{atomic} action (see Section~\vref{atomicAction}) as an alternative easier-to-use mechanism for most regular scenarios.
+\end{aside}
+\begin{program}
+\begin{alltt}
+semaphore(Count) is \{
+  private var Lvl := Count;
+    
+  grab() do \{
+    sync(this)\{
+      when Lvl>0 do \{
+        Lvl := Lvl-1;
+      \}
+    \};
+  \};
+    
+  release() do \{
+    sync(this)\{
+      Lvl := Lvl+1;
+    \}
+  \}
+\}
+\end{alltt}
+\caption{A Semaphore Generating Function\label{semaphoreProg}}
+\end{program}
+
+\subsubsection{Type Safety}
+\begin{prooftree}
+\AxiomC{\typeprd{E}{\emph{S}}{\emph{t}}}
+\AxiomC{\typesafe{E}{\emph{Action}}}
+\BinaryInfC{\typesafe{E}{\q{sync(}\emph{S}\q{)\{}\emph{Action}\q{\}}}}
+\end{prooftree}
+
+%\section{Transactional Isolation of Concurrent Threads}
+%\label{transaction}
+
+
+
+%\subsection{Atomic Actions}
+%\label{atomicAction}
+%\index{atomic actions}
+%\index{transactions}
+%
+%An \q{atomic} action performs its argument action in a way that is \emph{atomic} with respect to other parallel activities -- such as those \q{spawn}ed off. In particular, other threads cannot see any changes to variables, or any speech actions that are performed, until the \q{atomic} action is completed.
+%
+%\begin{figure}[htbp]
+%\begin{eqnarray*}
+%\ntDef{AtomicAction}&\arrow&\q{atomic}\ \emph{Action}
+%\end{eqnarray*}
+%\caption{Atomic Action}\label{atomicSyntaxFig}
+%\end{figure}
+%
+%\q{atomic} actions denote an equivalent of \emph{transactions}. They are intended to support \emph{isolation} of side-effects between concurrent activities; and hence enable better management of interactions.
+%
+%\subsubsection{Type Safety}
+%
+%\begin{prooftree}
+%\AxiomC{\typesafe{E}{\emph{Action}}}
+%\UnaryInfC{\typesafe{E}{\q{atomic}\ \emph{Action}}}
+%\end{prooftree}

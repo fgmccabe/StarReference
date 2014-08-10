@@ -1,0 +1,35 @@
+\begin{thebibliography}{1}
+
+\bibitem{agha-hew:87}
+G.~Agha and C.~Hewitt.
+\newblock Concurrent programming using actors.
+\newblock In A.~Yonezawa and M.~Tokoro, editors, {\em Object Oriented
+  Concurrent Programming}. MIT Press, 1987.
+
+\bibitem{austin:60}
+John~L. Austin.
+\newblock {\em How to do things with words}.
+\newblock Oxford : Clarendon, 1962.
+
+\bibitem{rfc2396}
+T.~Berners-Lee, U.C.~Irvine R.~Fielding, and L.~Masinter.
+\newblock Uniform resource identifiers ({URI}): Generic syntax.
+\newblock Request For Comments 2396, The Internet Society, 1998.
+
+\bibitem{rfc4627}
+D.~Crockford.
+\newblock The application/json media type for javascript object notation
+  (json).
+\newblock Standard, July 2006.
+
+\bibitem{hoare:85}
+C.A. Hoare.
+\newblock {\em Communicating Sequential Processes}.
+\newblock Prentice-Hall International, 1985.
+
+\bibitem{reppy:99}
+John Reppy.
+\newblock {\em Concurrent Programming in ML}.
+\newblock Cambirdge University Press, 1999.
+
+\end{thebibliography}

@@ -1,0 +1,152 @@
+%!TEX root = reference.tex
+\chapter{Parsing Text}
+\label{parsing}
+
+String processing is one of the most important functions in many applications. In addition to the use of regular expressions for basic string processing, there is also support for more powerful string processing in the form of a built-in grammar notation.
+\index{parsing text}
+\index{text parsing}
+\index{string!parsing}
+\index{grammar notation}
+
+Program~\vref{exprGrammar} shows a simple example of a grammar that can be used to parse and evaluate simple arithmetic expressions. This example shows how grammar rules not only capture the syntax of expressions, and the \emph{lexical structure} of elements of expressions but also how a grammar can \emph{extract values} as a result of parsing a string.
+
+\section{Grammar Rules}
+\label{grammarRules}
+\index{grammar rules}
+\index{rules!grammar}
+
+A \ntRef{GrammarRule} is a rule that may be used in parsing text. The syntax for grammar rules is defined in Figure~\vref{grammarRuleFig}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Statement}&\arrowplus&\ntRef{Grammar}\\
+\ntDef{Grammar}&\arrow&\ntRef{GrammarRule}\sequence{;}\ntRef{GrammarRule}\\
+\ntDef{GrammarRule}&\arrow&\ntRef{GrammarRuleHead}\ [from\ \ntRef{GrammarBody}]\\
+\ntDef{GrammarRuleHead}&\arrow&\ntRef{Identifier}\,[\q{(}\ntRef{Identifier}\sequence{,}\ntRef{Identifier}\q{)}]\ \gapp\ \ntRef{Expression}\\
+\ntDef{GrammarBody}&\arrow&\ntRef{RegularExpression}\\
+&\choice&\q{\{}\ \ntRef{Condition}\,\q{\}}\\
+&\choice&\ntRef{NonTerminal}\\
+&\choice&\ntRef{GrammarBody}\sequence{,}\ntRef{GrammarBody}\\
+&\choice&\ntRef{NonTerminal}\, \q{*}\,[\,\ntRef{RegularExpression}\,]\\
+&\choice&\ntRef{NonTerminal}\, \q{+}\,[\,\ntRef{RegularExpression}\,]\\
+&\choice&\q{(}\, \ntRef{GrammarBody}\, \q{)}\\
+\ntDef{NonTerminal}&\arrow&\ntRef{Identifier}\,[\q{(}\ntRef{Expression}\sequence{,}\ntRef{Expression}\q{)}]\ \gapp\ \ntRef{Pattern}
+\end{eqnarray*}
+\caption{Grammar Rules}
+\label{grammarRuleFig}
+\end{figure}
+
+The grammar notation addresses several of the issues involved in parsing text: identifying the `tokens' in the text, identifying the syntactic structures in the text and extracting semantic values from the parse.
+
+\subsection{Grammar Type}
+\label{grammarType}
+\index{type!grammar}
+\index{grammar type}
+
+A grammar is just a particular form of \ntRef{PatternAbstraction}, following the same type form:
+\begin{alltt}
+(T\sub1,\ldots,T\subn) <= T
+\end{alltt}
+where \q{T\subi} and T are all types. 
+
+The arguments to a non-terminal allow the grammar to be \emph{context sensitive}; the arguments to the non-terminal may be used -- in conjunction with values generated as a result of parsing -- to help instantiate grammar conditions.
+\end{quote}
+
+\begin{program}
+\begin{alltt}
+expr(L+R) from factor(L), `\bsl{}+`, factor(R);
+expr(L-R) from factor(L), `-`, factor(R);
+expr(E) from factor(E);
+
+factor(L*R) from term(L), `\bsl{}*`, term(R;
+factor(L/R) from term(L), `/`, term(R;
+factor(F) from term(T);
+
+term(atoi(N)) from `([0-9]+:N)`;
+term(T) from `\bsl{}(`, expr(T), `\bsl{})`;
+\end{alltt}
+\caption{A Simple Expression Evaluator Grammar}\label{exprGrammar}
+\end{program}
+
+\subsection{Tokens}
+Tokens in a grammar refer to individual sequences of characters. The foundation of tokens in grammar rules are the same regular expressions as used in \q{string} patterns (see Section~\vref{regularExpressions}). 
+
+If a value is associated with a token type -- such as the name of a identifier token -- the value may be extracted using the \q{:} operator (see Section~\vref{variableRegexp}). For example, a grammar rule such as:
+\begin{alltt}
+iden(Id from `([a-zA-Z]\bsl{}w*:Id)`;
+\end{alltt}
+`produces' an identifier using the regular expression variable extraction feature.
+
+\section{Parsing Text}
+\label{parsingText}
+The \q{\gapp} \ntRef{Expression} is used to invoke a grammar on a string and return the result of that parse. Figure~\vref{parseExpFig} gives the syntax for parse expressions.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Expression}&\arrowplus&\ntRef{ParseExpression}\\
+\ntDef{ParseExpression}&\arrow&\ntRef{Expression}\ \gapp\ \ntRef{NonTerminal}
+\end{eqnarray*}
+\caption{Parse Expression}
+\label{parseExpFig}
+\end{figure}
+
+An expression of the form:
+\begin{alltt}
+"3+4*5"(expr
+\end{alltt}
+denotes a `request' to parse the string \q{"3+4*5"} with the grammar identified by \q{expr}. The value of the expression is the value extracted by the grammar; in this case the result should be 23.
+
+\subsubsection{Type Safety}
+A \ntRef{ParseExpression} is type safe if the identified non-terminal is appropriate for the circumstances:
+\begin{prooftree}
+\AxiomC{\typeprd{E}{\q{g}}{\q{(}t\sub1,\ldots,t\subn\q{)\gapp}t}}
+\AxiomC{\typeprd{E}{a\sub1}{t\sub1}\sequence{\quad}\typeprd{E}{a\subn}{t\subn}}
+\AxiomC{\typeprd{E}{\q{s}}{\q{string}}}
+\TrinaryInfC{\typeprd{E}{\q{s(g(}a\sub1\sequence{\q{,}}a\subn\q{)}}{t}}
+\end{prooftree}
+
+
+\begin{program}
+\begin{alltt}
+type abstract is id(string)
+  or int(integer)
+  or str(string)
+  or seq(list of abstract)
+  or app(abstract,abstract)
+  or sq(abstract,abstract)
+  or br(abstract,abstract);
+
+term(P) is pattern(T) from left(P)((L,LP), right(P,L,LP)(T);
+
+left(P)((app(Op,seq([L])),PP) from prefix((Op,PP,RP), \{PP<=P\},
+       term(R)(L;
+left(_)((L,0) from term0(L;
+
+right(P,L,LP)(T from 
+       infix((Op,LLP,IP,RP), \{ LLP>=LP and IP<=P \},
+       term(RP)(R,
+       right(RP,app(Op,seq([L,R])),IP)(T;
+right(P,L,LP)(T from    
+       postfix((Op,LLP,PP), \{ LLP>=LP and PP<=P \},
+       right(P,app(Op,seq([L])),PP);
+right(P,T,_)(T;
+
+term0(app(Op,seq(A)) from primitive(Op, 
+       `(`, term(1000)(A * `,`, `)`;
+term0(sq(Op,A) from primitive(Op, `[`, term(1000)(A, `]`;
+term0(br(Op,A) from primitive(Op, `\{`, term(1000)(A, `\}`;
+term0(T from primitive(T;
+
+primitive(id(Id) from iden(Id, \{not Id in Opers\};
+primitive(int(I as integer) from `[0-9]+:I`;
+primitive(str(S) from `"([^"]*:S)"`;
+
+iden(Nm from `([a-zA-Z_][a-zA-Z_0-9]*:Nm)`;
+
+infix((Op,Lp,Pp,Rp) from iden(Op, \{(Op,Lp,Pp,Rp) in infixOps \};
+
+infixOps is \{ (";",1999,2000,2000); \ldots; (".",249,250,249); \};
+\end{alltt}
+\vspace{-2ex}
+\caption{Operator Precedence Grammar}\label{srOpPrecGrammar}
+\end{program}

@@ -1,0 +1,434 @@
+%!TEX root = reference.tex
+\chapter{Strings}
+\label{strings}
+A string is a sequence of Unicode characters that denotes a fragment of text. This chapter focuses on the built-in functions that are based on the \q{string} type.
+
+\section{The Structured String \q{pP} Type}
+\label{ppType}
+\index{pP type}
+\index{type!pP@\q{pP}}
+The \q{pP} type -- as defined in Program~\vref{ppTypeProg} -- denotes a `structured \q{string}' value where the structure may be used to represent lines, sub sequences and so on.
+\begin{aside}
+A primary purpose of the \q{pP} type is to permit simple formatting policies to be applied after the generation of the displayed form of a value.
+\end{aside} 
+
+\begin{program}
+\begin{alltt}
+type pP is 
+     ppStr(string)
+  or ppSequence(integer,cons of pP)
+  or ppNl
+  or ppSpace;
+\end{alltt}
+\caption{The Structured String \q{pP} type}\label{ppTypeProg}
+\end{program}
+
+The intended semantics of the constructors are:
+\begin{description}
+\item[\q{ppStr}] A literal string. Whenever a literal string is to be generated, the \q{ppStr} constructor is used to `hold' that string. For example, if the display of a value calls for an opening parenthesis, then the term:
+\begin{alltt}
+ppStr("(")
+\end{alltt}
+may be used to denote that.
+\item[\q{ppSequence}]
+The \q{ppSequence} constructor signals a subsequence in the display. It has two arguments: the first is an indentation amount, and the second is a \q{cons} list of sub-elements.
+
+The indentation is used if a newline is generated within the subsequence. In that case, the new lines will be indented by the amount requested.
+\item[\q{ppNl}]
+Signal a new line in the displayed sequence. 
+\begin{aside}
+Simply signaling a new line does actually imply that a new line will be generated. New lines are generated depending on whether the client of the pretty print requires one in the actual displayed output.
+\end{aside}
+\item[\q{ppSpace}]
+The \q{ppSpace} symbol denotes a `line-breakable' space. Multiple \q{ppSpace}s in sequence are equivalent to a single one.
+\end{description}
+
+\section{The \q{pPrint} contract}
+\label{pPrintContract}
+\index{pPrint contract@\q{pPrint} contract}
+\index{pretty print contract}
+
+The standard contract \q{pPrint}, shown in Program~\vref{ppContractProg} together with the \q{pP} type shown in Program~\vref{ppTypeProg}, is at the core of the standard method for displaying arbitrary values. 
+\begin{program}
+\begin{alltt}
+contract pPrint over t is \{
+  ppDisp has type (t)=>pP
+\};
+\end{alltt}
+\caption{The Standard \q{pPrint} Contract}\label{ppContractProg}
+\end{program}
+The \Sr compiler will automatically generate implementations of the \q{pPrint} contract for all user-defined types. However, it will not override any implementations defined by the user.
+\begin{aside}
+It is not guaranteed that \emph{all} user-introduced types will be detected. In particular, some anonymous types are implicitly introduced by the programmer and these are not guaranteed to be detected.
+
+However, if the compiler cannot find an implementation of \q{pPrint} then a default implementation will be used.
+\end{aside}
+
+The purpose of the \q{pPrint} contract is to support the standard \q{display} function -- see Section~\vref{displayFunction}. This, in turn, is used whenever a string \ntRef{Interpolation} expression is used.
+
+\begin{aside}
+One of the primary benefits of allowing programmers to define their own implementation of \q{pPrint} is to enable higher quality display of values. By defining \q{pPrint} for yourself, you can use application oriented display of your values.
+\end{aside}
+
+
+\subsection{Implementing the \q{pPrint} Contract}
+As noted above, the \q{pPrint} contract is automatically implemented for standard types and for user-introduced types. However, it is quite possible to define one's own implementation. For example, supposing that values of the \q{tree} type:
+\begin{alltt}
+type tree of t is empty or node(tree of t,t,tree of t)
+\end{alltt}
+were intended to be display:
+\begin{alltt}
+\{ "alpha" "beta" "gamma" \}
+\end{alltt}
+instead of the default form:
+\begin{alltt}
+node(node(empty,"alpha",empty),"beta",node(empty,"gamma",empty))
+\end{alltt}
+then the following implementation of \q{pPrint} would ensure that such trees were displayed more conveniently:
+\begin{alltt}
+implementation pPrint over tree of \%t where pPrint over \%t is \{
+  ppDisp(T) is ppSequence(2,cons of [ppStr("\{"), treeDisplay(T), ppStr("\}")])
+\} using \{
+  treeDisplay(empty) is ppSpace;
+  treeDisplay(node(L,Lb,R)) is 
+    ppSequence(0,cons of [treeDisplay(L), ppDisp(Lb), treeDisplay(R)]);
+\}
+\end{alltt}
+\begin{aside}
+Note how the use of \q{ppDisp} within the definition of \q{treeDisplay} will ensure that the display of tree labels may also be overridden with user-defined implementations of \q{pPrint}.
+\end{aside}
+
+\subsection{\q{display} -- display a value as a string}
+\label{displayFunction}
+\begin{alltt}
+display has type (\%s)=>string
+\end{alltt}
+The \q{display} function returns a \q{string} representation of its value.
+
+The \q{display} function is defined in terms of the \q{pPrint} contract defined in Program~\vref{ppContractProg}.
+\begin{aside}
+Although the system attempts to format the result in a way that can be parsed back; this is not guaranteed. In particular, this is not possible for any values that represent programs -- such as functions and procedures. Furthermore, user-defined implementations of \q{pPrint} may result in non-parseable output.
+\end{aside}
+
+\section{The \q{formatting} Contract}
+\label{formatContract}
+The \q{formatting} contract specifies the single \q{\_format} function which is intended to represent how values should be formatted.
+
+The \q{formatting} contract itself is defined in Program~\vref{formatContractProg}. The result of a call to \q{\_format} is a structured \q{string}.
+
+\begin{program}
+\begin{alltt}
+contract formatting over \%t is \{
+  \_format has type (\%t,string)=>pP;
+\}
+\end{alltt}
+\caption{The \q{formatting} Contract\label{formatContractProg}}
+\end{program}
+
+
+
+\begin{aside}
+Normally, like \q{display}, calls to \q{\_format} are represented implicitly in string \ntRef{Interpolation} expressions.
+\end{aside}
+\subsection{Formatting Codes}
+\label{formattingCodes}
+A formatting code is a description of how a numeric or \q{string} valued expression should be displayed. Formatting codes allow more detailed control of the representation of the format in terms of minimum and maximum widths of output, the number of decimal places to show and the style of representing numbers -- including how negative numbers are displayed and the display of currencies.
+
+A formatting code is introduced with a \q{:} character immediately after the \q{\$} form and is terminated by a \q{;} character. An invalid formatting code is ignored, and treated as though it were part of the quoted string proper.
+
+Each type of value to be formatted may have different formatting codes; reflecting the natural variations in the type. For example formatting integral values may involve ways of managing the display of the sign of the number and formatting \q{date} values involves ways of show dates and times.
+
+For example, to show a dollar value -- represented as pennies -- in \emph{accounting style} we can use:
+\begin{alltt}
+"Balance: \$Amnt:P999900.00P; remaining"
+\end{alltt}
+This format spec displays at least the four least significant digits of the variable \q{Amnt}. If the value of that variable is greater than 9999 then the leading digits are displayed also -- up to a maximum of eight digits. If the value of \q{Amnt} is negative then the number is displayed enclosed in parentheses.
+
+For example, if \q{Amnt} had value -100000, then the value of the expression would be:
+\begin{alltt}
+Balance: (1000.00) remaining
+\end{alltt}
+If \q{Amnt} were 10000:
+\begin{alltt}
+Balance:  1000.00  remaining
+\end{alltt}
+\begin{aside}
+Note the additional spaces: if the  \q{P} mode is used for representing sign, a white space character is generated for positive numbers. This facilitate straightforward alignment of columnar reports.
+\end{aside}
+If \q{Amnt} had value 45, then the result would be:
+\begin{alltt}
+Balance:  00.45  remaining
+\end{alltt}
+The \q{'0'} in the format will result in leading zeros being printed.
+\begin{aside}
+If a value cannot be represented in the delimited number of characters then the string:
+\begin{alltt}
+\q{*Error*}
+\end{alltt}
+is displayed; at least, as much of \q{*Error*} as is possible in the allocated space.\end{aside}
+
+
+\subsection{\q{format} -- format a string for display}
+\label{formatStringFunction}
+\begin{alltt}
+format has type (string,string)=>string
+\end{alltt}
+
+\begin{aside}
+The \q{format} function for \q{string} values is normally invoked implicitly within a \q{string} \ntRef{Interpolation} expression. For example,
+\begin{alltt}
+"--\$Msg:C13;--"
+\end{alltt}
+is equivalent to the expression:
+\begin{alltt}
+"--"++format(Msg,"C13")++"--"
+\end{alltt}
+and has value:
+\begin{alltt}
+"--   freddie   --"
+\end{alltt}
+assuming that the value of the \q{Msg} variable is \q{"freddie"}.
+\end{aside}
+
+The format specification for \q{string} values is given in the regular expression:
+\begin{alltt}
+`[LCR][0-9]+`
+\end{alltt}
+where each control code is defined:
+\begin{description}
+\item[\q{L}] 
+The value is shown left-aligned in the text.
+
+The decimal value immediately after the \q{L} character is the size of the field.
+
+If the displayed length of the number or string is less than that permitted; then the value is shown left-aligned. If the length of the value is greater than the size of the field then the text is truncated -- i.e., the first N characters of the value are used.
+
+\item[\q{R}] The value is shown right-aligned in the text -- if the length of the value is less than the size of the field.
+
+If the length of the value is greater than the size of the field then the text is truncated.
+
+\item[\q{C}] The value is shown centered in the field. 
+\end{description}
+
+\begin{aside}
+The \q{format} function is defined in terms of the \q{\_format} function and the \q{formatting} contract -- see Program~\vref{formatContractProg}.
+\end{aside}
+
+\section{Standard String Functions}
+\label{simpleString}
+In addition to certain specific string functions -- such as string concatenation -- the \q{string} type implements the \q{comparable} contract which enables \q{string} values to be compared. The \q{indexable} contract -- see Program~\vref{sizeableContract} -- is also implemented for \q{string}s, which means that the normal \q{[]} notation may be used to access the characters of a string.
+
+\subsection{\q{isEmpty} -- test for empty string}
+\label{stringEmptyFunction}
+\q{isEmpty} is part of the standard \q{sizeable} contract (see Program~\vref{sizeableContract}):
+\begin{alltt}
+isEmpty has type (string)=>boolean
+\end{alltt}
+The \q{isEmpty} function returns true if its argument is the empty string. It's definition is equivalent to:
+\begin{alltt}
+isEmpty(X) is X="";
+\end{alltt}
+
+\subsection{\q{size} -- size of the string}
+\label{stringSizeFunction}
+\q{size} is part of the standard \q{sizeable} contract (see Program~\vref{sizeableContract}):
+\begin{alltt}
+size has type (string)=>integer
+\end{alltt}
+The \q{size} function returns the number of Unicode characters in the \q{string}. Note that this is not generally the same as the number of bytes in the string.
+
+\subsection{\q{flattenPP} -- Flatten a Structured String}
+\index{flattenPP@\q{flattenPP}}
+\begin{alltt}
+flattenPP has type (pP)=>string;
+\end{alltt}
+The \q{flattenPP} function takes a structured string and `flattens it' into a regular \q{string}.
+
+\begin{aside}
+This function is used by the standard functions \q{display} and \q{format} to convert the result of displaying or formatting a value into a \q{string}.
+\end{aside}
+
+\subsection{\q{<} -- less than}
+\index{<@\q{<} predicate}
+\begin{alltt}
+(<) has type (string,string)=>boolean
+\end{alltt}
+\q{(<)} is part of the standard \q{comparable} contract -- see Program~\vref{comparableContract}.
+
+String comparison is based on a lexicographic comparison: one \q{string} is less than another if its first character is less than the first character of the second -- irrespective of the actual lengths of the strings. Thus
+\begin{alltt}
+Abbbbbbb < B
+\end{alltt}
+because \q{A} is less than \q{B}. Characters are compared based on their \emph{code point} within the Unicode encoding.\footnote{This is the same concept of string ordering as that within Java\tm.}
+
+\subsection{\q{<=} -- less than or equal}
+\index{<=@\q{<=} predicate}
+\begin{alltt}
+(<=) has type (string,string)=>boolean
+\end{alltt}
+\q{(<=)} is part of the standard \q{comparable} contract -- see Program~\vref{comparableContract}.
+
+The \q{<=} predicate for \q{string} values is satisfied if the left argument is less than or equals to the right argument under the lexicographic ordering.
+
+\subsection{\q{>} -- greater than}
+\index{>@\q{>} predicate}
+\begin{alltt}
+(>) has type (string,string)=>boolean
+\end{alltt}
+\q{(>)} is part of the standard \q{comparable} contract -- see Program~\vref{comparableContract}.
+The \q{>} predicate is satisfied if the left argument is lexicographically greater than the right argument.
+
+\subsection{\q{>=} -- greater then or equal}
+\index{>=@\q{>=} predicate}
+\begin{alltt}
+(>=) has type (string,string)=>boolean
+\end{alltt}
+\q{(>=)} is part of the standard \q{comparable} contract -- see Program~\vref{comparableContract}.
+The \q{>=} predicate is satisfied if the left argument is lexicographically greater than or equal to the right argument.
+
+\subsection{\q{\_index} -- Index Character from String}
+\label{indexString}
+\q{\_index} is part of the standard \q{indexable} contract -- see Program~\vref{indexableContractDef}.
+\begin{alltt}
+_index has type (string,integer)=>char
+\end{alltt}
+The \q{\_index} function returns a character from a \q{string} value.
+
+There is special syntax for indexing characters from a \q{string} -- as with indexing other kinds of \q{indexable} types -- one can use:
+\begin{alltt}
+S[ix]
+\end{alltt}
+instead of
+\begin{alltt}
+_index(S,ix)
+\end{alltt}
+
+\subsection{\q{\_slice} -- Substring}
+\label{sliceString}
+\q{\_slice} is part of the \q{sliceable} contract -- see Program~\vref{sliceableContractProg}.
+\begin{alltt}
+\_slice(string,integer,integer)=>string
+\end{alltt}
+The \q{\_slice} function extracts a substring from its first argument. The first character of the extracted substring is identified by the second argument; and the end point of the substring is identified by the third argument. An expression of the form:
+\begin{alltt}
+\_slice("this is a string",5,7)
+\end{alltt}
+returns the substring \q{"is"} -- corresponding to the two characters located at positions 5 and 6 in the source string.
+
+There is a special notation for this functionality: the slice notation (see Section~\vref{sliceFunction}. For example, if the variable \q{S} is bound to the string \q{"this is a string"}, then the above expression may be written:
+\begin{alltt}
+S[5:7]
+\end{alltt}
+
+\subsection{\q{\_splice} -- Replace Substring}
+\label{spliceString}
+\q{\_splice} is part of the \q{sliceable} contract -- see Program~\vref{sliceableContractProg}.
+\begin{alltt}
+\_splice has type (string,integer,integer,string) => string
+\end{alltt}
+The \q{\_splice} function replaces a substring within its first argument. For example, the expression:
+\begin{alltt}
+\_splice("this is a string",5,7,"was")
+\end{alltt}
+has, as its value:
+\begin{alltt}
+"this was a string"
+\end{alltt}
+
+Like the \q{\_slice} notation, there is special syntax for this function -- when used as an action. The action:
+\begin{alltt}
+S[ix:tx] := U
+\end{alltt}
+is equivalent to the assignment:
+\begin{alltt}
+S := \_splice(S,ix,cx,U)
+\end{alltt}
+
+\subsection{\q{++} -- string concatenation}
+\label{stringConcatFunction}
+\q{++} is the standard string concatenation function. It is part of the \q{concatenate} contract (see Program~\vref{concatenateContractDef})
+\begin{alltt}
+(++) has type (string,string)=>string;
+\end{alltt}
+
+\index{string!interpolation}
+Use of the \q{++} function over strings is implied by the \emph{string interpolation expression} (see Section~\vref{StringInterpolation}). For example, the string expression:
+\begin{alltt}
+"Count = \$count, Sum=\$sum"
+\end{alltt}
+is shorthand for
+\begin{alltt}
+"Count ="++display(count)++", Sum="++display(sum)
+\end{alltt}
+
+\subsection{\q{explode} -- Explode a string to chars}
+\label{stringExplodeFunction}
+The \q{explode} function is part of the \q{explosion} contract.
+\begin{alltt}
+explode has type (string)=>cons of char;
+\end{alltt}
+\begin{aside}
+This version of the \q{explode} function is useful when performing complex operations over \q{string} values. For example, it can be more efficient to first of all \q{explode} a \q{string} before tokenizing the string.
+\end{aside}
+
+\subsection{\q{implode} -- Implode a cons list of chars to a string}
+\label{stringImplodeFunction}
+The \q{implode} function is part of the \q{explosion} contract.
+\begin{alltt}
+implode has type (cons of char)=>string;
+\end{alltt}
+The \q{implode} function takes a \q{cons} list of \q{char}s and constructs a \q{string} value from it.
+
+\subsection{\q{reverse} -- Reverse the characters in a string}
+\label{stringReverseFunction}
+The \q{reverse} function is part of the \q{reversible} contract -- see Program~\vref{reversibleContractDef}.
+\begin{alltt}
+reverse has type (string)=>string
+\end{alltt}
+
+\subsection{\q{findstring} -- string search}
+\label{findStringFunction}
+\q{findstring} is used to determine the (next) location of a search token within a \q{string}.
+\begin{alltt}
+findstring has type (string,string,integer)=>integer;
+\end{alltt}
+
+\index{string!search within}
+\index{finding substrings}
+The \q{findstring} function searches a string for an occurrence of another string. The first argument is the string to search, the second is the search token, and the third is the integer offset where to start the search.
+
+For example, the result of the expression:
+\begin{alltt}
+findstring("the lazy dog jumped over the quick brown fox","the",5)
+\end{alltt}
+is \q{25}.
+
+If the search token is not present then \q{findstring} returns -1;
+
+\subsection{\q{gensym} -- Generate Unique String}
+\label{gensym}
+\index{gensym standard function@\q{gensym} standard function}
+\begin{alltt}
+gensym has type (string)=>string
+\end{alltt}
+The \q{gensym} function is used to generate unique strings that have an arbitrarily high probability of being unique.
+
+The generated string has a prefix consisting of the single argument, a middle which is a unique string generated based on a globally unique identifier identifying the current process and a counter.
+
+The result is a string that has a high probability of being unique. It is guaranteed to be unique within the current processor.
+
+\subsection{\q{spaces} -- Generate a string of spaces}
+\label{spaces}
+\index{spaces standard function@\q{spaces} standard function}
+\begin{alltt}
+spaces has type (integer)=>string
+\end{alltt}
+
+The \q{spaces} function generates a \q{string} containing only the space character -- \q{'\spce'}. For example, the value of
+\begin{alltt}
+spaces(3)
+\end{alltt} 
+is the \q{string}
+\begin{alltt}
+"   "
+\end{alltt}

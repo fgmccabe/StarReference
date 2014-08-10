@@ -1,0 +1,77 @@
+\chapter{Canonical Action Function Execution Language}
+\label{caf}
+
+This appendix outlines a low-level language that is a suitable intermediate language for the compilation and processing of the surface language. This language is deliberately minimal and simple; and yet offers many opportunities for efficient translation into executable code.
+
+\q{cafe} has a few simple features: functions, expressions, action procedures and a small regular set of  data structures. 
+
+\q{cafe} is strongly, explicitly typed Ð every variable is associated with a type annotation.
+
+The \q{cafe} language is based on the \q{STG} machine \cite{Jones:93}; with extensions and simplifications (support actions and do not support currying).
+
+\begin{figure}
+\begin{eqnarray*}
+\emph{Program}&\arrow&\emph{Expression}\\
+\emph{Expression}&\arrow&\emph{Atom}\ \choice\ \emph{Tuple}\ \choice\ \emph{Apply}\\
+&\choice&\q{let}\ \q{\{}\,\emph{Definition}\sequence{;}\emph{Definition}\,\q{\}}\ \q{in}\ \emph{Expression}\\
+&\choice&\q{case}\ \emph{Expression}\ \q{in}\ \q{\{}\,\emph{ExpressionCase}\sequence{;}\emph{ExpressionCase}\ \q{\}}\\
+&\choice&\q{valof}\,\emph{Action}\\
+&\choice&\emph{Expression}\ \q{default}\ \emph{Expression}\\
+\emph{Atom}&\arrow&\emph{Id}\ \choice\ \emph{Id}\q{.}\emph{Id}\ \choice\,\emph{Literal}\\
+\emph{Literal}&\arrow&\emph{Decimal}\ \choice\ \emph{Float}\ \choice\ \emph{String}\\
+\emph{Tuple}&\arrow&\q{(}\,\emph{Atom}\sequence{,}\emph{Atom}\,\q{)}\ \choice\ {\{}\,\emph{Id}\ \q{=}\,\emph{Atom}\sequence{,}\emph{Id}\ \q{=}\,\emph{Atom}\,\q{\}}\\
+\emph{Apply}&\arrow&\emph{Id}\,\q{(}\,\emph{Atom}\sequence{,}\emph{Atom}\,\q{)}\\
+\emph{Pattern}&\arrow&\emph{ConPtn}\ \choice\ \emph{Ident}\ \choice\ \emph{Literal}\\
+\emph{ConPtn}&\arrow&[\emph{Id}\,]\,\q{(}\emph{Ident}\sequence{,}\emph{Ident}\q{)}\ \choice\ \q{\{}\emph{Id}\ \q{=}\,\emph{Ident}\sequence{,}\emph{Id}\ \q{=}\,\emph{Ident}\q{\}}\\
+\emph{Definition}&\arrow&\emph{Pattern}\ \q{is}\ \emph{LambdaForm}\\
+&\choice&\q{import}\ \emph{Id}\ \q{(}\emph{Atom}\sequence{,}\emph{Atom}\q{)}\\
+&\choice&\emph{TypeDef}\\
+\emph{Ident}&\arrow&\emph{Id}\,\q{:}\,\emph{Type}\\
+\emph{LambdaForm}&\arrow&\q{\{}\,\emph{Id}\sequence{,}\emph{Id}\,\q{\}}\,\q{lambda}\q{(}\emph{Ident}\sequence{,}\emph{Ident}\,\q{)}\,\q{is}\,\emph{Expression}\\
+&\choice&\q{\{}\,\emph{Id}\sequence{,}\emph{Id}\,\q{\}}\ \emph{Expression}\\
+\emph{ExpressionCase}&\arrow&\emph{Pattern}\,\q{is}\,\emph{Expression}\\
+\emph{Action}&\arrow&\q{\{}\,\emph{Action}\sequence{;}\emph{Action}\,\q{\}}\\
+&\choice&\emph{Apply}\\
+&\choice&\q{var}\,\emph{Ident}\,\q{:=}\,\emph{Expression}\ \choice\ \emph{Id}\,\q{:=}\,\emph{Expression}\\
+&\choice&\emph{Id}\,\q{::}\,\emph{Action}\ \choice\ \q{leave}\,\emph{Id}\\
+&\choice&\q{case}\ \emph{Expression}\ \q{in}\ \q{\{}\,\emph{ActionCase}\sequence{;}\emph{ActionCase}\,\q{\}}\\
+&\choice&\q{valis}\,\emph{Atom}\\
+&\choice&[\emph{Id}\,]\ \q{loop}\ \emph{Action}\\
+\emph{ActionCase}&\arrow&\emph{Pattern}\ \q{do}\ \emph{Action}\\
+\emph{Type}&\arrow&\q{\%}\,\emph{Id}\ \choice\ [\emph{Id}\,]\q{(}\,\emph{Type}\sequence{,}\emph{Type}\,\q{)}\ \choice\ \emph{Id}\ \choice\ \q{\{}\emph{Ident}\sequence{,}\emph{Ident}\q{\}}\\
+\emph{TypeDef}&\arrow&\q{type}\ \emph{Type}\ \q{is}\ \emph{ConSpec}\sequence{\q{or}}\emph{ConSpec}\\
+\emph{ConSpec}&\arrow&\emph{Id}\ \q{(}\,\emph{Type}\sequence{,}\emph{Type}\,\q{)}\ \choice\ \emph{Id}
+\end{eqnarray*}
+\caption{Syntax of the \q{cafe} language\label{cafSyntax}}
+\end{figure}
+
+\begin{figure}
+\begin{eqnarray*}
+\emph{LineComment}&\arrow&(\q{--\spce}\choice\q{--\bsl{}t})\,\emph{char}\ldots\emph{char}\,\q{\bsl{}n}\\
+\emph{BlockComment}&\arrow&\q{/*}\ \emph{char}\ldots\emph{char}\,\q{*/}\\
+\emph{Decimal}&\arrow&[\q{-}]\,\emph{Digit}\ldots\emph{Digit}\plus\\
+\emph{Digit}&\arrow&\q{0}\choice\q{1}\choice\q{2}\choice\q{3}\choice\q{4}\choice\q{5}\choice\q{6}\choice\q{7}\choice\q{8}\choice\q{9}\\
+\emph{Float}&\arrow&[\q{-}]\,\emph{Digit}\ldots\emph{Digit}\plus\q{.}\,\emph{Digit}\ldots\emph{Digit}\plus[\q{e}\,[\q{-}]\,\emph{Digit}\ldots\emph{Digit}\plus]\\
+\emph{String}&\arrow&\q{"}\emph{CharRef}\ldots\emph{CharRef}\q{"}\\
+&\choice&\q{0'}\,\emph{Digit}\ldots\emph{Digit}\plus\q{"}\,\emph{Char}\ldots\emph{Char}\\
+\emph{CharRef}&\arrow&\emph{Char}\ \choice\ \emph{Escape}\\
+\emph{Escape}&\arrow&\q{\bsl}\q{a}\choice\bsl\q{b}\choice\bsl\q{d}\choice\q{\bsl}\q{e}\choice\q{\bsl}\q{f}\choice\q{\bsl}\q{n}\choice\q{\bsl}\q{r}\choice\q{\bsl}\q{t}\choice\q{\bsl{}v}\choice\q{\bsl"}\choice\q{\bsl}\$\choice\q{\bsl}\emph{Char}\\
+&\choice&\q{\bsl +}\emph{Hex}\sequence{}\emph{Hex}\q{;}\\
+\emph{Id}&\arrow&\emph{LeadChar}\,\emph{BodyChar}\ldots\emph{BodyChar}\\
+&\choice&\q{'}\emph{CharRef}\ldots\emph{CharRef}\q{'}\\
+\emph{LeadChar}&\arrow&\emph{LetterNumber}\\
+&\choice&\emph{LowerCase}\\
+&\choice&\emph{UpperCase}\\
+&\choice&\emph{TitleCase}\\
+&\choice&\emph{OtherNumber}\\
+&\choice&\emph{OtherLetter}\\
+&\choice&\emph{ConnectorPunctuation}\\
+&\choice&\q{\_}\ \choice\ \q{.}\ \choice\ \q{\$}\ \choice\ \q{@}\ \choice\ \q{\#}\\
+\emph{BodyChar}&\arrow&\emph{LeadChar}\\
+&\choice&\emph{ModifierLetter}\\
+&\choice&\emph{Digit}
+\end{eqnarray*}
+\caption{Lexical Syntax of the \q{cafe} language\label{cafLex}}
+\end{figure}
+
+

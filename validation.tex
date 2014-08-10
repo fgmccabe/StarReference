@@ -1,0 +1,180 @@
+%!TEX root = reference.tex
+\chapter{Validation Rules}
+\label{validation}
+\index{validation!rules}
+
+In addition to macro replacement, it is also possible to specify one or more \emph{validation} rules to apply. Validation rules are applied by the compiler during parsing and are used to determine if the program is `well-formed' or not.
+
+
+\section{Validation Rule}
+\label{ValidationRule}
+A validation rule allows the extension builder to define legal instances of elements of an extension. A validation rule defines the valid forms of expressions, statements or other program elements and also defines expectations for contained components.
+
+A validation rule that expresses the constraints for elements in a \q{let} \q{in} form might be:
+\begin{alltt}
+# let ?Body use in ?Exp :: expression
+  :- Body::statement :& Exp::expression;
+\end{alltt}
+This states that a \q{let}\ldots\q{in} form is a valid \q{expression}, provided that the \q{Body} is a valid instance of \q{statements} and \q{Exp} is a valid expression.
+
+If a particular extension does not have preconditions, then the right hand side of the validation rule can be omitted. For example, 
+\begin{alltt}
+#natural h :: time;
+\end{alltt}
+states that a natural integer literal (a non-zero integer literal) followed by the \q{h} operator is a valid instance of a \q{time} expression.
+
+The general form of a validation rule is shown in Figure~\vref{validationRuleFig}.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{MetaRule}&\arrowplus&\emph{ValidationRule}\\
+\emph{ValidationRule}&\arrow&\q{\#} \emph{MetaPattern} \q{::} \emph{Category} \q{:-} \emph{Validation}\\
+\emph{Validation}&\arrow&\emph{MetaExp} :: \emph{Category}\\
+&\choice&\emph{ValidationConjunction}\\
+&\choice&\emph{ValidationDisjunction}\\
+&\choice&\emph{ValidationNegation}\\
+&\choice&\emph{ValidationConditional}\\
+&\choice&\emph{ValidationTupleIteration}\\
+&\choice&\emph{ValidationBraceIteration}\\
+&\choice&\emph{ValidationMessage}\\
+&\choice&\emph{SubValidation}\\
+\end{eqnarray*}
+\caption{Validation Rules}
+\label{validationRulesFig}
+\end{figure}
+where \q{\emph{MetaPattern}} is a validation pattern, \emph{Category} is a category.
+
+\begin{aside}
+If the pattern of a validation rule `fires' then \emph{no other} validation rule will be considered. That means that the condition part of the rule must account for all valid variations on the matched term.
+\end{aside}
+
+The validation category is denoted by an identifier -- any (non operator) identifier may be used. However, certain identifiers denote \emph{standard categories} -- categories that are defined by the language. See Section~\vref{standardCategories} for a listing of these.
+
+In particular, the top-level category of a complete program package is always \q{Package}.
+
+\subsection{Validation Patterns}
+
+\subsubsection{The \q{identifier} pattern}
+The pattern \q{identifier} matches an abstract syntax term if it is an identifier -- any identifier.
+
+\subsubsection{The variable pattern}
+A pattern of the form 
+\begin{alltt}
+?V
+\end{alltt}
+matches any term, and binds the rule variable \q{V} to it. The variable may be referenced in the condition part of the validation rule -- with or without the \q{?} prefix.
+
+A pattern of the form
+\begin{alltt}
+\emph{Ptn}?\emph{V}
+\end{alltt}
+matches the term if the \q{\emph{Ptn}} matches the term, and it binds the rule variable \q{\emph{V}} to the matched term.
+
+\subsubsection{The \q{identifier} pattern}
+The \q{identifier} pattern matches any identifier.
+\begin{aside}
+The \q{identifier} pattern \emph{does not} match against standard keywords. To match against any identifier, keyword or not, use the \q{symbol} pattern.
+\end{aside}
+
+\subsubsection{The \q{symbol} pattern}
+The \q{symbol} patterns matches any identifier -- including operators and keywords.
+
+\subsubsection{The \q{string} pattern}
+The \q{string} pattern matches a string literal.
+
+\subsubsection{The \q{integer} pattern}
+The \q{integer} pattern matches a positive literal integer. Note that this \emph{does not} match a negative integer literal.
+
+\subsubsection{The \q{float} pattern}
+The \q{float} pattern matches a positive literal floating point number.
+
+\subsubsection{Literal terms}
+Any term that is not one of the standard matching patterns is interpreted as a literal value -- unless it has argument terms that are interpreted.
+
+For example, the pattern
+\begin{alltt}
+select ?X from ?P in ?L
+\end{alltt}
+matches any term that is formed by combining a \q{select} operator, a \q{from} operator, and an \q{in} operator in the data.
+\begin{aside}
+The identifiers \q{from}, and \q{in} are standard \emph{operators} -- see Section~\vref{standardOperators}. In order to permit this form we also need to declare \q{select} as an operator:
+\begin{alltt}
+#prefix((select),1150);
+\end{alltt}
+The above pattern is then equivalent to:
+\begin{alltt}
+select(from(?X,in(?P,?L)))
+\end{alltt}
+\end{aside}
+
+
+\subsubsection{Special Validation Patterns}
+The validation pattern:
+\begin{alltt}
+?F@?Arg
+\end{alltt}
+matches against any applicative term, and 'binds' the variable \q{?F} to the function operator in the applicative expression and \q{?Arg} to the argument(s) of the expression.
+
+\subsection{Validation Conditions}
+The body of a validation rule denotes a combination of \emph{validation conditions} -- conditions that the matched segment of the program must satisfy.
+
+\subsubsection{Category Condition}
+A condition of the form:
+\begin{alltt}
+\emph{Exp} :: \emph{Category}
+\end{alltt}
+means that the term identified by \q{\emph{Exp}} should satisfy the \q{\emph{Category}}. \q{\emph{Category}} is named with an identifier, and \q{\emph{Exp}} may be any term including variables previously marked with a \q{?}.
+
+For example, the condition:
+\begin{alltt}
+X :: expression
+\end{alltt}
+means that the term bound to the meta-variable \q{X} should satisfy the validation conditions for the \q{expression} category.
+
+\section{Evaluation of Validation Rules}
+\label{validationEvaluation}
+
+The validation process is driven by category. For example, the rule:
+\begin{alltt}
+# for ?C do ?B :: action :- C :: condition :& B :: action;
+\end{alltt}
+defines that a \q{for}\ldots\\q{do} is a legal \q{action} provided that the condition is a \q{condition} and the body is also an \q{action}.
+
+The left hand side of the rule is a pattern matched against fragments of source program. The right hand side is a conjunction (in this case) of two sub-validation goals. The validation goal
+\begin{alltt}
+C :: condition
+\end{alltt}
+is satisfied by attempting the rules for validating \q{condition}s against the fragment bound to \q{C}.
+
+Each validation rule left hand side has a \emph{specificity} -- similar to the specificity of macro rules (see Section~\vref{macroSpecificity}) -- which is effectively a measure of how specific the validation rule is.
+
+Validation rules are attempted in a most specific first order; i.e., the most specific validation rule that may match a program fragment is the one used.
+
+
+\section{Standard Syntactic Categories}
+\label{standardCategories}
+The profile developer is free to define new validation categories. However, some categories are standard and have a standard interpretation. These are listed below:
+\begin{description}
+\item[statement] A statement in the language. Includes function declarations, type declarations and groups of statements.
+\item[action] An action that may be performed.
+\item[expression] An expression that has a value.
+\item[pattern] A pattern that is expected to matched against a value. Patterns may result in variables being bound. 
+\item[identifier] An explicit identifier.
+\item[symbol] An explicit symbol.
+\item[character] An explicit character literal.
+\item[string] An explicit string literal.
+\item[number] A numeric literal. This includes floating point literals and integer literals.
+\item[float] A floating point literal.
+\item[fixed] A fixed point literal.
+\item[integer] An integer literal.
+\item[natural] A natural number literal.
+\end{description}
+Other categories may be introduced in user-defined validation rules (see Section~\vref{ValidationRule}).
+
+In addition to defining new validation categories, it is quite possible -- even normal -- for profile developers to define \emph{new} rules for existing categories. The most common of which is probable the \q{expression} category.
+
+\begin{aside}
+Any non-standard syntactic category must be \emph{erasable} by suitable macro expansion rules. The categories in this list are the ones that the \Sr compiler understands; the macro rules are used to rewrite new syntactic categories into core categories.
+\end{aside}
+
+
+

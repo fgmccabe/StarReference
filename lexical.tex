@@ -1,0 +1,552 @@
+%!TEX root = reference.tex
+\chapter{Lexical Syntax}
+\label{lexical}
+
+\section{Characters}
+\index{character set}
+\index{Unicode}
+\Sr source text is based on the Unicode\tm{} character set. This means that identifiers and string values may directly use any Unicode characters. However, all the standard operators and keywords fall in the ASCII subset of Unicode.
+
+\section{Comments and White Space}
+
+Input is tokenized according to rules that are similar to most modern programming languages: contiguous sequences of characters are assumed to belong to the same token unless the class of character changes -- for example, a punctuation mark separates sequences of letter characters. In addition, white space and comments serve as token boundaries; otherwise white space and comments are ignored by the higher-level semantics of the language.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Ignorable}&\arrow&\ntRef{LineComment}\\
+&\choice&\ntRef{BlockComment}\\
+&\choice&\emph{WhiteSpace}
+\end{eqnarray*}
+\caption{Ignorable Characters}
+\label{ignorableFig}
+\end{figure}
+
+There are two forms of comment: line comment and block comment.
+
+\subsection{Line Comment}
+\index{comment!line}
+\index{line comment}
+A line comment consists of a \q{--\spce} or a \q{--\bsl{}t} followed by all characters up to the next new-line. Here, \q{\spce} refers to the space character, and \q{\bsl{}t} refers to the Horizontal Tab. 
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{LineComment}&\arrow&(\q{--\spce}\choice\q{--\bsl{}t})\,\emph{char}\sequence{}\emph{char}\,\q{\bsl{}n}
+\end{eqnarray*}
+\caption{Line Comment}
+\label{lineCommentFig}
+\end{figure}
+
+\subsection{Block Comment}
+\index{comment!block}
+\index{block comment}
+A block comment consists of the characters \q{/*} followed by any characters and terminated by the characters \q{*/}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{BlockComment}&\arrow&\q{/*}\ \emph{char}\sequence{}\emph{char}\,\q{*/}
+\end{eqnarray*}
+\caption{Block comments}
+\label{blockCommentFig}
+\end{figure}
+
+\noindent
+Each form of comment overrides the other: a \q{/*} sequence in a line comment is \emph{not} the start of a block comment, and a \q{--\spce} sequence in a block comment is similarly not the start of a line comment but the continuation of the block comment.
+
+\section{Number Literals}
+\label{numericLiteral}
+\Sr supports integer values, floating point values, decimal values and character codes as numeric values.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{NumericLiteral}&\arrow&\ntRef{IntegerLiteral}\\
+&\choice&\ntRef{Hexadecimal}\\
+&\choice&\ntRef{FloatingPoint}\\
+&\choice&\ntRef{Decimal}\\
+&\choice&\ntRef{CharacterCode}
+\end{eqnarray*}
+\caption{Numeric Literals}
+\label{numberFig}
+\end{figure}
+
+
+\subsection{Integral Literals}
+\label{Integers}
+\index{integer}
+\index{number!integer}
+\index{syntax!integer}
+An integer is written using the normal decimal notation (see Figure~\vref{decimalFig}):
+\begin{alltt}
+1  34 -99
+\end{alltt}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{IntegerLiteral}&\arrow&[\q{-}]\,\emph{Digit}\ldots\emph{Digit}\plus[\q{L}\choice\q{l}]\\
+\ntDef{Digit}&\arrow&\q{0}\choice\q{1}\choice\q{2}\choice\q{3}\choice\q{4}\choice\q{5}\choice\q{6}\choice\q{7}\choice\q{8}\choice\q{9}
+\end{eqnarray*}
+\caption{Integer Literals}
+\label{decimalFig}
+\end{figure}
+
+A \q{long} integer is denoted by suffixing the number with a letter \q{L} or \q{l}:
+\begin{alltt}
+23L -99l
+\end{alltt}
+\begin{aside}
+In general, \q{long} integers are \emph{not} interchangeable with \q{integer}s without explicit coercion.
+\end{aside}
+\begin{aside}
+A \q{long} value is 64 bits, whereas an \q{integer} is 32 bits.
+\end{aside}
+
+\subsection{Hexadecimal Integers}
+\label{Hexadecimals}
+\index{hexadecimal}
+\index{number!hexadecimal}
+\index{syntax!hexadecimal}
+A hexadecimal number is an integer written using hexadecimal notation. A hexadecimal number consists of a leading \q{0x} followed by a sequence of hex digits. For example,
+\begin{alltt}
+0x0 0xff 0x34fe
+\end{alltt}
+are all hexadecimals.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Hexadecimal}&\arrow&\q{0x}\,\emph{Hex}\ldots\emph{Hex}\plus[\q{L}\choice\q{l}]\\
+\ntDef{Hex}&\arrow&\q{0}\choice\q{1}\choice\q{2}\choice\q{3}\choice\q{4}\choice\q{5}\choice\q{6}\choice\q{7}\choice\q{8}\choice\q{9}\choice\q{a}\choice\q{b}\choice\q{c}\choice\q{d}\choice\q{e}\choice\q{f}
+\end{eqnarray*}
+\caption{Hexadecimal numbers}
+\label{hexadecimalFig}
+\end{figure}
+
+Like \ntRef{Natural} numbers, \emph{HexaDecimal}s may be suffixed by a \q{L} or \q{l} to indicate a \q{long} value.
+
+\subsection{Floating Point Numbers}
+\index{floating point}
+\index{number! floating point}
+\index{syntax! floating point number}
+\label{FloatingPoint}
+Floating point numbers are written using a notation that is familiar. For example, 
+\begin{alltt}
+234.45  1.0e45
+\end{alltt}
+See Figure~\vref{floatingPointFig} for a complete syntax diagram for floating point numbers.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{FloatingPoint}&\arrow&\ntRef{Digit}\ldots\ntRef{Digit}\plus\q{.}\,\ntRef{Digit}\ldots\ntRef{Digit}\plus[\q{e}\,[\q{-}]\,\ntRef{Digit}\ldots\ntRef{Digit}\plus]
+\end{eqnarray*}
+\caption{Floating Point numbers}
+\label{floatingPointFig}
+\end{figure}
+
+\begin{aside}
+All floating point number are represented to a precision that is at least equal to 64-bit double precision. There is no equivalent of single-precision floating pointer numbers.
+\end{aside}
+
+\subsection{Decimal Numbers}
+\index{arbitrary precision numbers}
+\index{number!decimal}
+\index{syntax! arbitrary precision number}
+A decimal number is a decimal number with an arbitrary precision associated with it. It is intended to support calculations where conventional integral and floating point values become ineffective.
+
+Decimal numbers are written as a normal decimal fraction number followed by the character \q{a} or \q{A}.
+
+\begin{alltt}
+123.45a
+\end{alltt}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Decimal}&\arrow&\ntRef{Digit}\ldots\ntRef{Digit}\plus\,\q{.}\,\ntRef{Digit}\ldots\ntRef{Digit}\plus[\q{a}|\q{A}]
+\end{eqnarray*}
+\caption{Decimal Numbers}
+\label{DecimalFig}
+\end{figure}
+
+
+\subsection{Character Codes}
+\index{character code}
+\index{number! character code}
+\index{syntax! character code}
+The character code notation allows a number to be based on the coding value of a character. Any Unicode character code point can be entered in this way:
+\begin{alltt}
+0cX 0c[ 0c\bsl{}n 0c
+\end{alltt}
+For example, \q{0c\bsl{}n} is the code point associated with the new line character, i.e., its value is \q{10}.
+\begin{aside}
+Unicode has the capability to represent up to one million character code points.
+\end{aside}
+
+\begin{figure}[htbp]
+\label{characterCodeFig}
+\begin{eqnarray*}
+\ntDef{CharacterCode}&\arrow&\q{0c}\,\ntRef{CharRef}
+\end{eqnarray*}
+\caption{Character Codes}
+\vspace{-2ex}
+\end{figure}
+
+A \ntRef{CharacterCode} has type \q{integer}. If necessary, it can be coerced to a \q{long} using a \ntRef{TypeCoercion} expression:
+\begin{alltt}
+(0cA as long)
+\end{alltt}
+
+\section{Strings and Characters}
+\label{string}
+\index{string literal}
+\index{character reference}
+\index{syntax! string literal}
+
+\subsection{Characters}
+\label{character}
+A \q{char}acter consists of a single \ntRef{CharRef} enclosed in single quotes.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Character}&\arrow&\q{'}\ntRef{CharRef}\q{'}\\
+\end{eqnarray*}
+\caption{Character Literal}
+\label{characterFig}
+\end{figure}
+
+\label{CharacterReference}
+\index{character reference}
+\index{syntax! character reference}
+A \ntRef{CharRef} is a denotation of a single character. 
+\begin{figure}[h!]
+\label{charRefFig}
+\begin{eqnarray*}
+\ntDef{CharRef}&\arrow&\emph{Char}\ \choice\ \ntRef{Escape}\\
+\ntDef{Escape}&\arrow&\bsl\q{b}\choice\bsl\q{d}\choice\q{\bsl}\q{e}\choice\q{\bsl}\q{f}\choice\q{\bsl}\q{n}\choice\q{\bsl}\q{r}\choice\q{\bsl}\q{t}\choice\q{\bsl{}v}\choice\q{\bsl}\emph{Char}\choice\q{\bsl u}\ntRef{Hex}\sequence{}\ntRef{Hex}\q{;}
+\end{eqnarray*}
+\caption{Character Reference}
+\end{figure}
+For most characters, the character reference for that character is the character itself. For example, the string \q{"T"} contains the character \q{'T'}. However, certain standard characters are normally referenced by escape sequences consisting of a backslash character followed by other characters; for example, the new-line character is typically written \q{\bsl{}n}. The standard character references are shown in Table~\vref{CharRef}.
+
+\begin{table}
+\caption{\Sr Character References}\label{CharRef}
+\begin{center}
+\begin{tabular}{|ll|ll|}
+\hline
+Escape&Meaning&Escape&Meaning\\
+\hline
+\tt \bsl{}b&Back space&
+\tt \bsl{}d&Delete\\
+\tt \bsl{}e&Escape&
+\tt \bsl{}f&Form Feed\\
+\tt \bsl{}n&New line&
+\tt \bsl{}r&Carriage return\\
+\tt \bsl{}t&Tab&
+\tt \bsl{}v&Vertical Tab\\
+\tt \bsl{}u{\rm \emph{HexSeq}};&Unicode code point&
+\tt \bsl{}\emph{Char}&The \emph{Char} itself\\
+
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+Apart from the standard character references, there is a hex encoding for directly encoding unicode characters that may not be available on a given keyboard:
+\begin{alltt}
+\bsl{}u34ff;
+\end{alltt}
+This notation accommodates the Unicode's varying width of character codes -- from 8 bits through to 20 bits.
+
+\subsection{Quoted Strings}
+\label{quotedString}
+A string is a sequence of character references (see Section~\vref{CharacterReference}) enclosed in double quotes; alternately a string may take the form of a \ntRef{StringBlob}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{StringLiteral}&\arrow&\q{"}\ntRef{StrChar}\ldots\ntRef{StrChar}\q{"}\\
+&\choice&\ntRef{BlockString}\\
+\ntDef{StrChar}&\arrow&\ntRef{CharRef}\ \choice\,\ntRef{Interpolation}\\
+\ntDef{Interpolation}&\arrow&[\,\q{\$}\ \choice\ \q{\#}\,]\ \ntRef{Identifier}\,[\,\q{:}\,\ntRef{FormattingSpec}\,\q{;}\,]\\
+&\choice&[\,\q{\$}\ \choice\ \q{\#}\,]\ \q{(}\,\ntRef{Expression}\,\q{)}\,[\,\q{:}\,\ntRef{FormattingSpec}\,\q{;}\,]\\
+\ntDef{FormattingSpec}&\arrow&\ntRef{StrChar}\ldots\ntRef{StrChar}
+\end{eqnarray*}
+\caption{Quoted String}\label{quotedStringFig}
+\end{figure}
+
+\begin{alltt}
+"This is a string with a \bsl{}nnew line in the middle"
+\end{alltt}
+
+\begin{aside}
+Strings are \emph{not} permitted to contain the new-line character -- other than as a character reference.
+\end{aside}
+
+\subsection{Block String}
+\label{blockString}
+\index{strings!block form of}
+\index{block of data}
+In addition to the `normal' notation for strings, there is a block form of string that permits raw character data to be processed as a string.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{BlockString}&\arrow&\q{"""}\emph{Char}\sequence{}\emph{Char}\q{"""}
+\end{eqnarray*}
+\caption{Block String Literal}
+\label{blockStringFig}
+\end{figure}
+
+The block form of string allows any characters in the text, and performs no interpretation of those characters. 
+
+Block strings are written using triple quote characters at either end. Any new-line characters enclosed by the block quotes are considered to be part of the strings.
+
+The normal interpretation of \q{\$} and \q{\#} characters as interpolation markers is suppressed within a block string.
+\begin{alltt}
+"""This is a block string with $ and 
+uninterpreted # characters"""
+\end{alltt}
+
+\begin{aside}
+This form of string literal can be a convenient method for including block text into a program source.
+\end{aside}
+
+%\subsection{String Blobs}
+%\label{stringBlob}
+%\index{strings!block form of}
+%\index{block of data}
+%In addition to the `normal' notation for strings, there is a blob form of string that permits raw character data to be processed as a string.
+%
+%\begin{figure}[htbp]
+%\begin{eqnarray*}
+%\ntDef{StringBlob}&\arrow&\q{0'}\,\emph{Digit}\ldots\emph{Digit}\plus\q{"}\,\emph{Char}\ldots\emph{Char}
+%\end{eqnarray*}
+%\caption{String Blob Literal}
+%\label{blockStringFig}
+%\end{figure}
+%
+%A blob form of string allows any characters in the text, and performs no interpretation of those characters. Blob strings are written with a special prefix that indicates the length of the blob in characters:\footnote{In an input which is encoded in UTF-8, the blob form still refers to the number of characters -- which may be significantly different to the number of bytes in the string.}
+%\begin{alltt}
+%0'33"This is a string of 33 characters
+%\end{alltt}
+%
+%\begin{aside}
+%This form of string literal is especially useful for machine generated strings -- since the blob characters are guaranteed to be uninterpreted. However, you do have to count the characters!
+%\end{aside}
+
+\section{Regular Expressions}
+\label{regexps}
+\index{regular expression}
+
+A regular expression may be used to match against string values. Regular expressions are written using a regexp notation that is close to the common formats; with some simplifications and extensions.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{RegularExpression}&\arrow&\q{`}\ntRef{Regex}\q{`}\\
+\ntDef{Regex}&\arrow&\q{.}\\
+&\choice&\ntRef{CharRef}\\
+&\choice&\ntRef{DisjunctiveGroup}\\
+&\choice&\ntRef{CharacterClass}\\
+&\choice&\ntRef{Binding}\\
+&\choice&\ntRef{Regex}\ \ntRef{Cardinality}\\
+&\choice&\ntRef{Regex}\ \ntRef{Regex}
+\end{eqnarray*}
+\caption{Regular Expressions}\label{regFig}
+\end{figure}
+
+Figure~\vref{regFig} shows the lexical syntax of regular expressions; however, see Section~\vref{regularExpressions} for a more detailed explanations of regular expression syntax and semantics.
+
+\section{Identifiers}
+\label{identifiers}
+\index{identifier}
+Identifiers are used to denote operators, keywords and variables.
+
+\subsection{Alphanumeric Identifiers}
+\index{alpha numeric identifier}
+\label{alphaIdentifier}
+Identifiers in \Sr are based on the Unicode definition of identifier. For the ASCII subset of characters, the definition corresponds to the common form of identifier -- a letter followed by a sequence of digits and letters. However, non-ASCII characters are also permitted in an identifier. Figure~\vref{identifierFig} shows the basic structure of an identifier.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Identifier}&\arrow&\ntRef{AlphaNumeric}\\
+&\choice&\ntRef{MultiWordIdentifier}\\
+&\choice&\ntRef{GraphicIdentifier}\\
+\ntDef{AlphaNumeric}&\arrow&\ntRef{LeadChar}\,\ntRef{BodyChar}\sequence{}\ntRef{BodyChar}\\
+\ntDef{LeadChar}&\arrow&\emph{LetterNumber}\\
+&\choice&\emph{LowerCase}\\
+&\choice&\emph{UpperCase}\\
+&\choice&\emph{TitleCase}\\
+&\choice&\emph{OtherNumber}\\
+&\choice&\emph{OtherLetter}\\
+&\choice&\emph{ConnectorPunctuation}\\
+&\choice&\ntRef{Escape}\\
+&\choice&\q{\_}\\
+\ntDef{BodyChar}&\arrow&\emph{LeadChar}\\
+&\choice&\emph{ModifierLetter}\\
+&\choice&\emph{Digit}
+\end{eqnarray*}
+\caption{Identifier}
+\label{identifierFig}
+\end{figure}
+The terms \emph{LetterNumber}, \emph{ModifierLetter} and so on; referred to in Figure~\vref{identifierFig} refer to standard character categories defined in Unicode 3.0.
+
+\begin{aside}
+This definition of \emph{Identifier} closely follows the standard definition of Identifier as contained in the Unicode specification.
+\end{aside}
+
+\subsection{Punctuation Symbols and Graphic Identifiers}
+\label{punctuation}
+The standard operators often have a graphic form -- such as \q{+}, and \q{<=}. Table~\vref{standardGraphicsTable} contains a complete listing of all the standard graphic-form identifiers.
+
+\begin{figure}[htbp]
+\begin{align*}
+\ntDef{GraphicIdentifier}\ &\arrow\ \ntRef{SymbolicChar}\sequence{}\ntRef{SymbolicChar}\\
+\ntDef{SymbolicChar}\ &\arrow\ \emph{Char} &\text{\emph{excepting} \ntRef{BodyChar}}
+\end{align*}
+\caption{Graphic Identifiers}
+\label{graphicIdentifierFig}
+\end{figure}
+
+
+\begin{table}[h]
+\begin{center}
+\caption{Standard Graphic-form Identifiers}\label{standardGraphicsTable}
+\begin{tabular}{|llllllll|}
+\hline
+\tt !&\tt \#<&\tt \%\%&\tt ->&\tt :\&&\tt ;*&\tt ==>&\tt \_\\
+\tt !=&\tt \#<>&\tt *&\tt .&\tt :*&\tt ;..&\tt =>&\tt |\\
+\tt \#&\tt \#@&\tt **&\tt ..;&\tt :+&\tt <&\tt >&\tt |>\\
+\tt \#\#&\tt \#\tlda{}&\tt +&\tt ./&\tt :-&\tt <=&\tt >\#&\tt |\_|\\
+\tt \#\$&\tt \$&\tt ++&\tt /&\tt ::&\tt <=>&\tt >=&\tt \tlda{}\\
+\tt \#*&\tt \$\$&\tt ,&\tt //&\tt :=&\tt <>&\tt ?&\\
+\tt \#+&\tt \$=>&\tt -&\tt :&\tt :|&\tt <|&\tt @&\\
+\tt \#:&\tt \%&\tt -->&\tt :!&\tt ;&\tt =&\tt @@&\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\begin{aside}
+Apart from their graphic form there is no particular semantic distinction between a graphic form identifier and a alphanumeric form identifier. In fact, new graphical tokens may be introduced as a result of declaring an operator -- see Section~\vref{symbolicOperators}.
+\end{aside}
+
+\subsection{Standard Keywords}
+\label{keywords}
+\index{standard keywords}
+\index{keywords}
+There are a number of keywords which are reserved by the language -- these may not be used as identifiers or in any other role.
+
+Table~\vref{keywordTable} lists the standard keywords in the language.
+\begin{longtable}[hb]{|llll|}
+\caption{Standard Keywords\label{keywordTable}}\\ 
+\hline
+\endfirsthead
+\multicolumn{4}{c}{
+{Table \ref{keywordTable} Standard Keywords (cont.)}}\\
+\hline
+\endhead
+\hline\multicolumn{4}{r}{\small\emph{continued\ldots}}\
+\endfoot
+\hline
+\endlastfoot
+\tt 'n&\tt extend&\tt matching&\tt spawn\\
+\tt 's&\tt fn&\tt memo&\tt substitute\\
+\tt alias&\tt for&\tt merge&\tt such\spce{}that\\
+\tt all&\tt for\spce{}all&\tt not&\tt suchthat\\
+\tt and&\tt forall&\tt nothing&\tt sync\\
+\tt any&\tt from&\tt notify&\tt then\\
+\tt any\spce{}of&\tt function&\tt of&\tt to\\
+\tt anyof&\tt has&\tt on&\tt try\\
+\tt as&\tt has\spce{}kind&\tt on\spce{}abort&\tt tuple\\
+\tt assert&\tt has\spce{}type&\tt open&\tt type\\
+\tt bound\spce{}to&\tt hastype&\tt or&\tt unique\\
+\tt by&\tt identifier&\tt order&\tt unquote\\
+\tt case&\tt if&\tt otherwise&\tt update\\
+\tt cast&\tt ignore&\tt over&\tt using\\
+\tt catch&\tt implementation&\tt package&\tt valis\\
+\tt computation&\tt implements&\tt pattern&\tt valof\\
+\tt contract&\tt implies&\tt perform&\tt var\\
+\tt counts\spce{}as&\tt import&\tt private&\tt waitfor\\
+\tt default&\tt in&\tt procedure&\tt when\\
+\tt delete&\tt instance\spce{}of&\tt query&\tt where\\
+\tt descending&\tt is&\tt quote&\tt while\\
+\tt determines&\tt is\spce{}tuple&\tt raise&\tt with\\
+\tt do&\tt java&\tt reduction&\tt without\\
+\tt down&\tt kind&\tt ref&\tt yield\\
+\tt else&\tt let&\tt remove&\\
+\tt exists&\tt matches&\tt request&\\
+\hline
+\end{longtable}
+
+\begin{aside}
+On those occasions where it is important to have an identifier that is a keyword it is possible to achieve this by enclosing the keyword in parentheses.
+
+For example, while \q{type} is a keyword in the language; enclosing the word in parentheses: \q{(type)} has the effect of suppressing the keyword interpretation.
+
+Enclosing a name in parentheses also has the effect of suppressing any operator information about the name.
+\end{aside}
+
+\subsection{Multi-word Identifiers}
+\label{multiword}
+\index{identifier!multi-word}
+\index{multiple word identifiers}
+
+A \ntRef{MultiWordIdentifier} is an \ntRef{Identifier} that is written as a contiguous sequence of alphanumeric words. Although written as multiple words, a \ntRef{MultiWordIdentifier} is logically a \emph{single} identifier. For example, the combination of words:
+\begin{alltt}
+such that
+\end{alltt}
+is logically a single multi-word identifier whose name is ``\q{such\spce{}that}''. 
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{MultiWordIdentifier}&\arrow&\ntRef{AlphaNumeric}\plus\\
+\end{eqnarray*}
+\caption{Multi-Word Identifier}
+\label{multiWordIentifierFig}
+\end{figure}
+
+There are a few standard \ntRef{MultiWordIdentifier}s, as outlined in Table~\vref{multiWords}. In addition, \ntRef{MultiWordIdentifier}s can be defined as operators (see Section~\vref{multiWordOperators}).
+
+\begin{longtable}[htbp]{|llll|}
+\caption{Multi-Word Keywords\label{multiWords}}\\ 
+\hline
+\endfirsthead
+\multicolumn{4}{c}{
+{Table \ref{multiWords} Multi-Word Keywords (cont.)}}\\
+\hline
+\endhead
+\hline\multicolumn{4}{r}{\small\emph{continued\ldots}}\
+\endfoot
+\hline
+\endlastfoot
+\tt any\spce{}of&\tt such\spce{}that&\tt for\spce{}all&\tt has\spce{}kind\\
+\tt has\spce{}type&\tt on\spce{}abort&\tt counts\spce{}as&\tt on\spce{}abort\\
+\hline
+\end{longtable}
+
+Parts of a \ntRef{MultiWordIdentifier} may be separated by spaces and/or comments.
+
+If a part of a \ntRef{MultiWordIdentifier} occurs out of sequence, i.e., not as part of the sequence that defines the identifier, then it is interpreted as a normal \ntRef{AlphaNumeric} identifier.
+
+\subsection{Operator Defined Tokens}
+\label{operatorDefinedTokens}
+\index{identifer!operator defined}
+\index{operator defined tokens}
+
+When a new operator is defined -- see Section~\vref{newOperator} -- it may be that it takes the form of a normal identifier; as in:
+\begin{alltt}
+\#infix("hello",50)
+\end{alltt}
+However, it is also possible to define an operator from special characters:
+\begin{alltt}
+\#prefix("&&",80);
+\end{alltt}
+The operator `identifier' -- \q{\&\&} -- is not a normal alphanumeric identifier.
+
+When such a declaration is processed, the tokenizer extends itself to include the new operator identifier as a valid token. Hence an operator may be constructed out of any characters.
+
+\begin{aside}
+It is permissible (if not advisable) to mix alphanumeric characters with non-alphanumeric characters in an operator. However, the tokenizer will not recognize such a mixed operator if the first character of the operator identifier is alphanumeric.
+
+I.e., the operator declaration:
+\begin{alltt}
+\#postfix("alpha\%\&beta",90)
+\end{alltt}
+will not be processable as a single token. Hence such operators are not permitted. However, the operator:
+\begin{alltt}
+\#postfix("\&more",90)
+\end{alltt}
+would be valid -- again, still somewhat inadvisable.
+\end{aside}

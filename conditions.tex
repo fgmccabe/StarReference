@@ -1,0 +1,567 @@
+%!TEX root = reference.tex
+\chapter{Conditions}
+\label{conditions}
+Conditions are used to express constraints. For example, a \q{where} pattern (see Section~\vref{guardPattern}) uses a condition to attach a semantic guard to a pattern. Conditions are also as guards on \emph{equations} (see Section~\vref{equations}) and in other forms of rule.
+
+
+\begin{aside}
+Conditions should not be confused with \q{boolean}-values expressions; the fundamental semantics of conditions is based on \emph{satisfiability} -- not \emph{evaluation} -- see Section~\vref{querySemantics}. However, a \q{boolean}-valued expression \emph{may} act as a degenerate example of a condition.
+\end{aside}
+
+Figure~\vref{conditionFormFig} illustrates the general forms of condition. 
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Condition}&\arrow&\ntRef{MatchesCondition}\\
+&\choice&\ntRef{MemberCondition}\\
+&\choice&\ntRef{SearchCondition}\\
+&\choice&\ntRef{IndexedSearch}\\
+&\choice&\ntRef{ConjunctionCondition}\\
+&\choice&\ntRef{DisjunctionCondition}\\
+&\choice&\ntRef{ImpliesCondition}\\
+&\choice&\ntRef{OtherwiseCondition}\\
+&\choice&\ntRef{NegationCondition}\\
+&\choice&\ntRef{ConditionalCondition}\\
+&\choice&\q{(}\ \ntRef{Condition}\ \q{)}\\
+&\choice&\ntRef{Expression}
+\end{eqnarray*}
+\caption{Condition}
+\label{conditionFormFig}
+\end{figure}
+
+\paragraph{Type Safety}
+Unless it appears directly as an expression, the type of a condition is less interesting than whether the condition is \emph{type satisfiable}. In general, a condition is type satisfiable if it is consistent and it is potentially satisfiable. To further this we introduce the \satinf{} meta-predicate. A inference rule of the form:
+\begin{prooftree}
+\AxiomC{\rm{\emph{Condition}}}
+\UnaryInfC{\typesat{E}{F}}
+\end{prooftree}
+declares that the form \emph{F} is valid in the context \emph{E} provided that \ntRef{Condition} is satified.
+
+\section{Membership and Search}
+\label{membershipCondition}
+
+
+\subsection{Matches Condition}
+The \q{matches} condition is a special condition that applies a pattern to a value. The condition is satisfied (see Section~\vref{querySemantics}) if the pattern matches the expression.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{MatchesCondition}&\arrow&\ntRef{Expression}\ \q{matches}\ \ntRef{Pattern}
+\end{eqnarray*}
+\caption{\q{matches} Condition}
+\label{matchesPredicateFig}
+\end{figure}
+
+\subsubsection{Type Safety}
+A \q{matches} condition is type safe if the types of the left hand side and right hand side are the same. Recall that the left hand side is an expression, whereas the right hand side is a pattern.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{V}{T}}
+\AxiomC{\typeprd{E}{P}{T}}
+\BinaryInfC{\typesat{E}{V\ \q{matches}\ P}}
+\end{prooftree}
+
+
+\subsection{Membership Condition}
+\label{memberCondition}
+An \ntRef{MemberCondition} condition is satisfied when a given indexed element is in the collection.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{MemberCondition}&\arrow&\ntRef{Expression}\q{[}\ntRef{Expression}\q{]}\ \q{matches}\ \ntRef{Pattern}\\
+&\choice&\q{present}\ \ntRef{Expression}\q{[}\ntRef{Expression}\q{]}
+\end{eqnarray*}
+\caption{Member Condition}
+\label{memberSearchFormFig}
+\end{figure}
+
+\begin{aside}
+The collection being searched must implement the \q{indexable} contract -- see Section~\vref{indexableContract}.
+\end{aside}
+
+A condition such as
+\begin{alltt}
+L[Ix] matches V where V>0
+\end{alltt}
+is satisfied when the \q{Ix}$^{th}$ element of \q{L} is greater than zero.
+
+\begin{aside}
+\begin{aside}
+This condition is actually a special case of the \ntRef{MatchesCondition}. However, for convenience, the meaning of this condition is adjusted somewhat. 
+This variant of the \ntRef{MatchesCondition} relies on the \q{indexable} contract -- see Program~\vref{indexableContractDef} -- in particular on the \q{\_index} function  defined in that contract.
+
+Instead of \q{raise}ing an exception in the case that the identified element does not exist in the collection, the condition simply fails.
+I.e., the condition:
+\begin{alltt}
+L[Ix] matches \emph{Ptn}
+\end{alltt}
+is actually equivalent to:
+\begin{alltt}
+_index(Ix,L) matches some(Ptn) 
+\end{alltt}
+\end{aside}
+\end{aside}
+
+\subsubsection{Type Safety}
+A \ntRef{MemberCondition} condition is type safe if the type of the pattern corresponds to an element of the type of the collection.
+\begin{prooftree}
+\def\ScoreOverhang{1pt}
+\insertBetweenHyps{\hskip 1ex}
+\AxiomC{\typeprd{E}{Ky}{T\sub{k}}}
+\AxiomC{\typeprd{E}{Vl}{T\sub{v}}}
+\AxiomC{\typeprd{E}{C}{\q{indexable over }T\ \q{determines}\ (T\sub{k},T\sub{v})}}
+\TrinaryInfC{\typesat{E}{C\q{[}Ky\q{]}\ \q{matches}\ Vl}}
+\end{prooftree}
+
+\subsection{Search Condition}
+\label{searchCondition}
+A search condition is satisfied by finding elements of collections that meet some criterion.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{SearchCondition}&\arrow&\ntRef{Pattern}\ \q{in}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{Search Condition}
+\label{searchFormFig}
+\end{figure}
+
+\begin{aside}
+The collection being searched must implement the \q{iterable} contract -- see Section~\vref{iterableContract}.
+\end{aside}
+
+For example, the search condition:
+\begin{alltt}
+(X,"john") in parent
+\end{alltt}
+is satisfied (potentially multiple times) if there is a pair of the form:
+\begin{alltt}
+(\emph{Val},"john")
+\end{alltt}
+`in' the collection identified as \q{parent}. If \q{parent} were defined as the list:
+\begin{alltt}
+list of [ ("alpha","john"), ("beta","peter"), ("gamma","john") ]
+\end{alltt}
+then the search condition has two solutions: one corresponding to \q{"alpha"} and the other to \q{"gamma"}.
+
+\subsubsection{Type Safety}
+A search condition is type safe if the type of the pattern corresponds to an element of the type of the collection. This is characterized by means of a  \ntRef{DependencyConstraint}.
+\begin{prooftree}
+\AxiomC{\typeprd{E}{P}{T\sub{e}}}
+\AxiomC{\typeprd{E}{C}{\q{iterable over }T\ \q{determines}\ T\sub{e}}}
+\BinaryInfC{\typesat{E}{P\ \q{in}\ C}}
+\end{prooftree}
+The type judgment of a \ntRef{SearchCondition} depends on the \q{iterable} contract (see Section~\vref{iterableContract}.
+
+\subsection{Indexed Search Condition}
+\label{indexedSearchCondition}
+An \ntRef{IndexedSearch} condition is satisfied by finding elements of collections that match a pattern and where the index of the element within the collection is also matched against.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{IndexedSearch}&\arrow&\ntRef{Pattern}\,\q{->}\,\ntRef{Pattern}\ \q{in}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{Indexed Search Condition}
+\label{indexedSearchFormFig}
+\end{figure}
+
+\begin{aside}
+The collection being searched must implement the \q{indexed\_iterable} contract -- see Section~\vref{indexedIterableContract}.
+\end{aside}
+
+\ntRef{IndexedSearch} conditions allow the programmer to not only access the element of the collection but also its `position' within the collection. For example, the condition:
+\begin{alltt}
+(Ix->V where V>0 and Ix<10) in L
+\end{alltt}
+is satisfied for those elements in \q{L} which are greater than zero, and whose index is less than 10.
+
+\begin{aside}
+One of the important differences between an \ntRef{IndexedSearch} and a \ntRef{MemberCondition} is that the latter can be satisfied at most once, whereas the \ntRef{IndexSearch} could potentially be satisfied for each element of the collection -- depending, of course, on the patterns involved.
+\end{aside}
+
+\subsubsection{Type Safety}
+An \ntRef{IndexedSearch} condition is type safe if the type of the pattern corresponds to an element of the type of the collection.
+\begin{prooftree}
+\def\ScoreOverhang{1pt}
+\insertBetweenHyps{\hskip 1ex}
+\AxiomC{\typeprd{E}{Ky}{T\sub{k}}}
+\AxiomC{\typeprd{E}{Vl}{T\sub{v}}}
+\AxiomC{\typeprd{E}{C}{\q{indexed\_iterable over }T\ \q{determines}\ (T\sub{k},T\sub{v})}}
+\TrinaryInfC{\typesat{E}{Ky\,\q{->}\,Vl\ \q{in}\ C}}
+\end{prooftree}
+The type judgment of a \ntRef{IndexedSearch} condition depends on the \q{indexed\_iterable} contract (see Section~\vref{indexedIterableContract}).
+
+\section{Logical Combinations}
+
+\subsection{Conjunction Condition}
+A conjunction -- using the \q{and} operator -- is satisfied iff both the left and right `arms' of the conjunction are satisfied.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{ConjunctionCondition}&\arrow&\ntRef{Condition}\ \q{and}\ \ntRef{Condition}\\
+&\choice&\ntRef{Condition}\ \q{where}\ \ntRef{Condition}\\
+\end{eqnarray*}
+\caption{Conjunction Condition}
+\label{conjunctionConditionFormFig}
+\end{figure}
+
+\begin{aside}
+There is \emph{no} guarantee as to any order of evaluation of the arms of a condition. In particular, you may assume neither that the left is evaluated before the right, nor that both arms are, or are not, evaluated.
+\end{aside}
+
+\begin{aside}
+The \q{where} variant of conjunction is syntactic convenience to allow conditions of the form:
+\begin{alltt}
+foo(rs) is (r in rs where r > 0) ? some(r) | none
+\end{alltt}
+which would otherwise be written:
+\begin{alltt}
+foo(rs) is (r in rs and r > 0) ? some(r) | none
+\end{alltt}
+or
+\begin{alltt}
+foo(rs) is ((r where r > 0) in rs) ? some(r) | none
+\end{alltt}
+\end{aside}
+
+\subsubsection{Type Safety}
+A conjunction is type safe iff the two arms of the conjunction are type safe.
+\begin{prooftree}
+\AxiomC{\typesat{E}{L}}
+\AxiomC{\typesat{E}{R}}
+\BinaryInfC{\typesat{E}{L\ \q{and}\ R}}
+\end{prooftree}
+
+\subsection{Disjunction Condition}
+A disjunction -- using the \q{or} operator -- is satisfied iff either the left or the right operands are satisfied.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{DisjunctionCondition}&\arrow&\ntRef{Condition}\ \q{or}\ \ntRef{Condition}
+\end{eqnarray*}
+\caption{Disjunction Condition}
+\label{disjunctionConditionFormFig}
+\end{figure}
+
+
+\begin{aside}
+There is no guarantee as to the order of evaluation of the left and right operands.
+\end{aside}
+
+\subsubsection{Type Safety}
+A disjunction is type safe iff the two arms of the disjunction are type safe.
+\begin{prooftree}
+\AxiomC{\typesat{E}{L}}
+\AxiomC{\typesat{E}{R}}
+\BinaryInfC{\typesat{E}{L\ \q{or}\ R}}
+\end{prooftree}
+
+\subsection{Negated Condition}
+A negation is satisfied iff the operand is \emph{not} satisfied.
+
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{NegationCondition}&\arrow&\q{not}\ \ntRef{Condition}
+\end{eqnarray*}
+\caption{Negated Condition}
+\label{negationConditionFormFig}
+\end{figure}
+
+\begin{aside}
+If the negated query has any unbound variables in it then the meaning of the negated query is undefined.
+\end{aside}
+
+\subsubsection{Type Safety}
+A negation is type safe iff the negated condition is type safe.
+\begin{prooftree}
+\AxiomC{\typesat{E}{N}}
+\UnaryInfC{\typesat{E}{\q{not}\ N}}
+\end{prooftree}
+
+\subsection{Implies Condition}
+An \emph{implication} condition -- using the \q{implies} operator -- is satisfied iff there is a solution to the right hand side for every solution to the left hand side.
+
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{ImpliesCondition}&\arrow&\ntRef{Condition}\ \q{implies}\ \ntRef{Condition}
+\end{eqnarray*}
+\caption{Implies Condition}
+\label{impliesConditionFormFig}
+\end{figure}
+
+For example, the state of having only sons can be defined as the condition that all ones children are male. This can be expressed using the condition:
+\begin{alltt}
+(P,X) in children implies X in male 
+\end{alltt}
+
+\begin{aside}
+Like negation, an \q{implies} condition can never result in binding a variable to a value. It can only be used to verify a condition. Thus, to actually look for people who only have sons, a separate `generator' condition is needed. 
+
+A query expression such as:
+\begin{alltt}
+(P,_) in children and (P,X) in children implies X in male
+\end{alltt}
+is effectively using the first `\q{(P,X) in children}' condition to find a person who has children, where the second implies condition verifies that \q{P }only has sons.
+\end{aside}
+
+\subsubsection{Type Safety}
+A whenever condition is type safe iff the two arms are type safe.
+\begin{prooftree}
+\AxiomC{\typesat{E}{L}}
+\AxiomC{\typesat{E}{R}}
+\BinaryInfC{\typesat{E}{L\ \q{implies}\ R}}
+\end{prooftree}
+
+
+\subsection{Otherwise Condition}
+\label{otherwiseQuery}
+\index{query!otherwise@\q{otherwise}}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{OtherwiseCondition}&\arrow&\ntRef{Condition}\ \q{otherwise}\ \ntRef{Condition}
+\end{eqnarray*}
+\caption{Otherwise Condition}
+\label{otherwiseConditionFormFig}
+\end{figure}
+
+An \q{otherwise} condition is semantically similar to a disjunction: an \q{otherwise} condition is satisfied if either the left hand side is satisfied or the right hand side is satisfied. However, it is actually extremely difficult to give a purely declarative semantics for the \q{otherwise} condition -- the right hand side of an \q{otherwise} \emph{must not be attempted} if there is at least one way of satisfying the left hand side.
+
+For example, given a list \q{childOf}, the query:
+\begin{alltt}
+all Ch where (Ch,"john") in childOf otherwise noone matches Ch
+\end{alltt}
+results in an \q{array} containing all the children of \q{"john"}; unless \q{"john"} has no children, in which case the result will contain the singleton \q{noone}.\footnote{Assuming of course that \q{noone} is a type safe value for a \q{person}.}
+
+More precisely, given a condition of the form:
+\begin{alltt}
+\emph{Q\sub1} otherwise \emph{Q\sub2}
+\end{alltt}
+if there exist \emph{any} instances that satisfy \q{\emph{Q\sub1}} condition then that is the \emph{only} way of satisfying the condition; otherwise the condition is satisfied if \q{\emph{Q\sub2}} can be satisfied.
+\begin{aside}
+The \q{otherwise} query can be used in situations similar to those where a \emph{left outer join} would be used. If \q{A} and \q{B} are two collections, then
+\begin{alltt}
+A otherwise B
+\end{alltt}
+(where \q{A} and \q{B} have suitable variables in common) is analogous to
+\begin{alltt}
+A left outer join B
+\end{alltt}
+assuming a suitable join condition.
+\end{aside}
+
+\subsubsection{Type Safety}
+An \q{otherwise} condition is type safe iff the two arms of the condition are type safe.
+\begin{prooftree}
+\AxiomC{\typesat{E}{L}}
+\AxiomC{\typesat{E}{R}}
+\BinaryInfC{\typesat{E}{L\ \q{otherwise}\ R}}
+\end{prooftree}
+
+\subsection{Conditional Condition}
+\label{conditionalQuery}
+\index{conditional query constraint}
+\index{dependent query}
+
+A conditional condition is used when the actual condition to apply depends on a test. 
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{ConditionalCondition}&\q{(}\ \ntRef{Condition}\ \q{?}\ \ntRef{Condition}\ \q{|}\ \ntRef{Condition}\q{)}
+\end{eqnarray*}
+\caption{Conditional Condition}
+\label{conditionalConditionFig}
+\end{figure}
+
+For example, if the salary of an employee may be gotten from two different relations depending on whether the employee was a manager or not, the salary may be retrieved using a query:
+\begin{alltt}
+all S where ( isManager(P) ? 
+                  (P,S) in manager_salary |
+                  (P,S) in employee_salary )
+\end{alltt}
+
+As with conditional expressions (see Section~\vref{conditionalExpression}), the test part of the \ntRef{ConditionalCondition} is evaluated and, depending on whether the test is \emph{satisfiable} or not, the `then' branch or the `else' branch is used in the query constraint.
+
+\begin{aside}
+In the case that the `test' is satisfiable; then only solutions from the `then' branch will be considered for the overall query. Conversely, if the `test' is not satisfiable,\footnote{A normal \q{boolean}-valued expression is considered to be satisfiable iff it evaluates to \q{true}.} then only solutions from the `else' branch will be used for the overall query.
+\end{aside}
+
+\begin{aside}
+\begin{aside}
+The `test' part of a \ntRef{ConditionalCondition} is only satisfied once -- if there are multiple ways in which the `test' could be satisfied, only the first found is used.
+
+The `test' may \emph{not} bind variables; if it does, those variables are in \emph{not} scope for the either the `then' branch or the `else' branch of the conditional.
+\end{aside}
+\end{aside}
+\begin{aside}
+\begin{aside}
+However, if a variable is defined in \emph{both} arms of a \ntRef{ConditionalCondition} then the variable `escapes' the conditional itself. 
+
+For example, the \ntRef{ConditionalCondition} above `defines' the variable \q{S} in both the `then' and `else' branch. Depending on the \q{isManager} test, the result of the query will either contain the value of a \q{manager\_salary} or an \q{employee\_salary}.
+\end{aside}
+\end{aside}
+
+\begin{aside}
+As with the \ntRef{OtherwiseCondition}, \ntRef{ConditionalCondition} can be useful in cases where defaults may apply.
+\end{aside}
+
+\subsubsection{Type Safety}
+A \ntRef{ConditionalCondition} is type safe iff the three arms of the conditional are type safe.
+\begin{prooftree}
+\AxiomC{\typesat{E}{T}}
+\AxiomC{\typesat{E}{L}}
+\AxiomC{\typesat{E}{R}}
+\TrinaryInfC{\typesat{E}{\q{(}\,T\ \q{?} L\ \q{|}\ R\,\q{)}}}
+\end{prooftree}
+
+\section{Satisfaction Semantics}
+\label{querySemantics}
+\index{query!semantics of}
+\index{variable!in queries}
+
+The semantics of conditions is based on \emph{satisfaction} -- for example, the answer to a query is based on the different ways that the condition part of the query may be satisfied. 
+
+The satisfiability of a condition is not identical to the normal concept of evaluating \q{boolean}-valued expressions. In essence, a \ntRef{Condition} is satisfied if there is a binding for the unbound variables within the \ntRef{Condition} that `makes the \ntRef{Condition} true.
+
+Variables that are bound as a result of satisfying a \ntRef{Condition} are often used to `produce' a value from the \ntRef{Condition}. For example, an \q{all} query has as value \emph{all} the tuples that satisfy the \ntRef{Condition} and the \q{anyof} query has as value any tuple that satisfies the \ntRef{Condition}.
+
+\begin{aside}
+Any variables that are defined within the query are assumed to be in scope across the entire query. This means that the types associated with variables' occurrences must all be consistent.
+
+A variable may occur in an outer context as well as within the query. Such a variable is in scope within the query but is not defined by the query. As with repeated occurrences of variables, such `free variables' become constraints on the satisfaction of the query.
+\end{aside}
+
+\begin{description}
+\item[A \ntRef{SearchCondition}] of the form:
+\begin{alltt}
+\ntRef{Pattern} in \ntRef{Expression}
+\end{alltt}
+is considered satisfiable for any value in the collection identified by \ntRef{Expression} that matches the \ntRef{Pattern}. 
+\end{description}
+
+
+The result of a query is expressed as the value of an expression. Each element of the result is obtained by evaluating the \emph{bound} expression in the context of the bindings of the variables arrived at during the satisfaction of the query constraint.
+
+In the case of an \q{all} query and the \q{view} definition, the computed result contains the result of evaluating the bound expression for every possible way of satisfying the query.  The \q{one} query looks for just one way of solving the query constraint and a numerically bounded query looks for that many ways.\footnote{Of course, if the query asks for 10 results (say), there may not be that many answers.}
+
+\begin{aside}
+\index{conditions!relative order of terms}
+\index{order of terms in conditions}
+It is important to note that, in the case of a conjunction or disjunction, the relative order of terms is not relevant. For example the conditions
+\begin{alltt}
+X in male and ("fred",X) in parent
+\end{alltt}
+and
+\begin{alltt}
+("fred",X) in parent and X in male
+\end{alltt}
+have the same solutions -- are satisfied for the same bindings of the variable \q{X}.
+\end{aside}
+
+\subsubsection{Type Safety}
+\label{querytypesatty}
+A relational query is type if the type of the pattern is consistent with the type of the elements of the tuple.
+
+
+
+\section{Standard Predicates}
+\label{predicates}
+
+The standard predicates are based on the \q{equality} and \q{comparable} contracts. These contracts define what it means for two values to be equal, or for one value to be lesser than another.
+
+The \q{equality} contract is automatically implemented for any type that does not reference a program type (i.e., does not contain functions, procedures or other program values). However, the programmer may wish to explicitly implement \q{equality} for a user-defined type if equality for that type is not based on simple comparison of data structures. Such user-defined implementations override any defined by the language.
+
+\subsection{The \q{equality} contract}
+\label{equalityPredicates}
+\index{equality predicates}
+Equality is based on the \q{equality} contract -- see Program~\vref{equalityContract}. This defines the \q{boolean}-valued function: \q{=}. The complementary function \q{!=} is not defined as part of the \q{equality} contract; but is defined in terms of \q{=}.
+
+\index{type!contracts!equality@\q{equality}}
+\index{equality contract@\q{equality} contract}
+\begin{program}
+\begin{alltt}
+contract equality over t is \{
+  (=) has type (t,t)=>boolean;
+\}
+\end{alltt}
+\caption{The Standard \q{equality} Contract\label{equalityContract}}
+\end{program}
+
+It is not necessary to explicitly implement the \q{equality} contract. The language processor automatically implements it for types that do not contain program values. However, it is possible to provide an explicit implementation for \q{equality} for cases where a more semantic definition of equality is desired.
+
+\subsection{\q{=} -- equals}
+\label{equalsPredicate}
+\index{"=@\q{=} predicate}
+\index{equality predicate}
+\q{=} is part of the standard \q{equality} contract.
+\begin{alltt}
+(=) has type for all t such that (t,t) => boolean where equality over t
+\end{alltt}
+In general, equality is \emph{not} defined for all values. In particular, equality is not defined for functions, procedures and other program values.\footnote{Whether two expressions that denote functions of the same type denote the same function is, in general, not effectively decidable.}
+
+\subsection{\q{!=} -- not equals}
+\label{notEqualsPredicate}
+\index{"!=@\q{"!=} predicate}
+\index{inequality predicate}
+\begin{alltt}
+(!=) has type for all t such that (t,t) => boolean where equality over t
+\end{alltt}
+The \q{!=} predicate has a standard definition that makes it equivalent to a negated equality:
+\begin{alltt}
+X != Y is not X=Y
+\end{alltt}
+
+\subsection{The \q{comparable} contract}
+\label{comparisonPredicates}
+
+Comparison is based on the standard \q{comparable} contract -- see Program~\vref{comparableContract}.
+
+Comparison is \emph{not} automatically implemented for all types -- the standard language provides implementations for the arithmetic types (\q{integer}s, \q{float}s etc.) and for the \q{string} type.
+
+
+\index{type!contracts!comparable@\q{comparable}}
+\index{comparable contract@\q{comparable} contract}
+\begin{program}
+\begin{alltt}
+contract comparable over t is \{
+  (<) has type (t,t)=>boolean;
+  (<=) has type (t,t)=>boolean;
+  (>) has type (t,t)=>boolean;
+  (>=) has type (t,t)=>boolean;
+\}
+\end{alltt}
+\caption{The Standard \q{comparable} Contract\label{comparableContract}}
+\end{program}
+
+\subsection{\q{<} -- less than}
+\index{<@\q{<} predicate}
+\begin{alltt}
+(<) has type for all t such that (t,t)=>boolean where comparable over t
+\end{alltt}
+
+The \q{<} predicate is satisfied if the left argument is less than the right argument. The precise definition of less than depends on the actual implementation of the \q{comparable} contract for the type being compared; however, for arithmetic types, less than is defined as being arithmetic less than. For \q{string}s, one string is less than another if it is smaller in the standard lexicographic ordering of strings.
+
+\subsection{\q{<=} -- less than or equal}
+\index{<=@\q{<=} predicate}
+\begin{alltt}
+(<=) has type for all t such that (t,t)=>boolean where comparable over t
+\end{alltt}
+
+The \q{<=} predicate is satisfied if the left argument is less than or equals to the right argument.
+
+\subsection{\q{>} -- greater than}
+\index{>@\q{>} predicate}
+\begin{alltt}
+(>) has type for all t such that (t,t)=>boolean where comparable over t
+\end{alltt}
+
+The \q{>} predicate is satisfied if the left argument is greater than the right argument.
+
+\subsection{\q{>=} -- greater then or equal}
+\index{>=@\q{>=} predicate}
+\begin{alltt}
+(>=) has type for all t such that (t,t)=>boolean where comparable over t
+\end{alltt}
+
+The \q{>=} predicate is satisfied if the left argument is greater than or equal to the right argument.

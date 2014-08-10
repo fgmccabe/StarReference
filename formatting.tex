@@ -1,0 +1,33 @@
+%!TEX root = reference.tex
+\chapter{Formatting Rules}
+\label{formattingRules}
+\index{formatting!source programs}
+\index{rules!formatting}
+
+Formatting rules allow the expression of standardized rules for laying out \Sr programs. Formatting and re-formatting of programs is an important tool for the programmer and the programming team: by enabling and enforcing format standards it makes it easier to read other programmersÕ programs. It also simplifies the individual programmerÕs task Ð a single push button can `tidy upÕ your program into a neat and easier to read format.
+
+\section{Format Rules}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{MetaRule}&\arrowplus&\emph{FormatRule}\\
+\emph{FormatRule}&\arrow&\q{\#}\ \emph{MetaPattern}\ \q{::}\ \emph{Category}\ \q{-->}\ \emph{FormatSpecification}\\
+\emph{FormatSpecification}&\arrow&\emph{Properties}\\
+&\choice&\emph{MetaExpression} \q{::} \emph{Properties}\\
+&\choice&\emph{FormatSpecification}\ \sequence{:\&}\ \emph{FormatSpecification}\\
+\emph{Properties}&\arrow&\q{\{}\emph{Property}\sequence{;}\emph{Property}\q{\}}\\
+\emph{Property}&\arrow&\q{indent}\q{:}\emph{NumericProperty}\\
+&\choice&\q{blankLines}\q{:}\emph{NumericProperty}\\
+&\choice&\q{commentColumn}\q{:}\emph{NumericProperty}\\
+&\choice&\q{wrapColumn}\q{:}\emph{NumericProperty}\\
+&\choice&\q{commentWrap}\q{:}\emph{BooleanProperty}\\
+&\choice&\q{breakBefore}\q{:}\emph{BooleanProperty}\\
+&\choice&\q{breakAfter}\q{:}\emph{BooleanProperty}\\
+\emph{NumericProperty}&\arrow&\emph{Integer}\\
+&\choice&\q{+}\emph{Integer}\\
+&\choice&\q{-}\emph{Integer}\\
+\emph{BooleanProperty}&\arrow&\q{true}\ \choice\ \q{false}
+\end{eqnarray*}
+\caption{Formatting Rules}
+\label{formatRulesFig}
+\end{figure}

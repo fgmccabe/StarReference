@@ -1,0 +1,265 @@
+%!TEX root = reference.tex
+\chapter{Associative Dictionaries}
+\label{associativeMap}
+
+\index{expressions!associative dictionary}
+\index{associative dictionary expression}
+Dictionaries allow the programmer to establish an associative mapping between pairs of elements. They are convenient when it is not known what the actual elements of the association will be at design time.
+
+\begin{aside}
+An important property of dictionaries is that there can be at most \emph{one} value associated with a given key. This is one of the primary differences between dictionaries and lists.
+\end{aside}
+
+\section{Dictionary Type}
+\label{mapTypes}
+\index{type!dictionary\q{dictionary} type}
+
+The \q{dictionary} type takes the form of a type expression with two type arguments: the type of the key and the type of the value.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Type}&\arrowplus&\q{dictionary of (}\,\emph{Type}\q{,}\emph{Type}\,\q{)}
+\end{eqnarray*}
+\caption{Dictionary Type}
+\label{mapTypeFig}
+\end{figure}
+In a \q{dictionary}, every key must have the same type; as must each value in the \q{dictionary} -- although the keys' type may be different to the values' type.
+
+For example, the type expression:
+\begin{alltt}
+dictionary of (string,integer)
+\end{alltt}
+denotes the type of a dictionary whose keys are \q{string}s and whose values are \q{integer}s.
+
+The \q{dictionary} type's structure is not public. It is defined as though by a \ntRef{KindAnnotation}:
+\begin{alltt}
+dictionary has kind type of (type,type)
+\end{alltt}
+\begin{aside}
+In addition, there is a constraint on the types of keys: they must implement the \q{equality} contract. This means that it is not possible to use as keys any value that contains a program value. There is no such restriction on the values -- it is quite possible to have a map from \q{string}s to functions (say).
+\end{aside}
+
+
+\section{Dictionary Literals}
+\label{mapLiteral}
+\index{dictionary!literal}
+\index{dictionary literal@\q{dictionary} literal}
+\index{dictionarys}
+A \q{dictionary} literal consists of a \q{dictionary} brace term with each element in the dictionary represented as a pair 
+\begin{alltt}
+\emph{Key} -> \emph{Value}
+\end{alltt}
+Figure~\vref{mapLiteralFig} defines the syntax of dictionary literals.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\emph{Expression}&\arrowplus&\q{dictionary of }\q{\{}\,\emph{MapElement}\sequence{;}\emph{MapElement}\,\q{\}}\\
+\emph{MapElement}&\arrow&\emph{Expression}\ \q{->}\ \emph{Expression}
+\end{eqnarray*}
+\caption{Dictionary Literal}
+\label{mapLiteralFig}
+\end{figure}
+For example,
+\begin{alltt}
+dictionary of \{"alpha" -> 1; "beta"->2\}
+\end{alltt}
+is a dictionary consisting of \q{string} keys to \q{integer} literals.
+An associative \q{dictionary} literal may not have more than one value associated with any given key.
+
+An empty \q{dictionary} literal is written:
+\begin{alltt}
+dictionary of \{\}
+\end{alltt}
+
+\begin{aside}
+There is no \emph{pattern} form of a \q{dictionary} literal: it is not possible to pattern match against a dictionary. However, it is possible to constrain an equation based on a dictionary argument -- using semantic guard:
+\begin{alltt}
+keyPresent(Ky,D) where present D[Ky] is D[Ky];
+\end{alltt}
+\end{aside}
+
+
+\section{Accessing Elements of a Dictionary}
+\label{associativeMapAccess}
+\index{dictionary!accessing elements}
+\index{expressions!access elements of dictionary}
+
+There are implementations of the \q{indexable} (see Program~\vref{indexableContractDef}), \q{sizeable} (see Program~\vref{sizeableContract}), \q{iterable} (see Program~\vref{iterateContractProg}) and \q{pPrint} contracts (see Program~\vref{ppContractProg}). Thus, the standard notations for accessing indexed elements, and iterating over collects, apply to \q{dictionary} values also.
+
+Note that the related contracts \q{sequence} (see Program~\vref{sequenceContractDef}), \q{sliceable} (see Program~\vref{sliceableContractProg}) are \emph{not} implemented for \q{dictionary} values. In the former case the reason is that \q{dictionary}s are not naturally accessed in a sequential manner, and in the latter case the \emph{key}s used to access \q{dictionary}s are not limited to \q{integer}s.
+
+\subsection{\q{\_index} -- Index Element}
+\label{indexMapFunction}
+\index{indexable contract@\q{indexable} contract!_index@\q{\_index}}
+The \q{\_index} function, which is part of the \q{indexable} contract (see Program~\vref{indexableContractDef}), is used to access elements of a dictionary -- by providing a key.
+\begin{alltt}
+_index has type for all k,v such that (dictionary of (k,v),k)=>v
+                where equality over k
+\end{alltt}
+\begin{aside}
+The type of the index is obtained from the \q{dictionary} type itself: it is the first type argument.
+\end{aside}
+
+\begin{aside}
+The \q{\_index} function requires that \q{equality} is implemented for the key type.
+\end{aside}
+
+\noindent
+The \q{\_index} function has special syntax which is reminiscent of array index expressions:
+\begin{alltt}
+C[Ky]
+\end{alltt}
+is equivalent to the expression
+\begin{alltt}
+\_index(C,Ky)
+\end{alltt}
+For example, given a dictionary:
+\begin{alltt}
+M is dictionary of \{ "alpha"->1; "beta"->2 \}
+\end{alltt}
+we can access the value associated with the key \q{"alpha"} using:
+\begin{alltt}
+M["alpha"]
+\end{alltt}
+If we were not absolutely sure that \q{M} had an entry corresponding to a particular key, we can use:
+\begin{alltt}
+M[Key] default nonInteger
+\end{alltt}
+
+\subsection{\q{\_set\_indexed} -- Replace Element of Map}
+\label{mapReplaceFunction}
+\index{indexable contract@\q{indexable} contract!_set_indexed@\q{\_set\_indexed}}
+\index{replace element in collection}
+The \q{\_set\_indexed} function, which is part of the \q{indexable} contract, is used to set an element in a \q{dictionary}.
+\begin{alltt}
+\_set\_indexed has type for all k,v such that
+                        (dictionary of (k,v),k,v)=>dictionary of (k,v)
+                        where equality over k
+\end{alltt}
+The \q{\_set\_indexed} function returns a \q{dictionary} in which an element is replaced. If the element as \emph{not} there beforehand, the \q{dictionary} is augmented with the new key/value pair. If there was an element with the same key, then the value associated with key is replaced.
+
+The \q{\_set\_indexed} function has special action syntax which is reminiscent of array update actions:
+\begin{alltt}
+C[Ky] := E
+\end{alltt}
+is equivalent to the action
+\begin{alltt}
+C := \_set\_indexed(C,Ky,E)
+\end{alltt}
+For example, given the variable declaration:
+\begin{alltt}
+var M := dictionary of \{ "alpha"->1; "beta"->2 \}
+\end{alltt}
+we can add a new key associated with \q{"gamma"} using the action:
+\begin{alltt}
+M["gamma"] := 3
+\end{alltt}
+which is equivalent to:
+\begin{alltt}
+M := _set_indexed(M,"gamma",3)
+\end{alltt}
+The \q{\_set\_indexed} function also has an expression form. The assignment above may also be written:
+\begin{alltt}
+M := M["gamma"->3]
+\end{alltt}
+
+\begin{aside}
+As with other forms of update action, the \q{\_set\_indexed} function does not side-effect the previous value that was bound to the dictionary variable.
+\end{aside}
+
+\subsection{\q{\_delete\_indexed} -- Remove Element from Map}
+\label{mapDeleteFunction}
+\index{indexable contractt@\q{indexable} contract!_delete_indexed@\q{\_delete\_indexed}}
+\index{remove element from collection}
+\q{\_delete\_indexed} is part of the \q{indexable} contract -- see Program~\vref{indexableContractDef}.
+\begin{alltt}
+\_delete\_indexed has type for all k,v such that
+                           (dictionary of (k,v),k)=>dictionary of (k,v)
+                           where equality over k
+\end{alltt}
+The \q{\_delete\_indexed} function is used to remove an element from a dictionary. The \q{\_delete\_indexed} function returns a new \q{dictionary} with the identified element removed. The element to delete is identified by its key, not by the kay/value pair.
+
+The \q{\_delete\_indexed} function has special action syntax which is reminiscent of array update actions:
+\begin{alltt}
+remove C[Ky]
+\end{alltt}
+is equivalent to the action
+\begin{alltt}
+C := C[without Ky]
+\end{alltt}
+which, in turn, is equivalent to:
+\begin{alltt}
+C := \_delete\_indexed(C,Ky)
+\end{alltt}
+For example, given the \q{var}-declared variable \q{M} above, we can remove the entry associated with \q{"alpha"} using:
+\begin{alltt}
+remove M["alpha"]
+\end{alltt}
+
+The `expression variant' of the \q{remove} notation -- \q{C[without ky]} -- is more pleasant for functional programs where the dictionary is not held in an updateable variable.
+
+\subsection{\q{\_index\_member} -- Test for Presence of Element}
+\label{mapIndexPresent}
+\index{indexable contract@\q{indexable} contract!_index_member@\q{\_index\_member}}
+\index{test for presence of an element in collection}
+The \q{\_index\_member} pattern is part of the \q{indexable} contract -- see Program~\vref{indexableContractDef}.
+\begin{alltt}
+\_index\_member has type for all k,v such that (v)<=(dictionary of (k,v),k)
+                          where equality over k
+\end{alltt}
+The \q{\_index\_member} pattern is used to test if an element exists within the dictionary. 
+
+There are two special forms of syntax that involve the \q{\_index\_member} pattern:
+\begin{alltt}
+present C[ix]
+\end{alltt}
+which is equivalent to the condition
+\begin{alltt}
+(C,ix) matches \_index\_member(_)
+\end{alltt}
+If there is an element of \q{C} corresponding to \q{ix} then the value is \q{true}.
+If the index is out of range, i.e., if there is no element in the collection that corresponds to the requested index, then the value is \q{false}.
+
+In addition, the \ntRef{MemberCondition} allows conditions of the form:
+\begin{alltt}
+L[Ix] matches V and V>0
+\end{alltt}
+which is equivalent to the condition:
+\begin{alltt}
+(L,Ix) matches _index_member(V) and V>0
+\end{alltt}
+
+\subsection{Searching a Dictionary}
+\label{searchMap}
+\index{dictionary expression!membership predicate}
+
+A \q{dictionary} may be searched within a condition using the \ntRef{IndexedSearch} condition.
+
+There are two primary situations for searching an associative \q{dictionary}: if the \emph{Key} part of a \ntRef{IndexedSearch} operator is either a literal or is a previously bound variable then there is at most one way of satisfying a \ntRef{IndexedSearch} condition. On the other hand, if the \emph{Key} is a pattern containing unbound variables then a \ntRef{IndexedSearch} involves iterating over the entire dictionary looking for entries that match the condition.
+
+
+\section{Standard \q{dictionary} Functions}
+\label{standardMap}
+
+The \q{dictionary} type implements the standard \q{sizeable} contract -- see Program~\vref{sizeableContract}. As such, the functions \q{size} and \q{empty} are defined for \q{dictionary} values.
+
+\subsection{\q{size} -- length of a dictionary}
+\label{sizeMapFunction}
+\index{size function@\q{size} function}
+\q{size} is part of the \q{sizeable} contract.
+\begin{alltt}
+size has type for all k,v such that (dictionary of (k,v))=>integer
+\end{alltt}
+
+The \q{size} function returns the length of its \q{dictionary} argument; i.e., the number of elements in the \q{dictionary}.
+
+
+\subsection{\q{isEmpty} -- test for empty dictionary}
+\label{emptyMapFunction}
+\index{isEmpty function@\q{isEmpty} function}
+\q{empty} is part of the \q{sizeable} contract.
+\begin{alltt}
+isEmpty has type for all k,v such that (dictionary of (k,v))=>boolean
+\end{alltt}
+
+The \q{isEmpty} function returns \q{true} if its argument has no elements.
+
+

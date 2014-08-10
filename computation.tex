@@ -1,0 +1,441 @@
+%!TEX root = reference.tex
+\chapter{Computation Expressions}
+\label{computation}
+Computation expressions are a special form of expression notation that permits computations to be performed in an augmented fashion. One standard example is the \q{task} expression -- see Chapter~\vref{concurrent} -- where the computations identified may be performed in parallel or asynchronously.
+
+The core concepts behind \ntRef{ComputationExpression}s are captured in three contracts -- the  \q{computation} contract (see Program~\vref{computationContractProg}), the \q{execution} contract (see Program~\vref{executionContractProg}), and the \q{injection} contract (see Program~\vref{injectionContractProg}). 
+
+There is a standard transformation of \ntRef{ComputationExpression}s into uses of these contracts. An expression may be \emph{encapsulated} as a computation, \ntRef{ComputationExpression}s may be \emph{combined} and they may be \emph{performed} in order to access the value computed.
+
+The `augmentation' of a \ntRef{ComputationExpression} depends on the mode of the expression -- its monad type. For example, the \q{task} expression allows computations to be interleaved and executed in parallel on a suitable processor. \q{task} expressions and general concurrency are covered in detail in Chapter~\vref{concurrent}.
+
+\begin{aside}
+The \ntRef{ComputationExpression} and the \q{computation} contract have an analogous relationship as Haskell's Monad class and it's \q{do} notation. However, the \q{computation} contract is not identical to the Monad class.
+\end{aside}
+
+\section{The \q{computation} contract}
+\label{computationContract}
+The \q{computation} contract defines two key concepts: the `encapsulation' of an expression as a computation that leads to the value of that expression; and the `combination' of two computations.
+
+
+\begin{program}
+\begin{alltt}
+contract (computation) over m is \{
+  _encapsulate has type (t)=>m of t;
+  _combine has type (m of s,(s)=>m of t)=>m of t
+  _abort has type (exception)=>m of t;
+  _handle has type (m of t, (exception)=>m of t) => m of t;
+  _delay has type (()=>m of t)=>m of t;
+  _delay(F) default is _combine(_encapsulate(()),fn(_) => F());
+\}
+\end{alltt}
+\caption{The Standard \q{computation} Contract\label{computationContractProg}}
+\end{program}
+
+\begin{aside}
+The name of the contract -- \q{(computation)} -- is parenthesized in Program~\vref{computationContractProg} and in other references to the contract. This is required because \q{computation} is the operator used to signal a \ntRef{ComputationExpression}.
+\end{aside}
+
+\begin{aside}
+The \q{\_encapsulate} function corresponds to the Monad \q{return}; and the \q{\_combine} function corresponds to Monad \q{bind}. \q{\_abort} corresponds to \q{fail}. However, the \q{\_handle} and \q{\_delay} functions do \emph{not} typically appear in Monads.
+\end{aside}
+
+The higher-kinded type variable \q{c} mentioned in the \q{computation} contract denotes the Monad of the \ntRef{ComputationExpression}. The computation type involving \q{c} has a single argument -- which is used to denote the value associated with the \ntRef{ComputationExpression}s. For example, \q{task of integer} is the type of a \q{task} expression whose value is an \q{integer}.
+
+\subsection{\q{\_encapsulate} -- encapsulate a computation value}
+\label{encapsulateFunction}
+\index{computation contract@\q{computation} contract!_encapsulate@\q{\_encapsulate}}
+\q{\_encapsulate} is part of the standard \q{computation} contract.
+\begin{alltt}
+\_encapsulate has type for all m,t such that (t)=>m of t
+                       where (computation) over m
+\end{alltt}
+The \q{\_encapsulate} function is used to encapsulate a value into a computation that has the value as its value. I.e., the \q{\_encapsulate} function is at the core of providing the additional indirection between values and computations returning those values.
+
+\begin{aside}
+If a computation has no value associated with it then \q{\_encapsulate} should be invoked with the empty tuple -- \q{()}.
+\end{aside}
+
+\subsection{\q{\_combine} -- combine two computation values}
+\label{combineFunction}
+\index{computation contract@\q{computation} contract!_combine@\q{\_combine}}
+\q{\_combine} is part of the standard \q{computation} contract.
+\begin{alltt}
+\_combine has type for all m,s,t such that (m of s, (s)=>m of t)=>m of t
+                   where (computation) over m
+\end{alltt}
+The \q{\_combine} function constructs a new computation value by applying a transforming function to an existing computation value. Typically, the transforming function represents the `next step' in the computation.
+
+\subsection{\q{\_abort} -- abort a computation}
+\label{abortFunction}
+\index{computation contract@\q{computation} contract!_abort@\q{\_abort}}
+\q{\_abort} is part of the standard \q{computation} contract.
+\begin{alltt}
+\_abort has type for all m,t such that (exception)=>m of t
+                 where (computation) over m
+\end{alltt}
+
+The \q{\_abort} function is used to represent a failed computation. \q{\_abort} takes a single argument -- of type \q{exception} -- and returns a computation value.
+
+\begin{aside}
+Normally, the \q{\_abort} implementation will wrap the \q{exception} value in a way that a subsequent \q{\_handle} or \q{\_perform} can leverage.
+\end{aside}
+
+When an \q{\_abort}ed computation is \q{\_perform}ed; the abort handler function will be  invoked with the value passed in to \q{\_abort}.
+
+\subsection{\q{\_handle} -- handle an aborted computation}
+\label{handleFunction}
+\index{computation contract@\q{computation} contract!_handle@\q{\_handle}}
+\q{\_handle} is part of the standard \q{computation} contract.
+\begin{alltt}
+\_handle has type for all m,t such that 
+                  (m of t, (exception)=>m of t) => m of t
+                  where (computation) over m
+\end{alltt}
+
+The \q{\_handle} function is used to potentially recover from a failed computation -- while continuing the computation. If the first argument to \q{\_handle} represents an aborted computation, then the second argument -- a handler function -- is invoked with the exception. It is the responsibility of this handler function to either recover from the exception or to propagate the exception.
+
+\subsection{\q{\_delay} -- construct a delayed computation}
+\label{delayFunction}
+\index{computation contract@\q{computation} contract!_delay@\q{\_delay}}
+\q{\_delay} is part of the standard \q{computation} contract.
+\begin{alltt}
+\_delay has type for all m,t such that (()=>m of t)=>m of t
+                 where (computation) over m
+\end{alltt}
+The \q{\_delay} function constructs a new `delayed' computation value. It is used in the construction of \ntRef{ComputationExpression}s -- at the top level -- to ensure that \ntRef{ComputationExpression}s are evaluated at the appropriate time.
+
+The \q{\_delay} function has a default implementation -- which may be used in case that a particular implementation of \q{computation} does not require a specific implementation. The default implementation is:
+\begin{alltt}
+_delay(F) default is _combine(_encapsulate(()),fn(_) => F())
+\end{alltt}
+
+\section{The \q{execution} Contract}
+\label{execution}
+
+The \q{execution} contract has a single function defined in it -- encapsulating the concept of performing a computation.
+
+\begin{program}
+\begin{alltt}
+contract execution over m is \{
+  _perform has type for all t such that (m of t, (exception)=>t) => t;
+\}
+\end{alltt}
+\caption{The Standard \q{execution} Contract\label{executionContractProg}}
+\end{program}
+
+\subsection{\q{\_perform} -- dereference a computation value}
+\label{performFunction}
+\index{execution contract@\q{execution} contract!_perform@\q{\_perform}}
+\q{\_perform} is part of the standard \q{execution} contract.
+\begin{alltt}
+\_perform has type for all m,t such that (m of t, (exception)=>t)=>t
+                   where (computation) over m
+\end{alltt}
+The \q{\_perform} function is used to `extract' the value of a computation. As such it is the natural inverse to the \q{\_encapsulate} function.
+
+If the computation failed, then the `fail handler function' -- the second argument to \q{\_perform} -- should be invoked with the exception signal given to \q{\_abort}. The \q{exception} type is the standard type for representing exceptions -- see Section~\vref{exceptionType}.
+
+\begin{aside}
+The standard monad does \emph{not} include the equivalent of a \q{\_perform}. One reason being that not all encapsulation functions have an inverse.
+\end{aside}
+
+\section{The \q{injection} Contract}
+\label{injection}
+
+The \q{injection} contract refers to the `injection' of one computation into another. This occurs most often when a \ntRef{ComputationExpression} contains a \q{perform} action. Such an action represents an `injection' of the inner performed monad into the outer monad.
+
+\begin{program}
+\begin{alltt}
+contract injection over (m,n) is \{
+  \_inject has type for all t such that (m of t)=>n of t;
+\}
+\end{alltt}
+\caption{The Standard \q{injection} Contract\label{injectionContractProg}}
+\end{program}
+
+The \q{injection} contract is a multi-type contract. I.e., implementations of the \q{injection} contract necessarily mention two types: the source Monad and the destination Monad. 
+
+\subsection{\q{\_inject} -- inject one computation into another}
+\label{injectFunction}
+\index{injection contract@\q{injection} contract!_inject@\q{\_inject}}
+\q{\_inject} is part of the standard \q{injection} contract.
+\begin{alltt}
+\_inject has type for all m,n,t such that (m of t)=>n of t
+                  where injection over (m,n)
+\end{alltt}
+The \q{\_inject} function is used to migrate a computation from one monad to another. 
+
+There are two primary requirements for the \q{\_inject} function: a normal computation must be migrated as a normal computation in the target monad; and an aborted computation must be represented as an aborted computation. 
+
+In addition to implementing injection in a pairwise manner between monads, it is advisable to implement nullary `self injection' -- i.e., to and from the same monad.
+
+
+\subsection{Monadic Laws}
+\label{monadicAxioms}
+Additionally to the type signatures of the functions defined in the \q{computation} contract, \ntRef{ComputationExpression}s depend on some additional properties of any implementations of the contract.
+\begin{aside}
+These laws are assumed -- they cannot be verified by the compiler. In particular, if the \q{computation} contract is implemented for a user-defined type, then the \q{implementation} must respect the laws identified here.
+\end{aside}
+
+The first law relates the \q{\_encapsulate} and the \q{\_combine} functions. Specifically, if we combine an \q{\_encapsulate} with a \q{\_combine} the value is the same as applying the encapsulated value to the combining function:
+\[\begin{array}{rcl}
+\q{\_combine(\_encapsulate(X),F)}&=&\q{F(X)}
+\end{array}\]
+
+The second law is the complement, combining with encapsulation itself leaves the result alone:
+\[\begin{array}{rcl}
+\q{\_combine(X,\_encapsulate)}&=&\q{X}
+\end{array}\]
+
+The third law expresses the associativity of \q{\_combine}:
+\[\begin{array}{rcl}
+\q{\_combine(X,fn U => combine(F(U),G))}&=&\q{\_combine(\_combine(X,F),G)}
+\end{array}\]
+
+The abort law expresses the meaning of \q{\_abort}:
+\[\begin{array}{rcl}
+\q{\_combine(\_abort(E),\_)}&=&\q{\_abort(E)}
+\end{array}\]
+I.e., once a computation is aborted, then it effectively stops -- unless it is handled.
+
+The handle law expresses how aborted computations may be recovered from:
+\[\begin{array}{rcl}
+\q{\_handle(\_abort(E),F)}&=&\q{F(E)}\\
+\q{\_handle(\_encapsulate(X),\_)}&=&\q{\_encapsulate(X)}
+\end{array}
+\]
+`Handling' an encapsulated computation -- i.e., a normal non-aborted computation -- has no effect.
+
+\section{The \q{action} Monad}
+\label{actionMonad}
+
+The \q{action} type may be used to represent normal actions as \ntRef{ComputationExpression}s. The \q{action} type is defined in Program~\vref{actionTypeProg}.
+
+\begin{program}
+\begin{alltt}
+type action of t is 
+     _delayed(()=>action of t)
+  or _aborted(exception)
+  or _done(t);
+\end{alltt}
+\caption{The \q{action} Contract\label{actionTypeProg}}
+\end{program}
+
+The different constructors in the \q{action} type are intended to represent the three `phases' of an action computation: \q{\_done} denotes a completed computation, \q{\_delayed} represents a suspended computation and \q{\_aborted} denotes a failed computation.
+
+%The standard implementations of the \q{computation}, \q{execution} and the nullary implementation of the \q{injection} contract are shown in Program~\vref{actionImplementationProgram}.
+%
+%\begin{program}
+%\begin{alltt}
+%implementation (computation) over action is \{
+%  _encapsulate(V) is _done(V);
+%  _abort(E) is _aborted(E);
+%  _handle(A,H) is case runAction(A) in \{
+%    _aborted(E) is H(E);
+%    X default is X;
+%  \}
+%  _combine(_delayed(f),C) is 
+%    _delayed((function () is C(executeAction(f(),_abort))))
+%  _combine(_done(v),C) is C(v);
+%  _combine(_aborted(E),_) is _aborted(E);
+%  _delay(F) is _delayed(F);
+%\}
+%implementation execution over action is \{
+%  _perform(A,H) is executeAction(A,H)
+%\};
+%implementation injection over (action,action) is \{
+%  _inject(C) is C;
+%\}
+%runAction(_delayed(f)) is valof\{
+%  try \{
+%    var r := f();
+%    while r matches _delayed(C) do \{
+%      r := C();
+%    \}
+%    valis r;
+%  \} on abort \{
+%    e do valis _aborted(e);
+%  \}
+%\}
+%runAction(X) default is X;
+%executeAction(A,H) is case runAction(A) in \{
+%  _aborted(E) is H(E);
+%  _done(V) is V;
+%  _ default is raise "impossible";
+%\};
+%\end{alltt}
+%\caption{Implementation of Standard \q{execution} Contracts for the \q{action} Monad\label{actionImplementationProgram}}
+%\end{program}
+
+\section{Computation Expressions}
+\label{computationExpression}
+
+A \ntRef{ComputationExpression} is a special syntax for writing expressions involving the various computation contracts. The compiler will automatically translate \ntRef{ComputationExpression}s into appropriate combinations of the functions in the \q{computation}, \q{execution} and \q{injection} contracts.
+
+A \ntRef{ComputationExpression} consists of an \ntRef{ActionBlock}; i.e., a sequence of \ntRef{Action}s preceded by the \q{computation} keyword and the name of a generic unary type -- as defined in Figure~\vref{computationExpressionFig}.
+
+\begin{figure}[H]
+\begin{eqnarray*}
+\emph{Expression}&\arrowplus&\ntRef{ComputationExpression}\\
+\ntDef{ComputationExpression}&\arrow&\ntRef{Identifier}\ \q{computation}\ \q{\{}\ \ntRef{Action}\,\sequence{;}\,\ntRef{Action}\,\q{\}}\end{eqnarray*}
+\caption{Computation Expression}
+\label{computationExpressionFig}
+\end{figure}
+
+The type identified in the \ntRef{ComputationExpression} must implement the \q{computation} contract. For example, the \q{maybe} type:
+\begin{alltt}
+type maybe of \%t is possible(\%t) or impossible(exception)
+\end{alltt}
+might have the implementation defined in Program~\vref{maybeProgram} for the \q{computation} contract.
+
+\begin{program}
+\begin{alltt}
+implementation (computation) over maybe is \{
+  _encapsulate(X) is possible(X);
+  _combine(possible(S),F) is F(S);
+  _combine(impossible(R),_) is impossible(R);
+  _abort(Reason) is impossible(Reason);
+  _handle(M matching possible(S),_) is M;
+  _handle(impossible(E),F) is F(E);
+\}
+\end{alltt}
+\caption{Implementing the  \q{computation} contract for \q{maybe}\label{maybeProgram}}
+\end{program}
+
+Given such a definition, we can construct \q{maybe} \ntRef{ComputationExpression}s, such as in the function \q{find} in:
+\begin{alltt}
+find(K,L) is maybe computation \{
+  for (KK,V) in L do\{
+    if K=KK then
+      valis V;
+  \};
+  raise "not found";
+\};
+\end{alltt}
+
+Note that the \q{find} function does \emph{not} directly look for a value in a sequence. The value of a call to \q{find} is a computation that, when evaluated, will return the result of looking for a value.
+
+\subsection{Accessing the value of a computation expression}
+Where the \ntRef{ComputationExpression} notation is used to construct a computation; the \q{valof} form is used to access the value denoted.
+
+There are two variations of \q{valof} expressions, outlined in Figure~\vref{valofFig}.
+
+\begin{figure}[hbtp]
+\begin{eqnarray*}
+\emph{Expression}&\arrowplus&\ntRef{ValofComputation}\\
+\ntDef{ValofComputation}&\arrow&\q{valof}\ \ntRef{Expression}\\
+&\choice&\q{valof}\ \ntRef{Expression}\ \q{on abort}\ \ntRef{CaseActionBody}
+\end{eqnarray*}
+\caption{Valof computation expression}
+\label{valofFig}
+\end{figure}
+
+The first form simply accesses the value associated with the computation -- and assumes that it was successful. For example, given a list:
+\begin{alltt}
+M is list of [(1,"alpha"), (2,"beta"), (3,"gamma"), (4,"delta")];
+\end{alltt}
+then the expression:
+\begin{alltt}
+valof find(2,MM)
+\end{alltt}
+will have value
+\begin{alltt}
+"beta"
+\end{alltt}
+
+The second form uses an \q{on abort} handler to cope with reported failure in the \ntRef{ComputationExpression}. For example, the expression:
+\begin{alltt}
+valof ff(5,MM) on abort \{ exception(_,E cast string,_) do valis E \}
+\end{alltt}
+will have value the string \q{"not found"}.
+
+\subsection{Performing a computation}
+\label{performComputation}
+The \ntRef{PerformComputation} is the analog of \ntRef{ValofComputation} where the computation is an action that does not have a return value.
+
+\begin{figure}[hbtp]
+\begin{eqnarray*}
+\emph{Action}&\arrowplus&\ntRef{PerformComputation}\\
+\ntDef{PerformComputation}&\arrow&\q{perform}\ \ntRef{Expression}\\
+&\choice&\q{perform}\ \ntRef{Expression}\ \q{on abort}\ \ntRef{ActionCaseBody}
+\end{eqnarray*}
+\caption{Perform Computation Action}
+\label{performFig}
+\end{figure}
+
+The \q{perform} action is used when an action -- typically in a sequence of actions -- is the performance of a \ntRef{ComputationExpression}.
+
+\begin{aside}
+The type of computation being \q{perform}ed \emph{does not} have to be the same as the performing computation. For example, it is permissible to mix \q{task} computations with \q{maybe} computations:
+\begin{alltt}
+TT is task\{
+  perform ff(5,MM)
+\}
+\end{alltt}
+Note that, as with all actions, any value returned by the performed computation is discarded.
+\end{aside}
+
+\begin{aside}
+\q{perform} within a \ntRef{ComputationExpression} denotes a use of the \q{\_inject} function. I.e., the \q{perform}:
+\begin{alltt}
+perform ff(5,MM)
+    on abort \{ exception(_,E case string,_) do logMsg(info,E) \}
+\end{alltt}
+is represented by the expression:
+\begin{alltt}
+\_inject(ff(5,MM),fn E => valof\{ logMsg(info,E); valis () \})
+\end{alltt}
+The normal overloading rules will ensure that the appropriate implementation of injection between monads is invoked.
+\end{aside}
+
+\subsection{Handling Failure}
+\label{failAction}
+
+The \ntRef{OnAbort} action is used to handle a failed (i.e., \q{\_abort}ed) computation -- while continuing the \ntRef{ComputationExpression} itself.
+
+\begin{figure}[hbtp]
+\begin{eqnarray*}
+\emph{Action}&\arrowplus&\ntRef{OnAbort}\\
+\ntDef{OnAbort}&\arrow&\q{try}\ \ntRef{Action}\ \q{on abort}\ \ntRef{ActionCaseBody}
+\end{eqnarray*}
+\caption{Abort Handler Action}
+\label{failHandleFig}
+\end{figure}
+
+The \q{on abort} action is used to recover from a failed computation. The \ntRef{ActionCaseBody} is a rule that matches the failure and performs appropriate recovery action. For example, the action in:
+\begin{alltt}
+task\{
+  try P(X) on abort \{ E do logMsg(info,"exceptional \$E") \}
+\}
+\end{alltt}
+calls the procedure \q{P}; but if that results in an abort, then the abort handler is entered with the variable \q{E} being matched against the exception. 
+
+The type of the exception variable is the standard type \q{exception}.
+
+It is equivalent to a call of the contract function \q{\_handle}. I.e., the above action is equivalent to:
+\begin{alltt}
+\_handle(P(X),
+        fn E => valof \{ logMsg(info,"exceptional \$E"); valis () \})
+\end{alltt}
+
+\subsection{\q{action} Expressions}
+\label{actionExpression}
+A basic variant of the \ntRef{ComputationExpression} is the \q{action} expression. \q{action} expressions take the form:
+\begin{alltt}
+action\{ \ntRef{Action}\sequence{;}\ntRef{Action} \}
+\end{alltt}
+which is shorthand for:
+\begin{alltt}
+action computation \{ \ntRef{Action}\sequence{;}\ntRef{Action} \}
+\end{alltt}
+
+\begin{aside}
+There is a strong connection between \q{action} expressions and \ntRef{ValueExpression}s. In particular, we have the equivalence:
+\[\begin{array}{rcl}
+\q{valof\{} \ntRef{Action}\sequence{;}\ntRef{Action}\q{\}}&=&\q{valof action\{}\ntRef{Action}\sequence{;}\ntRef{Action}\,\q{\}}
+\end{array}
+\]
+However, a crucial distinction between \q{action} expressions and \ntRef{ValueExpression}s is that the former may be manipulated and combined in addition to the value being determined.
+\end{aside}
+

@@ -1,0 +1,467 @@
+%!TEX root = reference.tex
+\chapter{Release Notes}
+\label{notes}
+
+This appendix outlines the major changes of the \Sr compiler.
+
+\section{Changes for V100}
+\subsection{Syntax Changes}
+
+\subsubsection{Types}
+
+\subsubsection{Type Variables}
+In addition to the \q{\%t} form of type variable, explicitly quantified types no longer require type variables to use \q{\%}. This is especially the case for function types. Instead of
+\begin{alltt}
+F has type (\%t,\%t)=>\%t
+\end{alltt}
+one may now use
+\begin{alltt}
+F has type for all t such that (t,t)=>t
+\end{alltt}
+This latter form has two advantages and one disadvantage: scoping is explicit, no \q{\%} cluttering up text and type annotations may be longer.
+
+If the non-percent form is used, then quantifiers must be explicit. There are two exceptions to this: type definitions and contract definitions.
+
+\subsubsection{Existential Types}
+A new form of type expression: the existentially quantified type:
+\begin{alltt}
+exists e such that (e)=>integer
+\end{alltt}
+Generally, existentially quantifications are applied to record types:
+\begin{alltt}
+exists e such that \{ F has type (integer)=>e; G has type (e)=>integer \}
+\end{alltt}
+
+\subsubsection{Type Kinds}
+A new form of annotation statement:
+\begin{alltt}
+T has kind type of type
+\end{alltt}
+defines T to be a type constructor that takes one type as argument
+
+\subsubsection{Types in Record}
+A record may have type definitions embedded in them. The two forms of record have analogous notations:
+\begin{alltt}
+R\{
+  type el = integer;
+  \ldots
+\}
+\end{alltt}
+or
+\begin{alltt}
+R\{
+  type integer counts as el;
+  \ldots
+\}
+\end{alltt}
+The statement above is a \emph{type witness statement}.
+
+\subsubsection{Constructor Types}
+The new form of type expression:
+\begin{alltt}
+C has type for all t such that (t)<=>foo of t
+\end{alltt}
+marks C as a constructor.
+
+\subsubsection{Subsumption}
+Type compatibility is defined in terms of subsumption rather than unification.
+This is of most significance for higher-ranked types.
+
+\subsubsection{Type Annotated Patterns}
+A pattern may have a type annotation attached to it:
+\begin{alltt}
+foo(X has type for all t (t)=>t) is X(X)
+\end{alltt}
+These annotations are required for cases -- such as above -- when a variable should have a higher-kinder type associated with it. It acts like an explicit type declaration
+
+\subsubsection{Anonymous Functions}
+There is a new, more compact, notation for anonymous functions. Instead of 
+\begin{alltt}
+(function(X) is X+1)
+\end{alltt}
+one can write
+\begin{alltt}
+fn X => X+1
+\end{alltt}
+
+If the anonymous function has more than one argument, or if it has no arguments, then the argument tuple should be given explicitly:
+\begin{alltt}
+fn(X,Y) is X+Y
+\end{alltt}
+and
+\begin{alltt}
+fn() is X+1
+\end{alltt}
+respectively.
+
+The `old' notation continues to be supported; but we recommend the newer form of lambda expression.
+
+\subsection{Loops and Conditions}
+
+\subsubsection{For Loops}
+The for loop is generalized to allow arbitrary conditions.
+
+The iterator contract no longer exists; as it is redundant. All iterations are handled via the iterable and \q{indexed\_iterable} contracts.
+
+One form of for loop is deprecated:
+\begin{alltt}
+for K[V] in M do ...
+\end{alltt}
+where the assumption is that both K and V were patterns. This is now interpreted as the equivalent of:
+\begin{alltt}
+for E in M and E=K[V] do ...
+\end{alltt}
+If previous semantics is required, the loops must be replaced with:
+\begin{alltt}
+for K->V in M do ...
+\end{alltt}
+
+\subsubsection{Indexed Search}
+The condition in:
+\begin{alltt}
+if M[K] matches V then 
+\end{alltt}
+will fail, rather than throw an exception, if there is no element M[K].
+
+\subsection{Packages}
+
+\subsubsection{Package Parameters}
+Packages with parameters are no longer supported.
+
+\subsubsection{Global Scope}
+Variables (i.e., including all program values) are defined globally. This means that a package imported twice will only have one occurrence of its definitions.
+
+\subsubsection{Open Statement}
+The new \q{open} statement introduces definitions into a scope:
+\begin{alltt}
+...
+open R
+...
+\end{alltt}
+This is analogous to `importing' a record.
+
+\subsubsection{Named Import}
+A package may be imported and associated with a name:
+\begin{alltt}
+...
+P is import Pkg
+\end{alltt}
+References to programs and types in the imported package are made using the dot notation (including types):
+\begin{alltt}
+F has type (P.tp,integer)=>P.tp
+F(X,Y) is P.f(X)
+\end{alltt}
+
+\subsubsection{Versions}
+Packages may be versioned. An import of a package may reference an explicit version -- using the URI form:
+\begin{alltt}
+import "star:foo.star?VERSION=1.2"
+\end{alltt}
+Versions are also supported within catalogs; so the catalog may actually encode the version to import.
+
+If no version is specified, the version with the largest version number is used. Versions are 'baked' at compile time.
+
+\subsection{Semantics}
+\subsubsection{Evaluation Order}
+The evaluation order of equations, rules and cases is now fixed to the textual order. This is how is always has been; we have fixed this to be part of the semantic of \Sr.
+
+\subsubsection{The \q{this} Keyword}
+The \q{this} keyword is no longer supported. It can easily be simulated; instead of:
+\begin{alltt}
+R\{
+  F(X) is valof\{
+    ... this ...
+  \}
+\}
+\end{alltt}
+use:
+\begin{alltt}
+let\{
+  this is memo R\{F=F;...\};
+  F(X) is valof\{
+    ... this() ...
+  \}
+\} in this()
+\end{alltt}
+
+\subsubsection{Using Expression}
+The expression form:
+\begin{alltt}
+E using R
+\end{alltt}
+where \q{R} is an expression is deprecated. Use the \q{open} statement instead:
+\begin{alltt}
+let\{
+  open R
+\} in E
+\end{alltt}
+
+\subsubsection{\q{\$} and \q{\#} in string patterns}
+It is no longer permitted to use in string patterns unless quoted. I.e., the pattern in:
+\begin{alltt}
+foo("alpha\$") is ...
+\end{alltt}
+is not legal, and should be replaced with:
+\begin{alltt}
+foo("alpha\bsl\$") is ...
+\end{alltt}
+
+\subsection{Macros}
+
+\subsubsection{Code Macros}
+A new feature -- called code macros -- has been implemented. This permits macros to be defined using `regular' \Sr. A code macro is introduced using \q{is} instead of \q{==>} in the rule:
+\begin{alltt}
+#macro(?X) ==> foo(X) \#\# \{
+  #foo(X) is ...
+\end{alltt}
+\q{foo} is a function of type 
+\begin{alltt}
+(quoted)=>quoted
+\end{alltt}
+It may use functions defined in other packages, and functions defined in the same macro group. It may not use other functions from the package it is defined in.
+
+\subsubsection{Implementing}
+It is possible to mark a type definition with \q{implementing} features that are implemented via macros:
+\begin{alltt}
+type foo is foo() implementing feature
+\end{alltt}
+If the macro \q{implement\_feature} is defined, then that macro is invoked with the type definition itself:
+\begin{alltt}
+implement\_feature(type foo is foo())
+\end{alltt}
+This is used, for example, to allow types to implement coercion between \q{quoted} type:
+\begin{alltt}
+type foo is foo() implementing quotable
+\end{alltt}
+
+\subsection{Miscellaneous Features}
+
+\subsubsection{Block Strings}
+A new form of string literal -- the block string -- replaces the 'string blob'. A block string consists of text enclosed by triple quotes:
+\begin{alltt}
+"""A block string"""
+\end{alltt}
+
+\begin{aside}
+The 'string blob' form is still supported; although it is deprecated.
+\end{aside}
+
+\subsubsection{Syntax for Anonymous Functions}
+The syntax for anonymous functions has changed. Instead of
+\begin{alltt}
+(function(X) is X+Y)
+\end{alltt}
+use 
+\begin{alltt}
+fn X=>X+Y
+\end{alltt}
+for single argument anonymous functions, and
+\begin{alltt}
+fn(X,Y) => X+Y
+\end{alltt}
+for anonymous functions with more than one argument.
+
+\begin{aside}
+The `old' syntax of anonymous functions continues to be supported. It is, however, now deprecated in favor of the more concise form.
+\end{aside}
+
+\subsubsection{largeSmall contract}
+A new contract \q{largeSmall} allows the largest and smallest values of a type (typically a numeric type) to be defined.
+
+\subsubsection{Ranges}
+A new type \q{range} expresses a range of numeric values. Instead of:
+\begin{alltt}
+for I in iota(1,100,1) do ...
+\end{alltt}
+use
+\begin{alltt}
+for I in range(1,101,1) do ...
+\end{alltt}
+The \q{iota} function is deprecated. The \q{iotaC} contract is removed.
+
+Note that, unlike iota, ranges are half-open. This makes working with floating point ranges simpler.
+
+\subsubsection{Reduction Queries}
+A new form of query -- the reduction query -- simplifies tasks such as totalization.
+
+\subsubsection{The location type}
+The \q{location} type has been renamed to \q{astLocation}
+
+\subsubsection{The JSON type}
+A new type \q{json} implements the semantics of the Web standard JSON type.
+
+\subsection{Future Vulnerabilities}
+\Sr continues to evolve; although at a much slower pace than before. There are some small areas of the language which may be adjusted in the future. It is not expected that they will affect many existing programs.
+
+\subsubsection{The speech contract}
+It is anticipated that the speech contract will be altered slightly. This should not affect most programs; though some will likely be impacted.
+
+The proposed contract will be:
+\begin{alltt}
+contract speech over t determines (u,a) where execution over a is \{
+  _query has type for all s such that 
+         (t,(u)=>s,()=>quoted,()=>map of (string,quoted))=>
+            a of result of s;
+  _request has type
+         (t,(u)=>(),()=>quoted,()=>map of (string,quoted)) => 
+            a of result of ();
+  _notify has type (t,(u)=>()) => a of result of ();
+\}
+\end{alltt}
+There are two changes here: 
+\begin{description}
+\item[The \q{result} Type]
+This is intended to encapsulate the success or otherwise of a speech action:
+\begin{alltt}
+type result of t is success(t) or denied or failure(exception)
+\end{alltt}
+
+\item[The use of \q{quoted}]
+The type of the `free variable map' in the \q{\_query} and \q{\_request} functions will be changed. Instead of a map from strings to \q{any}, the map will be from strings to \q{quoted} type.
+
+This imposes restrictions on the values of free variables that brings it into line with other constraints on requests and queries. It also facilitates the safe distribution of speech actions.
+
+The \q{implementing} macro feature was introduced partly in order to reduce the burden of this change.
+\end{description}
+
+\subsubsection{The \q{quoted} Type}
+Currently the \q{quoted} type includes the constructor cases:
+\begin{alltt}
+type quoted is \ldots
+     tupleAst(list of quoted)
+  or applyAst(quoted,list of quoted)
+\end{alltt}
+This is likely going to be adjusted so that \q{tupleAst}s have a label associated with them and the apply term will be simplified:
+\begin{alltt}
+type quoted is \ldots
+     tupleAst(string,list of quoted)
+  or applyAst(quoted,quoted)
+\end{alltt}
+The label is composed of the `open bracket' and `close bracket' of the tuple. Thus, the representation of
+\begin{alltt}
+(A,B)
+\end{alltt}
+will be
+\begin{alltt}
+tupleAst(\emph{Loc},"()",list of [nameAst(\emph{Loc},"A"), nameAst(\emph{Loc},"B")])
+\end{alltt}
+
+There may be some additional changes not yet fully specified; possibly including a \q{quoted} contract and/or a revised \q{astType} that does not necessarily include location information.
+
+\section{Changes for V 99}
+The major change in V99 was the introduction of concurrency features based on Concurrent ML.
+
+\subsection{Types}
+
+\subsubsection{Procedure Type}
+The procedure type
+\begin{alltt}
+action(t1,\ldots,tn)
+\end{alltt}
+is deprecated, and is replaced by a function type that returns \q{()}:
+\begin{alltt}
+(t1,\ldots,tn) => ()
+\end{alltt}
+
+\subsubsection{Universal Type}
+The \tilda{} form of the universal type is eliminated; replaced by \q{for all}:
+\begin{alltt}
+\%t \tilda{} (\%t)=>integer
+\end{alltt}
+becomes
+\begin{alltt}
+for all \%t such that (\%t)=>integer
+\end{alltt}
+
+\subsubsection{Defaults for \q{ref} Field}
+A \q{ref} field in a record may have a default associated with it:
+\begin{alltt}
+type p is s\{
+  name has type string;
+  salary has type ref float;
+  salary default := 0.0;
+\}
+\end{alltt}
+
+\subsubsection{Type Annotations permitted in action sequences}
+A type annotation is permitted in an action block:
+\begin{alltt}
+f(X) is valof\{
+  ix has type ref integer;
+  var ix := 0;
+  ix := ix+1;
+  valis ix+X
+\}
+\end{alltt}
+
+\subsection{Syntax}
+\subsubsection{Variable Scope}
+Scope hiding is not permitted. This means that variables may not hide the definition of a variable of the same name in an outer scope.
+
+This may be overridden using the \q{var} pattern.
+
+\subsubsection{Operators}
+An operator may be defined to consist of any sequence of characters.
+
+\subsubsection{Labeled Actions}
+The labeled action and the \q{leave} action are eliminated.
+
+\subsubsection{\q{ignore} Action}
+A new action -- the  \q{ignore} action allows an expression to be performed as an action.
+
+\subsubsection{Exception Handling}
+A new form of exception handling construct is introduced. The existing exception handler is deprecated; although supported by macros.
+
+\subsubsection{C-Style procedures}
+C-Style procedures are eliminated. Use \q{do} rules instead.
+
+\subsubsection{Map Notation}
+Map notation changed from
+\begin{alltt}
+hash\{ "K"->1; ... \}
+\end{alltt}
+to
+\begin{alltt}
+map of \{"K"->1; ... \}
+\end{alltt}
+
+\subsubsection{Macro Evaluation Order}
+The order of macro evaluation is altered to allow more efficient macro processing.
+
+\subsection{Concurrency}
+\subsubsection{Spawn}
+The \q{spawn} and \q{//} operators are deprecated.
+
+\subsubsection{Sync Action}
+The \q{sync} action is deprecated.
+
+\subsubsection{Computation Expression}
+A new form of expression -- the computation expression -- is introduced. This is similar to the Haskel monadic \q{do} notation.
+
+\subsubsection{Task Expressions}
+A new form of concurrency based on concurrent ML is introduced. The unit of concurrency is a \q{task}.
+
+\subsubsection{Rendezvous, Channels and Messages}
+New concurrency features of rendezvous, channels and messages is introduced.
+
+\subsection{Actors}
+\subsubsection{Speech Contract}
+The form of the speech contract is changed to reflect computation expressions.
+
+\subsubsection{Synchronized vs Concurrent Actors}
+The \q{synchronized} actor is eliminated. Its role is taken by \q{concurrent} actors -- although their semantics is different.
+
+
+\subsection{Contracts}
+\subsubsection{Sets}
+The \q{sets} contract is introduced.
+
+\subsubsection{Formatting}
+String formatting and the \q{format} contract is introduced.
+
+\subsubsection{Indexable Contract}
+Some alterations were made in the \q{indexable} contract.
+
+
+
+
