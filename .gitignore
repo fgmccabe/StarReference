@@ -1,4 +1,14 @@
 DS_Store
 *.aux
 reference.pdf
-
+*.lot
+*.blg
+*.brf
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.out
+*.synctex.gz
+*.toc
