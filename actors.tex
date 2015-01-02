@@ -22,11 +22,11 @@ By way of introduction, we first demonstrate \q{actor}s with a simple scenario -
 \end{center}
 \end{figure}
 
-Each of \q{ping} and \q{pong} have an \q{ear} by which they `hear' events. This is signaled by their type which is an \q{actor} type that references \q{ear} as a \q{stream} of \q{string}s. Program~\vref{chattySchema} shows a \q{type} \q{alias} definition that captures this in a \q{type alias}. 
+Each of \q{ping} and \q{pong} have an \q{ear} by which they `hear' events. This is signaled by their type which is an \q{actor} type that references \q{ear} as an \q{occurrence} of \q{string}s. Program~\vref{chattySchema} shows a \q{type} \q{alias} definition that captures this in a \q{type alias}. 
 \begin{program}
 \begin{alltt}
 type talker is alias of actor of \{
-  ear has type stream of string;
+  ear has type occurrence of string;
 \}
 \end{alltt}
 \caption{Type Schema Used by Chatty \q{actor}s}
@@ -111,7 +111,7 @@ chatty is package\{
   import speech;
   
   type talker is alias of actor of \{
-    ear has type stream of string;
+    ear has type occurrence of string;
   \}
 
   chatty has type (()=>talker)=>talker;
@@ -230,42 +230,42 @@ Since events may be coming from multiple sources it is not possible to constrain
 
 \paragraph{Stream Type}
 \label{eventType}
-A \q{notify} action requires that there be an appropriate \q{stream} type on the responding actor's schema.
+A \q{notify} action requires that there be an appropriate \q{occurrence} type on the responding actor's schema.
 
-\index{stream!stream type@\q{stream} type}
-\index{stream type@\q{stream} type}
-\index{type! stream@\q{stream}}
+\index{occurrence!occurrence type@\q{occurrence} type}
+\index{occurrence type@\q{occurrence} type}
+\index{type! occurrence@\q{occurrence}}
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
 \emph{Type}&\arrowplus&\emph{EventType}\\
-\emph{EventType}&\arrow&\q{stream}\ \q{of}\ \emph{Type}
+\emph{EventType}&\arrow&\q{occurrence}\ \q{of}\ \emph{Type}
 \end{eqnarray*}
 \caption{Event Type}
 \label{eventTypeFig}
 \end{figure}
 
 \begin{aside}
-The \q{stream} type is actually a generic type; its argument refers to the type of the element of the \q{stream}.
+The \q{occurrence} type is actually a generic type; its argument refers to the type of the element of the \q{occurrence}.
 \end{aside}
 
 For example, an \q{actor} that responds to update events about the temperature of a boiler might offer a type signature such as
 \begin{alltt}
 boilerActor has type actor of \{
-  temp has type stream of float;
+  temp has type occurrence of float;
 \}
 \end{alltt}
 
 \begin{aside}
-\q{stream} types are \emph{only} permitted within an \q{actor} type structure.
+\q{occurrence} types are \emph{only} permitted within an \q{actor} type structure.
 \end{aside}
 
 \subsubsection{Type Safety}
 
-For \q{notify} to be type safe, the \emph{responding} actor must declare an appropriate element in its schema; i.e., it must have a \q{stream} of the right type for the identified channel:
+For \q{notify} to be type safe, the \emph{responding} actor must declare an appropriate element in its schema; i.e., it must have an \q{occurrence} of the right type for the identified channel:
 \begin{prooftree}
 \def\defaultHypSeparation{\,}
-\AxiomC{\typeprd{E}{A}{\q{actor of}\,O\ \q{where}\ O\,\q{implements}\,\q{\{}\,N\,\q{has type stream of}\ T\q{\}}}}
+\AxiomC{\typeprd{E}{A}{\q{actor of}\,O\ \q{where}\ O\,\q{implements}\,\q{\{}\,N\,\q{has type occurrence of}\ T\q{\}}}}
 \AxiomC{\typeprd{E}{Evt}{T}}
 \BinaryInfC{\typesafe{E}{\q{notify} A \q{with }Evt\ \q{on}\ N}}
 \end{prooftree}
@@ -427,11 +427,11 @@ An event rule is a rule that is used to respond to \q{notify} speech actions. An
 \label{eventRuleFig}
 \end{figure}
 
-\ntRef{EventRule}s have a two part structure: a pattern that matches an event on a particular stream and an \ntRef{Action} body. In addition, an \ntRef{EventRule} may have an optional \ntRef{Condition} that must be satisfied before the rule can `fire'.
+\ntRef{EventRule}s have a two part structure: a pattern that matches an event on a particular occurrence and an \ntRef{Action} body. In addition, an \ntRef{EventRule} may have an optional \ntRef{Condition} that must be satisfied before the rule can `fire'.
 \index{condition!in event rules}
 \index{event rule conditions}
 
-There may be any number of event rules about a given stream. All the \ntRef{EventRule}s that apply will fire on receipt of a given \q{notify}.
+There may be any number of event rules about a given occurrence. All the \ntRef{EventRule}s that apply will fire on receipt of a given \q{notify}.
 
 
 \subsection{Responding to Requests}
@@ -456,7 +456,7 @@ Queries to actors are handled simply by evaluating an expression in the context 
 
 \section{The Speech Contract}
 \label{speechContract}
-The foundation of actors in \Sr is the \q{speech} contract that is defined in Program~\vref{speechContractProg}. This contract relies on the \q{result} type -- which is defined in Program~\vref{successtypeProg}.
+The foundation of actors in \Sr is the \q{speech} contract that is defined in Program~\vref{speechContractProg}. This contract relies on the \q{result} type -- which is defined in Program~\vref{successTypeProg}.
 
 \begin{program}
 \begin{alltt}
@@ -475,9 +475,9 @@ type reason is busy or noPermission
 \begin{alltt}
 contract speech over t determines (u,a) where execution over a is \{
   _query has type for all s such that 
-              (t,(u)=>s,()=>quoted,()=>dictionary of (string,any))=>a of s;
+      (t,(u)=>s,()=>quoted,()=>dictionary of (string,quoted))=> a of s;
   _request has type
-              (t,(u)=>(),()=>quoted,()=>dictionary of (string,any)) => a of ();
+      (t,(u)=>(),()=>quoted,()=>dictionary of (string,quoted)) => a of ()
   _notify has type (t,(u)=>()) => a of ();
 \};
 \end{alltt}
@@ -487,6 +487,57 @@ contract speech over t determines (u,a) where execution over a is \{
 
 This contract is generally not referenced explicitly by \q{actor}-based programs as \Sr has syntactic features to support \q{actor}s and speech actions. Individual \ntRef{SpeechAction}s are mapped to equivalent calls to \q{\_query}, \q{\_request} or \q{\_notify}.
 
+Speech actions are encoded into calls to the three functions in the \q{speech} contract: a \q{notify} becomes a call to \q{\_notify}, specifically the \q{notify} action:
+
+\begin{alltt}
+notify \emph{Ag} with \emph{Event} on \emph{Channel}
+\end{alltt}
+becomes:
+\begin{alltt}
+_notify(\emph{Ag},fn AA=>\emph{Channel}(\emph{Event}))
+\end{alltt}
+
+A \q{query} is encoded into a call of \q{\_query} with four arguments. Specifically, the \q{query}:
+\begin{alltt}
+query \emph{Ag} with \emph{Expression}
+\end{alltt}
+becomes:
+\begin{alltt}
+\_query(\emph{Ag},fn AA=>\emph{Expression},fn ()=><|\emph{Expression}|>,
+     fn ()=> dictionary of \{"\emph{F\sub1}"->F\sub1 as quoted\sequence{;}"\emph{F\subn}"->F\subn as quoted\})
+\end{alltt}
+where
+\begin{alltt}
+dictionary of \{"\emph{F\sub1}"->F\sub1 as quoted\sequence{;}"\emph{F\subn}"->F\subn as quoted\}
+\end{alltt}
+is a dictionary of all the free variables in \emph{Expression} and the expressions of the form
+\begin{alltt}
+"F\subi"->F\subi as quoted
+\end{alltt}
+are, in effect, a \emph{serialization} of the value of the free variable as a \q{quoted} value.
+
+The function:
+\begin{alltt}
+fn ()=><|\emph{Expression}|>
+\end{alltt}
+can be used by the receiver of the \q{query} if it either does not trust the function or if it needs to transform the query in some way. 
+
+A \q{request} speech action has similar processing to the \q{query}. The \q{request}:
+
+\begin{alltt}
+request \emph{Ag} to \emph{Act}
+\end{alltt}
+is translated to the call:
+\begin{alltt}
+_request(\emph{Ag},fn AA=>\emph{Act},fn ()=><|\emph{Act}|>,
+      fn ()=>dictionary of \{"\emph{F\sub1}"->F\sub1 as quoted\sequence{;}"\emph{F\subn}"->F\subn as quoted\})
+\end{alltt}
+with a similar interpretation of the arguments.
+
+Note that references within the \q{query} and \q{request} speech action to elements of the target's interface become dot-references (\ntRef{RecordAccess}) of the form:
+\begin{alltt}
+AA.foo
+\end{alltt}
 
 \section{Different Types of Actor}
 \label{actorTypes}

@@ -20,10 +20,11 @@ contract arithmetic over t is \{
   (-) has type (t,t)=>t;
   (*) has type (t,t)=>t;
   (/) has type (t,t)=>t;
-  (**) has type (t,t) => t;
   (\%) has type (t,t) => t;
   abs has type (t)=>t;
   __uminus has type (t)=>t;
+  zero has type t;
+  one has type t;
 \}
 \end{alltt}
 \caption{The Standard \q{arithmetic} Contract\label{arithmeticContractProg}}
@@ -83,20 +84,6 @@ The \q{*} multiplies its two arguments together and returns the result.
 \end{alltt}
 The \q{/} function divides the first argument by the second and returns the result.
 
-\subsection{\q{**} -- exponentiation}
-\label{powerFunction}
-\index{arithmetic contract@\q{arithmetic} contract!**@\q{**}}
-\q{**} is part of the standard \q{arithmetic} contract.
-\begin{alltt}
-(**) has type for all t such that (t,t)=>t where arithmetic over t
-\end{alltt}
-The \q{**} function raises the first argument to the power of the second.
-
-For example, the expression
-\begin{alltt}
-X**3
-\end{alltt}
-denotes the cube of \q{X}.
 
 \subsection{\q{abs} -- absolute value}
 \label{abdFunction}
@@ -123,6 +110,46 @@ is interpreted as a call to \q{\_\_uminus}:
 \begin{alltt}
 \_\_uminus(X)
 \end{alltt}
+
+\subsection{\q{zero} -- arithmetic zero}
+\label{zero}
+\index{arithmetic contract@\q{arithmetic} contract!zero\q{zero}}
+\q{zero} is part of the standard \q{arithmetic} contract.
+\begin{alltt}
+zero has type for all t such that t where arithmetic over t
+\end{alltt}
+
+The \q{zero} value returns the `additive zero' for the arithmetic type. It must obey the following axiom:
+
+\begin{alltt}
+\emph{X}+zero=\emph{X}
+\end{alltt}
+for all \q{\emph{X}} of type \q{t}.
+
+The primary advantage of \q{zero} is that it makes it easier to write generic arithmetic functions; for example:
+
+\begin{alltt}
+fact(N) where N=zero is one;
+fact(N) default is N*fact(N-one);
+\end{alltt}
+
+
+\subsection{\q{one} -- arithmetic unit}
+\label{one}
+\index{arithmetic contract@\q{arithmetic} contract!one\q{one}}
+\q{one} is part of the standard \q{arithmetic} contract.
+\begin{alltt}
+one has type for all t such that t where arithmetic over t
+\end{alltt}
+
+The \q{one} value returns the `additive unit' for the arithmetic type.  It must obey the following axiom:
+
+\begin{alltt}
+\emph{X}*one=\emph{X}
+\end{alltt}
+for all \q{\emph{X}} of type \q{t}.
+
+Like \q{zero}, the primary advantage of \q{one} is that it makes it easier to write generic arithmetic functions.
 
 \section{The \q{largeSmall} Contract}
 \label{largeSmall}
@@ -525,6 +552,7 @@ contract math over t is \{
   log has type (t)=>t;
   log10 has type (t)=>t;
   exp has type (t)=>t
+  (**) has type (t,t) => t;
 \}
 \end{alltt}
 \caption{The Standard \q{math} Contract\label{mathContractDef}}
@@ -633,6 +661,21 @@ The argument of the \q{random} function must be a positive number. However, it c
 The number generated is the next in a sequence of numbers that is typically \emph{pseudo-random}: i.e., not actually random but statistically indistinguishable from random.
 
 The type of the returned result is the same as the type of its argument.
+
+\subsection{\q{**} -- exponentiation}
+\label{powerFunction}
+\index{math contract@\q{math} contract!**@\q{**}}
+\q{**} is part of the standard \q{math} contract.
+\begin{alltt}
+(**) has type for all t such that (t,t)=>t where math over t
+\end{alltt}
+The \q{**} function raises the first argument to the power of the second.
+
+For example, the expression
+\begin{alltt}
+X**3
+\end{alltt}
+denotes the cube of \q{X}.
 
 \section{Numeric Ranges}
 \label{numericRange}
