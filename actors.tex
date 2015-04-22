@@ -376,7 +376,6 @@ An \q{actor} consists of a set of \ntRef{ActorRule}s -- enclosed in an \q{actor\
 \begin{eqnarray*}
 \ntDef{Actor}&\arrow&\q{actor}\q{\{}\,\ntRef{ActorRule}\sequence{;}\ntRef{ActorRule}\,\q{\}}\\
 &\choice&\q{concurrent actor}\q{\{}\,\ntRef{ActorRule}\sequence{;}\ntRef{ActorRule}\,\q{\}}\\
-&\choice&\q{nonActor}\\
 \ntDef{ActorRule}&\arrow&\ntRef{EventRule}\ \choice\,\ntRef{Definition}
 \end{eqnarray*}
 \caption{Actor Structure}
@@ -550,13 +549,11 @@ The simple light weight actor as defined by the \q{actor} type in Program~\vref{
 
 \begin{program}
 \begin{alltt}
-type actor of t is act0r(t) or nonActor;
+type actor of t is act0r(t);
 \end{alltt}
 \caption{Standard Light Weight \q{actor} Type}
 \label{actorTypeProg}
 \end{program}
-
-The \q{nonActor} variant of actor responds to speech actions by ignoring them, or -- in the case of queries -- by raising an exception.
 
 The implementation of the speech contract for \q{actor} is shown in Program~\vref{actorSpeechProg}.
 
@@ -564,11 +561,8 @@ The implementation of the speech contract for \q{actor} is shown in Program~\vre
 \begin{alltt}
 implementation speech over for all t such that actor of t determines t is \{
   \_query(act0r(Ac),Qf,_,_) is Qf(Ac);
-  \_query(nonActor,_,_,_) is raise "cannot query nonActor";
   \_request(act0r(Ac),Rf,_,_) do Rf(Ac);
-  \_request(nonActor,_,_,_) do nothing;
   \_notify(act0r(Ac),Np) do Np(Ac);
-  \_notify(nonActor,_) do nothing;
 \};
 \end{alltt}
 \caption{Actor's Implementation of the Speech Contract}
@@ -593,12 +587,6 @@ which is aliased to the \q{concActor} type for convenience.
 Concurrent actors sequentialize all access to them them -- only one speech action is processed at a given time. If multiple speech actions are attempted simultaneously all but one is blocked while it is processed by the \q{concurrent actor}.
 
 Concurrent actors execute on an independent background \q{task} -- see Section~\vref{backgroundTask}. The normal operational semantics for speech actions still holds with concurrent actors: except that a \q{notify} completes as soon as the concurrent actor starts processing it but before it completes processing the \q{notify}.
-
-
-Note that the name \q{nonConcActor} is defined to be a nullary analog to \q{nonActor}:
-\begin{alltt}
-nonConcActor has type for all t such that concActor of t 
-\end{alltt}
 
 Program~\vref{concSieveProg} shows an example using \q{concurrent actor}s. This is a variation of the famous `Sieve of Erastosthenes' method for finding prime numbers. 
 
