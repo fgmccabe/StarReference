@@ -68,8 +68,6 @@
 \fancyhf{} % delete current setting for header and footer
 
 \definecolor{skyBlue}{HTML}{2EA4FF}
-\definecolor{starviewBlue}{rgb}{0,0.46,0.75}
-\definecolor{starviewRed}{rgb}{1,0.43,0.24}
 
 \begin{flushleft}
 
@@ -95,10 +93,8 @@
 \newcommand{\tstamp}{\today}   
 \newcommand{\Draft}{\sc draft}
 
-\copyright{} 2009, 2010, 2011, 2012, 2013 Starview, Inc.\\
-2841 Junction Avenue, Suite 110 San Jose, CA 95134
+\copyright{} 2015 Francis McCabe.
 \vspace*{1ex}
-
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3
@@ -108,12 +104,6 @@ A copy of the license is included in Appendix~\vref{gnufdl}.
 
 The software described in this reference is licensed under the terms of the
 GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version. This license is included in Appendix~\vref{lgpl2.1}.
-
-Starview, Starview Inc, and the Starview logo are trademarks or registered trademarks of Starview Inc in the U.S. and other countries.
-
-\q{star-lang.com}, \q{star-lang.info}, \q{star-lang.net}, and \q{star-lang.org} are registered domain names of Starview Inc.
-
-Products covered by and information contained in this publication are controlled by U.S. Export Control laws and may be subject to the export or import laws of other countries. Nuclear, missile, chemical or biological weapons or nuclear maritime end uses or end users, whether direct or indirect, are strictly prohibited. Export or re-export to countries subject to U.S. embargo or to entities identified on U.S. export exclusion lists, including, but not limited to, the denied persons and specially designated nationals lists is strictly prohibited.
 
 \textsc{Documentation is provided ``as is'' and all express or implied conditions, representations and warranties, including any implied warranty of merchantability, fitness for a particular purpose or non-infringement, are disclaimed, except to the extent that such disclaimers are held to be legally invalid.}
 }
@@ -125,7 +115,7 @@ Products covered by and information contained in this publication are controlled
 
 \newcommand{\redLine}{{\color{starviewRed}%
   \hrule width\headwidth height\headrulewidth \vskip-\headrulewidth}}
-\newcommand{\blueLine}{{\color{starviewBlue}%
+\newcommand{\blueLine}{{\color{skyBlue}%
   \hrule width\headwidth height\headrulewidth \vskip-\headrulewidth}}
 
 
@@ -138,7 +128,7 @@ Products covered by and information contained in this publication are controlled
 \renewcommand{\headrule}{{\blueLine}}
 
 \renewcommand{\footrulewidth}{0.5pt}
-\renewcommand{\footrule}{{\color{starviewBlue}%
+\renewcommand{\footrule}{{\color{skyBlue}%
   \vskip-\footruleskip\vskip-\footrulewidth
 \hrule width\headwidth height\footrulewidth\vskip\footruleskip}}
 \addtolength{\headheight}{15pt} % make space for the rule
@@ -179,6 +169,8 @@ Products covered by and information contained in this publication are controlled
 %\listof{example}{List of Examples}
 %\markboth{}{}
 %\cleardoublepage
+
+%\includeonly{io}
 \listoftables
 \markboth{}{}
 
@@ -198,6 +190,7 @@ Products covered by and information contained in this publication are controlled
 \include{string}
 \include{lists}
 \include{maps}
+\include{io}
 \include{infoset}
 \include{computation}
 \include{concurrent}

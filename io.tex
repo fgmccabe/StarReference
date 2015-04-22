@@ -6,7 +6,7 @@ Input and output features include mechanisms for reading and writing streams of 
 
 The I/O streaming features are organized into a number of layers:
 \begin{itemize}
-\item At the `block' layer, an I/O operation is represented as a \q{task} -- see Chapter~\vref{concurrent} and Chapter~\vref{computation}. The value of an input task is typically some fragment of data from the input. An output task always has \{()} as its value.
+\item At the `block' layer, an I/O operation is represented as a \q{task} -- see Chapter~\vref{concurrent} and Chapter~\vref{computation}. The value of an input task is typically some fragment of data from the input. An output task always has \q{()} as its value.
 \item At the data layer, I/O operations are represented via lazily executed \q{sequence}s of terms. In particular, it is possible to use the sequence notation -- see Section~\vref{sequenceNotation} to represent streams of data being consumed or produced.
 \end{itemize}
 

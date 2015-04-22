@@ -22,6 +22,7 @@ Figure~\vref{conditionFormFig} illustrates the general forms of condition.
 &\choice&\ntRef{OtherwiseCondition}\\
 &\choice&\ntRef{NegationCondition}\\
 &\choice&\ntRef{ConditionalCondition}\\
+&\choice&\ntRef{HasValueCondition}\\
 &\choice&\q{(}\ \ntRef{Condition}\ \q{)}\\
 &\choice&\ntRef{Expression}
 \end{eqnarray*}
@@ -35,7 +36,7 @@ Unless it appears directly as an expression, the type of a condition is less int
 \AxiomC{\rm{\emph{Condition}}}
 \UnaryInfC{\typesat{E}{F}}
 \end{prooftree}
-declares that the form \emph{F} is valid in the context \emph{E} provided that \ntRef{Condition} is satified.
+declares that the form \emph{F} is valid in the context \emph{E} provided that \ntRef{Condition} is satisfied.
 
 \section{Membership and Search}
 \label{membershipCondition}
@@ -59,6 +60,48 @@ A \q{matches} condition is type safe if the types of the left hand side and righ
 \AxiomC{\typeprd{E}{V}{T}}
 \AxiomC{\typeprd{E}{P}{T}}
 \BinaryInfC{\typesat{E}{V\ \q{matches}\ P}}
+\end{prooftree}
+
+
+\subsection{Has Value Condition}
+\label{optionUnwrap}
+\index{has value operator@\q{has value} operator}
+\index{accessing an optional value}
+\index{option chaining}
+
+The \q{has value} operator can be used as a \ntRef{Condition} to 'unwrap' an \q{option}al to access its contents in a safe way.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{HasValueCondition}&\arrow&\ntRef{Expression}\ \q{has value}\ \ntRef{Pattern}
+\end{eqnarray*}
+\caption{Option Has Value Condition}\label{optionUnwrapFig}
+\end{figure}
+
+The \q{has value} condition is satisfied if its right hand side expression is a \q{some} value and if its left hand pattern matches the contents of the optional value.
+
+One common use of the \q{has value} condition is to 'bring into scope' a variable which represents the wrapped content of the \q{option}al value.
+
+For example, suppose that \q{P} has the type given by
+\begin{alltt}
+P has type option of Person
+\end{alltt}
+then the condition in the equation:
+\begin{alltt}
+nameOf(P) where P has value PP is PP.name
+\end{alltt}
+unwraps the optional value of \q{P} into the non-optional \q{PP}. Note that this particular example can be better written:
+\begin{alltt}
+nameOf(P) is P?.name
+\end{alltt}
+since this makes the resulting type also \q{option}al.
+
+\subsubsection{Type Safety}
+A \q{has value} condition is type safe iff the expression on the left is consistent with the pattern on the right:
+\begin{prooftree}
+\AxiomC{\typeprd{E}{V}{\q{option of }T\sub{v}}}
+\AxiomC{\typeprd{E}{P}{T\sub{v}}}
+\BinaryInfC{\typesat{E}{V\ \q{has value}\ P}}
 \end{prooftree}
 
 
@@ -232,6 +275,9 @@ A conjunction is type safe iff the two arms of the conjunction are type safe.
 \end{prooftree}
 
 \subsection{Disjunction Condition}
+\label{disjunction}
+\index{disjunctive condition}
+\index{or condition@\q{or} condition}
 A disjunction -- using the \q{or} operator -- is satisfied iff either the left or the right operands are satisfied.
 
 \begin{figure}[htbp]
@@ -241,7 +287,6 @@ A disjunction -- using the \q{or} operator -- is satisfied iff either the left o
 \caption{Disjunction Condition}
 \label{disjunctionConditionFormFig}
 \end{figure}
-
 
 \begin{aside}
 There is no guarantee as to the order of evaluation of the left and right operands.

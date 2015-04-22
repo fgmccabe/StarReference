@@ -593,6 +593,71 @@ indexOfPositive(_,_,S) default is S;
 The \q{\_ixiterate} function is used automatically in \ntRef{IndexedSearch} conditions; however, the programmer is also free to explicitly use the \q{indexed\_iterable} contract.
 \end{aside}
 
+\section{The \q{mappable} Contract}
+\label{mappableContract}
+The \q{mappable} contract defines what it means to be able to apply a function over a collection. It contains a single \q{map} function:
+
+\begin{program}[H]
+\begin{alltt}
+contract mappable over c is \{
+  map has type for all e,f such that ((e)=>f,c of e) => c of f;
+\}
+\end{alltt}
+\caption{The \q{mappable} Contract\label{mapContractProg}}
+\end{program}
+
+\subsection{\q{map} -- Apply a transformation to a collection}
+\label{mapFunction}
+
+The \q{map} function applies a function to a collection to produce a new collection. Its type is given by:
+\begin{alltt}
+map has type for all e,f such that ((e)=>f,c of e) => c of f where
+  mappable over c
+\end{alltt}
+For example, we can use \q{map} to construct a list of \q{string} representations of \q{integer} values by mapping \q{display} (see \vref{displayFunction}):
+
+\begin{alltt}
+map(list of [1,2,3,4],display)
+\end{alltt}
+the value of which is the \q{list}:
+\begin{alltt}
+list of ["1","2","3","4"]
+\end{alltt}
+
+Note the slightly unusual quantification over the collection type. The \q{map} function must be able to accept a generic function as its transformation function.
+
+\section{The \q{filterable} Contract}
+\label{filterableContract}
+The \q{filterable} contract contains a single function -- \q{filter} -- that can be used to filter elements from a collection.
+
+
+\begin{program}[H]
+\begin{alltt}
+contract filterable over t determines e is \{
+  filter has type ((e)=>boolean,t) => t
+\}
+\end{alltt}
+\caption{The \q{filterable} Contract\label{filterContractProg}}
+\end{program}
+
+
+\subsection{\q{filter} -- Apply a predicate to a collection}
+\label{filterFunction}
+
+The \q{filter} function applies a predicate to a collection to produce a new collection -- containing only elements that satisfy the predicate. Its type is given by:
+\begin{alltt}
+filter has type for all e,t such that ((e)=>boolean,t) => t where
+  filterable over t determines e
+\end{alltt}
+For example, we can use \q{filter} to eliminate odd numbers from a list of \q{integer}s:
+\begin{alltt}
+filter(list of [1,2,3,4,5,6],fn X=>X\%2=0)
+\end{alltt}
+which has value:
+\begin{alltt}
+list of [2,4,6]
+\end{alltt}
+
 \section{The \q{foldable} Contract}
 \label{foldableContract}
 The \q{foldable} contract defines another variant of iterating over collections while aggregating. The \q{foldable} contract defines two functions: \q{leftFold} and \q{rightFold}.

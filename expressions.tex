@@ -817,19 +817,78 @@ The \q{option} type can be used as the return type of functions that must reliab
 The \q{option} type serves as a normal `replacement' for \q{null} that one sees in languages like Java.
 \end{aside}
 
-\subsection{\q{someValue} -- \q{option}al value}
-\label{someValue}
-\index{option expression!someValue@\q{someValue}}
-\index{extract value from some value@extract value from \q{some} value}
+\subsection{Option Field Access -- \q{?.}}
+\label{optionChaining}
+\index{?. operator@\q{?.} operator}
+\index{accessing an optional value}
+\index{option chaining}
 
+The \q{?.} operator can be used similarly to a normal record field access (see \vref{dotAccess}) except that it takes an \q{option}al argument and returns an \q{option} value. 
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{RecordAccess}&\arrowplus&\ntRef{Expression}\ \q{?.}\ \ntRef{Identifier}
+\end{eqnarray*}
+\caption{Optional Record Access Expression}\label{optionAccessFig}
+\end{figure}
+
+The form of a optional field access is also similar to the field access; an expression of the form:
 \begin{alltt}
-someValue has type type for all t such that (option of t)=>t
+A?.F
 \end{alltt}
-The \q{someValue} function is a convenience function used to extract the value from an \q{option} value. It is equivalent to the function:
+will access the \q{F} field from the wrapped record value in \q{A}. The result type of a option field access is also an \q{option}al.
+
+For example, suppose that \q{R} has the type given by
 \begin{alltt}
-someValue(some(X)) is X
+R has type option of Person
 \end{alltt}
-As can be seen, this function is not defined for the \q{none} value of the \q{option} type.
+
+Its type can be approximated by (the difference is that field labels are not themselves functions):
+\begin{alltt}
+(?.) has type for all r,s such that 
+  (option of r,(r=>s))=>option of s
+\end{alltt}
+I.e., it has a similar type to the \q{map} function (see \vref{mapFunction}) in the \q{mappable} contract.
+
+However, it is actually best understood as a macro form. The macro definition of \q{?.} can be given in a single line macro:
+\begin{alltt}
+#?R ?. ?F ==> map(fn RR=>RR.F,R)
+\end{alltt}
+where \q{map} is the implementation of the \q{mappable} contract for the \q{option} type.
+
+\subsection{Default Option Expression -- \q{or else}}
+\label{optionDefltChain}
+\index{or else operator@\q{or else} operator}
+\index{accessing an optional value with default}
+\index{option chaining}
+
+The \q{or else} operator can be used to unwrap an \q{option}al value -- giving a default in the case that it is actually \q{none} 
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{Expression}&\arrowplus&\ntRef{Expression}\ \q{or else}\ \ntRef{Expression}
+\end{eqnarray*}
+\caption{Optional Chaining with Default}\label{optionIndexAccessFig}
+\end{figure}
+
+The form of a optional access is:
+\begin{alltt}
+O or else D
+\end{alltt}
+where \q{O} has type \q{option of t} and \q{D} has type \q{t}. If \q{O} has value \q{some(X)} then the value is \q{X}, otherwise it is \q{D}.
+
+Like \q{?.}, \q{or else} can be best understood as a macro:
+\begin{alltt}
+# ?O or else ?D ==> _optionDeflt(O,fn()=>D)
+_optionDeflt(some(X),_) is X
+_optionDeflt(none,D) is D()
+\end{alltt}
+Notice that the default expression is not evaluated unless the value of \q{O} is \q{none}.
+
+The \q{or else} operator is right associative. This means that they can be chained  together if more than one default is possible:
+\begin{alltt}
+A or else B or else C
+\end{alltt}
 
 \section{Collection and Sequence Expressions}
 \label{sequenceExpression}
@@ -932,8 +991,8 @@ In a similar vein to the \ntRef{Sequence} notation, the \ntRef{IndexExp} notatio
 There is some subtlety in the interpretation of index expressions; the context in which they occur governs their meaning:
 \begin{itemize}
 \item In a \q{present} condition: \q{present L[Ix]}
-\item In a \q{matches} condition:
-\q{L[Ix] matches V}
+\item In a \q{has value} condition:
+\q{L[Ix] has value V}
 \item As the left hand side of an assignment:
 \q{L[Ix] := E}\item
 Indexed expressions:
@@ -943,16 +1002,21 @@ In the sections that follow, and in Section~\vref{sequenceUpdate} and in Section
 \end{aside}
 
 \subsection{Accessing Elements of a Collection}
+\label{indexedAccess}
+\index{indexed access to collection}
+\index{access list with index}
 An expression of the form:
 \begin{alltt}
 C[ix]
 \end{alltt}
 is equivalent to the expression
 \begin{alltt}
-someValue(\_index(C,ix))
+\_index(C,ix)
 \end{alltt}
 \begin{aside}
-The \q{someValue} function -- see Section~\vref{someValue} -- takes a \q{some} value and returns the value inside. If \q{\_index} returns \q{none}, then \q{someValue} will raise an exception.
+The type of the resulting value from an indexed access is \q{option}al. I.e., since it cannot be guaranteed -- in general -- that the element exists, the resulting type expresses that uncertainty.
+
+You can extract the underlying value by using the \q{someValue} function -- see Section~\vref{someValue} -- but a safer way is to use a \q{has value} condition (see Section~\vref{optionUnwrap}.
 \end{aside}
 
 The presence of an element can be tested in one of two ways: by using the \q{present} predicate:
@@ -961,7 +1025,7 @@ present C[Ix]
 \end{alltt}
 which tests whether \q{C} has an element at index \q{Ix}, or using the special condition:
 \begin{alltt}
-C[Ix] matches V
+C[Ix] has value V
 \end{alltt}
 which are equivalent to
 \begin{alltt}
