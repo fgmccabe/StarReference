@@ -19,16 +19,18 @@ The \q{computation} contract defines two key concepts: the `encapsulation' of an
 
 
 \begin{program}
-\begin{alltt}
-contract (computation) over m is \{
-  _encapsulate has type (t)=>m of t;
-  _combine has type (m of s,(s)=>m of t)=>m of t
-  _abort has type (exception)=>m of t;
-  _handle has type (m of t, (exception)=>m of t) => m of t;
-  _delay has type (()=>m of t)=>m of t;
-  _delay(F) default is _combine(_encapsulate(()),fn(_) => F());
-\}
-\end{alltt}
+\begin{lstlisting}
+contract (computation) over m determines e is {
+  _encapsulate has type for all t such that (t)=>m of t
+  _combine has type for all s,t such that
+      (m of s,(s)=>m of t)=>m of t
+  _abort has type for all t such that (e)=>m of t
+  _handle has type for all t such that
+      (m of t,(e)=>m of t)=>m of t
+  _delay has type for all t such that (()=>m of t)=>m of t
+  _delay(F) default is _combine(_encapsulate(()),(_) => F())
+}
+\end{lstlisting}
 \caption{The Standard \q{computation} Contract\label{computationContractProg}}
 \end{program}
 
@@ -47,8 +49,8 @@ The higher-kinded type variable \q{c} mentioned in the \q{computation} contract 
 \index{computation contract@\q{computation} contract!_encapsulate@\q{\_encapsulate}}
 \q{\_encapsulate} is part of the standard \q{computation} contract.
 \begin{alltt}
-\_encapsulate has type for all m,t such that (t)=>m of t
-                       where (computation) over m
+\_encapsulate has type for all m,t,e such that (t)=>m of t
+                       where (computation) over m determines e
 \end{alltt}
 The \q{\_encapsulate} function is used to encapsulate a value into a computation that has the value as its value. I.e., the \q{\_encapsulate} function is at the core of providing the additional indirection between values and computations returning those values.
 
@@ -61,8 +63,8 @@ If a computation has no value associated with it then \q{\_encapsulate} should b
 \index{computation contract@\q{computation} contract!_combine@\q{\_combine}}
 \q{\_combine} is part of the standard \q{computation} contract.
 \begin{alltt}
-\_combine has type for all m,s,t such that (m of s, (s)=>m of t)=>m of t
-                   where (computation) over m
+\_combine has type for all m,s,t,e such that (m of s, (s)=>m of t)=>m of t
+                   where (computation) over m determines e
 \end{alltt}
 The \q{\_combine} function constructs a new computation value by applying a transforming function to an existing computation value. Typically, the transforming function represents the `next step' in the computation.
 
@@ -71,14 +73,14 @@ The \q{\_combine} function constructs a new computation value by applying a tran
 \index{computation contract@\q{computation} contract!_abort@\q{\_abort}}
 \q{\_abort} is part of the standard \q{computation} contract.
 \begin{alltt}
-\_abort has type for all m,t such that (exception)=>m of t
-                 where (computation) over m
+\_abort has type for all m,t,e such that (e)=>m of t
+                 where (computation) over m determines e
 \end{alltt}
 
-The \q{\_abort} function is used to represent a failed computation. \q{\_abort} takes a single argument -- of type \q{exception} -- and returns a computation value.
+The \q{\_abort} function is used to represent a failed computation. \q{\_abort} takes a single argument -- of type \q{e} -- and returns a computation value.
 
 \begin{aside}
-Normally, the \q{\_abort} implementation will wrap the \q{exception} value in a way that a subsequent \q{\_handle} or \q{\_perform} can leverage.
+Normally, the \q{\_abort} implementation will wrap the \q{e} value in a way that a subsequent \q{\_handle} or \q{\_perform} can leverage.
 \end{aside}
 
 When an \q{\_abort}ed computation is \q{\_perform}ed; the abort handler function will be  invoked with the value passed in to \q{\_abort}.
@@ -88,9 +90,9 @@ When an \q{\_abort}ed computation is \q{\_perform}ed; the abort handler function
 \index{computation contract@\q{computation} contract!_handle@\q{\_handle}}
 \q{\_handle} is part of the standard \q{computation} contract.
 \begin{alltt}
-\_handle has type for all m,t such that 
-                  (m of t, (exception)=>m of t) => m of t
-                  where (computation) over m
+\_handle has type for all m,t,e such that 
+                  (m of t, (e)=>m of t) => m of t
+                  where (computation) over m determines e
 \end{alltt}
 
 The \q{\_handle} function is used to potentially recover from a failed computation -- while continuing the computation. If the first argument to \q{\_handle} represents an aborted computation, then the second argument -- a handler function -- is invoked with the exception. It is the responsibility of this handler function to either recover from the exception or to propagate the exception.
@@ -100,14 +102,14 @@ The \q{\_handle} function is used to potentially recover from a failed computati
 \index{computation contract@\q{computation} contract!_delay@\q{\_delay}}
 \q{\_delay} is part of the standard \q{computation} contract.
 \begin{alltt}
-\_delay has type for all m,t such that (()=>m of t)=>m of t
-                 where (computation) over m
+\_delay has type for all m,t,e such that (()=>m of t)=>m of t
+                 where (computation) over m determines e
 \end{alltt}
 The \q{\_delay} function constructs a new `delayed' computation value. It is used in the construction of \ntRef{ComputationExpression}s -- at the top level -- to ensure that \ntRef{ComputationExpression}s are evaluated at the appropriate time.
 
 The \q{\_delay} function has a default implementation -- which may be used in case that a particular implementation of \q{computation} does not require a specific implementation. The default implementation is:
 \begin{alltt}
-_delay(F) default is _combine(_encapsulate(()),fn(_) => F())
+_delay(F) default is _combine(_encapsulate(()),(_) => F())
 \end{alltt}
 
 \section{The \q{execution} Contract}
@@ -118,7 +120,7 @@ The \q{execution} contract has a single function defined in it -- encapsulating 
 \begin{program}
 \begin{alltt}
 contract execution over m is \{
-  _perform has type for all t such that (m of t, (exception)=>t) => t;
+  _perform has type for all t,e such that (m of t) => t;
 \}
 \end{alltt}
 \caption{The Standard \q{execution} Contract\label{executionContractProg}}
@@ -129,12 +131,12 @@ contract execution over m is \{
 \index{execution contract@\q{execution} contract!_perform@\q{\_perform}}
 \q{\_perform} is part of the standard \q{execution} contract.
 \begin{alltt}
-\_perform has type for all m,t such that (m of t, (exception)=>t)=>t
+\_perform has type for all m,t,e such that (m of t)=>t
                    where (computation) over m
 \end{alltt}
 The \q{\_perform} function is used to `extract' the value of a computation. As such it is the natural inverse to the \q{\_encapsulate} function.
 
-If the computation failed, then the `fail handler function' -- the second argument to \q{\_perform} -- should be invoked with the exception signal given to \q{\_abort}. The \q{exception} type is the standard type for representing exceptions -- see Section~\vref{exceptionType}.
+If the computation fails, then, typically, an exception will be raised -- see Section~\vref{exceptionType}.
 
 \begin{aside}
 The standard monad does \emph{not} include the equivalent of a \q{\_perform}. One reason being that not all encapsulation functions have an inverse.
@@ -168,8 +170,7 @@ The \q{\_inject} function is used to migrate a computation from one monad to ano
 
 There are two primary requirements for the \q{\_inject} function: a normal computation must be migrated as a normal computation in the target monad; and an aborted computation must be represented as an aborted computation. 
 
-In addition to implementing injection in a pairwise manner between monads, it is advisable to implement nullary `self injection' -- i.e., to and from the same monad.
-
+In addition to implementing injection in a pairwise manner between monads, it is advisable to implement null-ary `self injection' -- i.e., to and from the same monad.
 
 \subsection{Monadic Laws}
 \label{monadicAxioms}
@@ -190,7 +191,7 @@ The second law is the complement, combining with encapsulation itself leaves the
 
 The third law expresses the associativity of \q{\_combine}:
 \[\begin{array}{rcl}
-\q{\_combine(X,fn U => combine(F(U),G))}&=&\q{\_combine(\_combine(X,F),G)}
+\q{\_combine(X, (U) => combine(F(U),G))}&=&\q{\_combine(\_combine(X,F),G)}
 \end{array}\]
 
 The abort law expresses the meaning of \q{\_abort}:
@@ -224,49 +225,30 @@ type action of t is
 
 The different constructors in the \q{action} type are intended to represent the three `phases' of an action computation: \q{\_done} denotes a completed computation, \q{\_delayed} represents a suspended computation and \q{\_aborted} denotes a failed computation.
 
-%The standard implementations of the \q{computation}, \q{execution} and the nullary implementation of the \q{injection} contract are shown in Program~\vref{actionImplementationProgram}.
-%
-%\begin{program}
-%\begin{alltt}
-%implementation (computation) over action is \{
-%  _encapsulate(V) is _done(V);
-%  _abort(E) is _aborted(E);
-%  _handle(A,H) is case runAction(A) in \{
-%    _aborted(E) is H(E);
-%    X default is X;
-%  \}
-%  _combine(_delayed(f),C) is 
-%    _delayed((function () is C(executeAction(f(),_abort))))
-%  _combine(_done(v),C) is C(v);
-%  _combine(_aborted(E),_) is _aborted(E);
-%  _delay(F) is _delayed(F);
-%\}
-%implementation execution over action is \{
-%  _perform(A,H) is executeAction(A,H)
-%\};
-%implementation injection over (action,action) is \{
-%  _inject(C) is C;
-%\}
-%runAction(_delayed(f)) is valof\{
-%  try \{
-%    var r := f();
-%    while r matches _delayed(C) do \{
-%      r := C();
-%    \}
-%    valis r;
-%  \} on abort \{
-%    e do valis _aborted(e);
-%  \}
-%\}
-%runAction(X) default is X;
-%executeAction(A,H) is case runAction(A) in \{
-%  _aborted(E) is H(E);
-%  _done(V) is V;
-%  _ default is raise "impossible";
-%\};
-%\end{alltt}
-%\caption{Implementation of Standard \q{execution} Contracts for the \q{action} Monad\label{actionImplementationProgram}}
-%\end{program}
+The standard implementations of the \q{computation}, \q{execution} and the nullary implementation of the \q{injection} contract are shown in Program~\vref{actionImplementationProgram}.
+
+\begin{program}
+\begin{lstlisting}
+implementation (computation) over action determines exception is {
+  fun _encapsulate(V) is _done(V);
+  fun _abort(E) is _aborted(E);
+  fun _handle(A,H) is runCombo(A,_encapsulate,H)
+  fun _combine(A,C) is _delayed(()=>runCombo(A,C,_abort))
+  fun _delay(F) is _delayed(F);
+}
+implementation execution over action determines exception is {
+  _perform(A,H) is runCombo(A,id,H)
+};
+implementation injection over (action,action) is {
+  _inject(C) is C;
+}
+private
+fun runCombo(_delayed(D),C,H) is runCombo(D(),C,H)
+ |  runCombo(_done(X),C,_) is C(X)
+ |  runCombo(_aborted(E),_,H) is H(E)
+\end{lstlisting}
+\caption{Implementation of Standard \q{execution} Contracts for the \q{action} Monad\label{actionImplementationProgram}}
+\end{program}
 
 \section{Computation Expressions}
 \label{computationExpression}
@@ -290,22 +272,22 @@ type maybe of \%t is possible(\%t) or impossible(exception)
 might have the implementation defined in Program~\vref{maybeProgram} for the \q{computation} contract.
 
 \begin{program}
-\begin{alltt}
-implementation (computation) over maybe is \{
-  _encapsulate(X) is possible(X);
-  _combine(possible(S),F) is F(S);
-  _combine(impossible(R),_) is impossible(R);
-  _abort(Reason) is impossible(Reason);
-  _handle(M matching possible(S),_) is M;
-  _handle(impossible(E),F) is F(E);
-\}
-\end{alltt}
+\begin{lstlisting}
+implementation (computation) over maybe determines exception is {
+  fun _encapsulate(X) is possible(X);
+  fun _combine(possible(S),F) is F(S);
+   |  _combine(impossible(R),_) is impossible(R);
+  fun _abort(Reason) is impossible(Reason);
+  fun _handle(M matching possible(_),_) is M;
+   |  _handle(impossible(E),F) is F(E);
+}
+\end{lstlisting}
 \caption{Implementing the  \q{computation} contract for \q{maybe}\label{maybeProgram}}
 \end{program}
 
 Given such a definition, we can construct \q{maybe} \ntRef{ComputationExpression}s, such as in the function \q{find} in:
 \begin{alltt}
-find(K,L) is maybe computation \{
+fun find(K,L) is maybe computation \{
   for (KK,V) in L do\{
     if K=KK then
       valis V;
@@ -384,7 +366,7 @@ perform ff(5,MM)
 \end{alltt}
 is represented by the expression:
 \begin{alltt}
-\_inject(ff(5,MM),fn E => valof\{ logMsg(info,E); valis () \})
+\_inject(ff(5,MM), (E) => valof\{ logMsg(info,E); valis () \})
 \end{alltt}
 The normal overloading rules will ensure that the appropriate implementation of injection between monads is invoked.
 \end{aside}
@@ -416,7 +398,7 @@ The type of the exception variable is the standard type \q{exception}.
 It is equivalent to a call of the contract function \q{\_handle}. I.e., the above action is equivalent to:
 \begin{alltt}
 \_handle(P(X),
-        fn E => valof \{ logMsg(info,"exceptional \$E"); valis () \})
+         (E) => valof \{ logMsg(info,"exceptional \$E"); valis () \})
 \end{alltt}
 
 \subsection{\q{action} Expressions}

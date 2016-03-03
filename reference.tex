@@ -12,17 +12,19 @@
 \usepackage{prog}
 %\usepackage{cropmark}
 \usepackage{nap}
-\usepackage[pdftex=true,letterpaper=true,backref=page,hyperindex=true,pagebackref=true,linktocpage=true,colorlinks=true,linkcolor=blue]{hyperref}
+\usepackage[backref=page,hyperindex=true,pagebackref=true,linktocpage=true,colorlinks=true,linkcolor=blue]{hyperref}
 \usepackage[nottoc,notlot]{tocbibind}
 \usepackage[titles]{tocloft}
 \usepackage{shadow,boxedminipage}
 %\usepackage[perpage,flushmargin]{footmisc}
 \usepackage{lineno}
+\usepackage{listings}
+\usepackage{zlmtt}
 
 %\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 %\DeclareGraphicsRule{.gif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .gif`.png}
 
-\newcommand{\starVersion}{101}
+\newcommand{\starVersion}{102}
 
 % used in the various syntax diagrams
 \newcommand{\arrow}{{\rm ::=}}
@@ -55,6 +57,27 @@
 
 \makeindex
 \makenomenclature
+
+\lstdefinelanguage{Star}
+{morekeywords={def,var,fun,prc,ptn,default,let,in,where,has,type,kind,ref,package,worksheet,
+show,assert,is,from,import,open,or,and,implies,otherwise,not,for,all,exists,such,that,
+over,of,determines,contract,implementation,valof,valis,do,with,as,present,group, substitute, by,task,perform,ignore,counts,wait,nothing,computation,query,notify,request},
+ sensitive=false,
+ morecomment=[l]{-- },
+ morecomment=[s][\color{red}]{/*}{*/},
+ morestring=[b]",
+ morestring=[b]',
+ basicstyle=\ttfamily,
+ basewidth={0.55em,0.45em},
+ commentstyle=\itshape,
+ identifierstyle=\ttfamily,
+ stringstyle=\ttfamily,
+ showspaces=false,
+ showstringspaces=false,
+ columns=fixed,
+ numbers=none,
+}
+\lstset{language=Star}
 
 \begin{document}
 
@@ -102,8 +125,13 @@ or any later version published by the Free Software Foundation;
 with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
 A copy of the license is included in Appendix~\vref{gnufdl}.
 
-The software described in this reference is licensed under the terms of the
-GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version. This license is included in Appendix~\vref{lgpl2.1}.
+The software described in this reference is licensed under the terms of the Apache 2.0 License. This license is included in Appendix~\vref{apache2.0}.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 \textsc{Documentation is provided ``as is'' and all express or implied conditions, representations and warranties, including any implied warranty of merchantability, fitness for a particular purpose or non-infringement, are disclaimed, except to the extent that such disclaimers are held to be legally invalid.}
 }
@@ -113,8 +141,6 @@ GNU Lesser General Public License as published by the Free Software Foundation; 
 \renewcommand{\chaptermark}[1]{\markboth{\thechapter\ #1}{}} \renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
 \fancyhf{} % delete current setting for header and footer
 
-\newcommand{\redLine}{{\color{starviewRed}%
-  \hrule width\headwidth height\headrulewidth \vskip-\headrulewidth}}
 \newcommand{\blueLine}{{\color{skyBlue}%
   \hrule width\headwidth height\headrulewidth \vskip-\headrulewidth}}
 
@@ -134,7 +160,7 @@ GNU Lesser General Public License as published by the Free Software Foundation; 
 \addtolength{\headheight}{15pt} % make space for the rule
 
 
-\rfoot[\thepage]{Starview Inc.}
+\rfoot[\thepage]{\SrTitle}
 \lfoot[\SrTitle]{\thepage}
 
 \fancypagestyle{plain}{
@@ -177,13 +203,14 @@ GNU Lesser General Public License as published by the Free Software Foundation; 
 \mainmatter
 \nolinenumbers
 \include{introduction}
+\include{lexical}
+\include{grammar}
+\include{programs}
 \include{types}
 \include{variables}
 \include{expressions}
 \include{patterns}
 \include{actions}
-\include{programs}
-\include{packaging}
 \include{conditions}
 \include{queries}
 \include{numbers}
@@ -198,17 +225,16 @@ GNU Lesser General Public License as published by the Free Software Foundation; 
 \include{date}
 %\include{parsing}
 \include{system}
+\include{packaging}
 \appendix
 \include{running}
 %\include{notes}
-\include{lexical}
-\include{grammar}
 %\include{syntax}
 \include{macro}
 \include{validation}
 \include{formatting}
 \include{notes}
-\include{lgpl}
+\include{apache}
 \include{fdl}
 \bibliographystyle{plain}
 \bibliography{LogicBib}

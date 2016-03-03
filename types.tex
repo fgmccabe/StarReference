@@ -53,7 +53,7 @@ is a \ntRef{TypeConstructor}: it takes a type as an argument and returns another
 \end{aside}
 Often it is convenient to be able to `talk' about types without being specific about the type itself; for this purpose we use \ntRef{TypeVariable}s.
 
-Type variables may be distinguished by prefixing a \q{\pcent{}} in front of the identifier. The type expression:
+There are two ways in which a type variable is distinguished: either by an explicit quantifier (\ntRef{UniversalType} or \ntRef{ExistentialType}) or by prefixing a \q{\pcent{}} in front of the identifier. The type expression:
 \begin{alltt}
 cons of \pcent{}t
 \end{alltt}
@@ -104,9 +104,11 @@ where the symbol \tinfers{} can be read as `type implication'. In general, the t
 In most cases it is not necessary to explicitly declare the type of a variable. However, it is good practice to declare explicitly the types of programs; especially within \ntRef{ThetaEnvironment}s.
 
 For example, a generic function \q{consLength} that takes a \q{cons} list and returns an integer would have the declaration:
-\begin{alltt}
-consLength has type (cons of \pcent{}t)=>integer;
-\end{alltt}
+\begin{lstlisting}
+consLength has type 
+  for all t such that (cons of t)=>integer
+\end{lstlisting}
+This is an example of a universally quantified type -- see Section~\vref{universalType} for more details.
 
 \paragraph{Kind Annotations}
 \label{kindAnnotation}
@@ -222,40 +224,36 @@ Parameterized types may be defined using a \ntRef{TypeDefinition} statement.
 \index{type constructor expression}
 
 A type expression of the form:
-\begin{alltt}
-\pcent{}\pcent{}c of (\pcent{}t\sub1\sequence{,}\pcent{}t\subn)
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+%c of (%t$\sub1\sequence{,}$%t$\subn$)
+\end{lstlisting}
 denotes a rather special form of type: a type constructor expression. Like other parameterized type expressions, this expression does not denote a single type; but a set of types. For example, the type expression:
-\begin{alltt}
-\pcent{}\pcent{}c of integer
-\end{alltt}
+\begin{lstlisting}
+%c of integer
+\end{lstlisting}
 denotes a type `something of \q{integer}'.
 
-A subsequent constraint on \q{\pcent{}\pcent{}c} may cause it to be bound to the \ntRef{TypeConstructor} \q{cons} (say), in which case the type expression becomes ground to the parameterized type expression `\q{cons of integer}'.
+A subsequent constraint on \q{\pcent{}c} may cause it to be bound to the \ntRef{TypeConstructor} \q{cons} (say), in which case the type expression becomes ground to the parameterized type expression `\q{cons of integer}'.
 
 Such type expressions are of most use in certain forms of \ntRef{Contract} where the contract is about a certain form of parameterized type.
 
 \begin{aside}
-Unlike parameterized type expressions, it is not possible to `define' a variable type constructor type. I.e., while we can define the \q{cons} type (see above) with a \ntRef{TypeDefinition} statement, we cannot define the type \q{\pcent{}\pcent{}c of integer} with an analogous statement.
+Unlike parameterized type expressions, it is not possible to `define' a variable type constructor type. I.e., while we can define the \q{cons} type (see above) with a \ntRef{TypeDefinition} statement, we cannot define the type \q{\pcent{}c of integer} with an analogous statement.
 \end{aside}
 
 \begin{aside}
 A variable constructor is equivalent to a regular type variable with a \ntRef{HasKind} constraint. I.e., 
-\begin{alltt}
-\pcent{}\pcent{}c of (\pcent{}t\sub1\sequence{,}\pcent{}t\subn)
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+%c of (%t$\sub1\sequence{,}$%t$\subn$)
+\end{lstlisting}
 is equivalent to:
-\begin{alltt}
-\pcent{}c of (\pcent{}t\sub1\sequence{,}\pcent{}t\subn) where \pcent{}c has kind type of (type\sequence{,}type)
-\end{alltt}
-A \q{\pcent{}\pcent{}c} appearing on its own is assumed to have arity 1:
-\begin{alltt}
-\pcent{}c where \pcent{}c has kind type of type
-\end{alltt}
-or even
-\begin{alltt}
-c where c has kind type of type
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+%c of (%t$\sub1\sequence{,}$%t$\subn$) where %c has kind type of (type$\sequence{,}$type)
+\end{lstlisting}
+A \q{\pcent{}c} appearing on its own is assumed to have unknown arity, compatible with
+\begin{lstlisting}
+c where c has kind type
+\end{lstlisting}
 in cases where the type variable \q{c} is explicitly bound by a quantifier.
 This is described more fully in Section~\vref{hasKindConstraint}.
 \end{aside}
@@ -281,17 +279,17 @@ There are two special cases in \ntRef{TupleType}s: the empty tuple and the singl
 \subsubsection{Empty Tuple}
 \index{tuple!empty tuple type}
 The empty tuple type:
-\begin{alltt}
+\begin{lstlisting}
 ()
-\end{alltt}
+\end{lstlisting}
 refers to the empty tuple. It is useful primarily for writing function types where the function has no arguments:
-\begin{alltt}
+\begin{lstlisting}
 ()=>string
-\end{alltt}
+\end{lstlisting}
 When used as the return type of a function, the \q{()} type denotes a void result:
-\begin{alltt}
+\begin{lstlisting}
 (integer)=>()
-\end{alltt}
+\end{lstlisting}
 \begin{aside}
 The \q{()} type -- sometimes referred to as the \emph{unit type} -- is also used to denote the return type of some actions.
 \end{aside}
@@ -300,13 +298,13 @@ The \q{()} type -- sometimes referred to as the \emph{unit type} -- is also used
 \index{tuple!singleton tuple type}
 
 A singleton tuple must be written with two parentheses. This is to disambiguate such terms from simple expression parentheses. A type expression of the form:
-\begin{alltt}
+\begin{lstlisting}
 (integer)
-\end{alltt}
+\end{lstlisting}
 is equivalent to just the \q{integer} type; whereas 
-\begin{alltt}
+\begin{lstlisting}
 ((integer))
-\end{alltt}
+\end{lstlisting}
 denotes the single element tuple type whose element type is \q{integer}.
 
 \subsection{Record Type}
@@ -315,8 +313,8 @@ A \ntRef{RecordType} is a type expression that denotes a named association of fi
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{RecordType}&\arrow&\q{\{}\,\ntRef{Annotation}\sequence{;}\ntRef{Annotation}\ \q{\}}
-%\ntDef{TypeEquality}&\arrow&\q{type}\ \ntRef{Identifier}\ \q{=}\ \ntRef{Type}
+\ntDef{RecordType}&\arrow&\q{\{}\,\ntRef{Annotation}\sequence{;}\ntRef{Annotation}\ \q{\}}\\
+\ntDef{TypeEquality}&\arrow&\q{type}\ \ntRef{Identifier}\ \q{=}\ \ntRef{Type}
 \end{eqnarray*}
 \caption{Record Type}
 \label{recordTypeFig}
@@ -325,13 +323,13 @@ A \ntRef{RecordType} is a type expression that denotes a named association of fi
 Record types are used as the type of anonymous records (see Section~\vref{anonRecord}). They are also the basis of other features of the type language -- including the \ntRef{ConstructorType} and \ntRef{Contract}s.
 
 Two record types are equivalent if their elements are pair-wise equivalent. Note that the \emph{order} of elements is not important. For example, given the types:
-\begin{alltt}
-\{a has type string ; b has type integer \}
-\end{alltt}
+\begin{lstlisting}
+{a has type string ; b has type integer }
+\end{lstlisting}
 and
-\begin{alltt}
-\{b has type integer ; a has type \pcent{}t \}
-\end{alltt}
+\begin{lstlisting}
+{b has type integer ; a has type %t }
+\end{lstlisting}
 these types unify, provided that \q{\pcent{}t} is unifiable with \q{string}.
 
 \begin{aside}
@@ -355,9 +353,9 @@ A function type denotes a function value. It takes the form of a possibly empty 
 \end{figure}
 
 For example, a function of two arguments -- an \q{integer} and a \q{string} that returns a list of \q{string}s has a type that takes the form:
-\begin{alltt}
+\begin{lstlisting}
 (integer,string) => cons of string
-\end{alltt}
+\end{lstlisting}
 
 \subsubsection{Procedure Type}
 \label{procedureType}
@@ -365,18 +363,18 @@ For example, a function of two arguments -- an \q{integer} and a \q{string} that
 \index{type!procedure}
 
 A procedure is an abstraction of an action. I.e., a procedure is a function that does not return a value but is executed purely for its side effect(s). This is expressed in the form of procedure types, which take the form of a function type that returns an empty tuple:
-\begin{alltt}
-(\ntRef{Type}\sub1\sequence{,}\ntRef{Type}\subn)=>()
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+($\ntRef{Type}\sub1\sequence{,}\ntRef{Type}\subn$)=>()
+\end{lstlisting}
 
 For example, a procedure that takes \q{string} and \q{integer} arguments would have the type signature:
-\begin{alltt}
+\begin{lstlisting}
 (string,integer)=>()
-\end{alltt}
+\end{lstlisting}
 And the type:
-\begin{alltt}
+\begin{lstlisting}
 ()=>()
-\end{alltt}
+\end{lstlisting}
 denotes the type of a procedure that takes no arguments.
 
 
@@ -394,9 +392,9 @@ The form of a pattern abstraction type is defined in Figure~\vref{patternAbTypeF
 
 Pattern abstractions match a pattern, and `extract' values from that pattern; values that, in turn, may be matched against where the pattern abstraction is applied.
 For example, a \ntRef{PatternAbstraction} that matches \q{string}s that are intended to denote \q{integer} literals, and extracts such an \q{integer} would have the type
-\begin{alltt}
+\begin{lstlisting}
 (integer) <= string
-\end{alltt}
+\end{lstlisting}
 
 \subsection{Constructor Type}
 \label{constructorType}
@@ -450,7 +448,6 @@ A type variable is a variable which may be bound to a type. Depending on whether
 \begin{figure}[htbp]
 \begin{eqnarray*}
 \ntDef{TypeVariable}&\arrow&\q{\pcent{}}\,\ntRef{Identifier}\\
-&\choice&\q{\pcent{}\pcent{}}\,\ntRef{Identifier}\\
 &\choice&\ntRef{Identifier}
 \end{eqnarray*}
 \caption{Type Variables}
@@ -466,19 +463,10 @@ A type variable introduced using the \q{\pcent{}} notation has an implicit \ntRe
 The different kinds of type variable may not be mixed: it is not permissible to bind a type variable to a \ntRef{TypeConstructor}, and vice versa.
 
 For example, given:
-\begin{alltt}
+\begin{lstlisting}
 type cons of t is nil or cons(t, cons of t);
-\end{alltt}
-A type variable \q{\pcent{}s} may be bound to a type expression such as \q{cons of string}, but not to the type constructor \q{cons}.
-
-Conversely, a type variable \q{\pcent{}\pcent{}c} may be bound to the \q{cons} type constructor, but may \emph{not} be bound to a type expression such as \q{cons of string}.
-\begin{aside}
-The \q{\pcent{}\pcent{}} form of type variable is equivalent to an implied \ntRef{HasKind} constraint -- see Section~\vref{hasKindConstraint}: the type variable \q{\pcent{}\pcent{}c} is equivalent to:
-
-\begin{alltt}
-c where c has kind type of type
-\end{alltt}
-\end{aside}
+\end{lstlisting}
+A type variable \q{\pcent{}s} may be bound to a type expression such as \q{cons of string}.
 \end{aside}
 
 \subsubsection{Scope of Type Variables}
@@ -511,12 +499,13 @@ One case where explicit universal quantification is necessary is when a function
 
 For example, the  \q{dblFilter} function in Program~\vref{dblFilter} applies a \q{map} function in two different situations -- one for each element of each pair in the input list.
 \begin{program}
-\begin{alltt}
+\begin{lstlisting}
 dblFilter has type for all u,v such that 
-     (for all t such that (t)=>t, cons of ((u,v)))=>cons of ((u,v));
-dblFilter(M,cons of []) is cons of [];
-dblFilter(M,cons of [(A,B),..L]) is cons of [(M(A),M(B)),..dblFilter(M,L)];
-\end{alltt}
+     (for all t such that (t)=>t, cons of ((u,v)))=>cons of ((u,v))
+fun dblFilter(M,cons of []) is cons of []
+ |  dblFilter(M,cons of [(A,B),..L]) is
+      cons of [(M(A),M(B)),..dblFilter(M,L)]
+\end{lstlisting}
 \caption{A \q{double} filter}\label{dblFilter}
 \end{program}
 Without the explicit type annotation for \q{M}, type inference will infer that the type of \q{A} is the same as the type of \q{B} because \q{M} is applied to both.
@@ -546,16 +535,16 @@ An existential type denotes an \emph{abstract} type.
 An existentially quantified type denotes a type within which there is an \emph{abstract type}: i.e., the type exists but the expression is not explicit about which type. 
 
 Existential types are most often used in the type signatures of abstract data types. For example, the term in the statement:
-\begin{alltt}
-R is \{
+\begin{lstlisting}
+def R is {
   type integer counts as el;
-  op(X,Y) is X+Y
-\}
-\end{alltt}
+  fun op(X,Y) is X+Y
+}
+\end{lstlisting}
 has type:
-\begin{alltt}
-exists el such that \{ el has kind type; op has type (el,el)=>el \}
-\end{alltt}
+\begin{lstlisting}
+exists el such that { el has kind type; op has type (el,el)=>el }
+\end{lstlisting}
 
 \begin{aside}
 Note that the fact that within the record the type \q{el} is identified as \q{integer} does not escape the record itself. Externally, the existence of the type is known but not what it is.
@@ -590,30 +579,30 @@ As noted in Section~\vref{existentialType}, record literals may have types embed
 It is possible to access the type embedded within such a record -- albeit with some restrictions:
 \begin{itemize}
 \item The form of an \ntRef{EncapsulatedType} reference is limited to terms of the form:
-\begin{alltt}
+\begin{lstlisting}
 R.t
-\end{alltt}
+\end{lstlisting}
 where \q{R} is a \ntRef{Variable} whose type interface contains the type \q{t}.
 
 More generally, an \ntRef{EncapsulatedType} reference may involve a sequence of field names where each intermediate field name refers to a sub-record:
-\begin{alltt}
+\begin{lstlisting}
 R.f1.f2.t
-\end{alltt}
-\item The `value' of an encapsulated type is strictly opaque: it is guaranteed to be different to all other types. Which means that effectively \emph{only} the other fields of the record variable \q{R} contain functions and values that can be used in conjunction.
+\end{lstlisting}
+\item The `value' of an encapsulated type is strictly opaque: it is assumed to be different to all other types. Which means that effectively \emph{only} the other fields of the record variable \q{R} contain functions and values that can be used in conjunction.
 \end{itemize}
 
 For example, consider the \q{group} type defined in Program~\vref{groupExample}.
 
 \begin{program}
-\begin{alltt}
-type group is group\{
-  el has kind type where equality over el;
+\begin{lstlisting}
+type group is group{
+  el has kind type where equality over el
   
-  zero has type el;
-  op has type (el,el)=>el;
-  inv has type (el)=>el;
-\}
-\end{alltt}
+  zero has type el
+  op has type (el,el)=>el
+  inv has type (el)=>el
+}
+\end{lstlisting}
 \caption{The \q{group} Type}
 \label{groupExample}
 \end{program}
@@ -633,39 +622,39 @@ An additional requirement for a group is that its operation is associative. Such
 
 A \q{group} literal that implements the group for \q{integer}s is shown in Program~\vref{integerGroup}.
 \begin{program}
-\begin{alltt}
-IG is group\{
-  type integer counts as el;
-  zero is 0;
-  op is (+);
-  inv(X) is -X;
-\}
-\end{alltt}
+\begin{lstlisting}
+def IG is group{
+  type integer counts as el
+  def zero is 0
+  def op is (+)
+  fun inv(X) is -X
+}
+\end{lstlisting}
 \caption{The \q{integer} \q{group} Record}
 \label{integerGroup}
 \end{program}
 The \q{IG} value contains the elements of a group value. We can, for example, access the \q{zero} of \q{IG} using the statement:
-\begin{alltt}
-IZ is IG.zero
-\end{alltt}
+\begin{lstlisting}
+def IZ is IG.zero
+\end{lstlisting}
 If we wanted to explicitly declare the type of \q{IZ}, then we could use:
-\begin{alltt}
-IZ has type IG.el;
-\end{alltt}
+\begin{lstlisting}
+IZ has type IG.el
+\end{lstlisting}
 This asserts that \q{IZ}'s type is whatever the encapsulated type within \q{IG} is.
 
-It is possible to construct functions over \q{group}s that refer to encapsulated types. For example, the \q{invertGroup} function in Program~\vref{invertGroupProgram} constructs a new group by 'inverting' the operation.
+It is possible to construct functions over \q{group}s that refer to encapsulated types. For example, the \q{invertGroup} function in Program~\vref{invertGroupProgram} constructs a new group by `inverting' the operation.
 
 \begin{program}
-\begin{alltt}
-invertGroup has type (group)=>group;
-invertGroup(G) is group\{
-  type G.el counts as el;
-  zero is G.zero;
-  op(X,Y) is G.op(G.inv(X),G.inv(Y));
-  inv(X) is G.inv(X);
-\}
-\end{alltt}
+\begin{lstlisting}
+invertGroup has type (group)=>group
+fun invertGroup(G) is group{
+  type G.el counts as el
+  def zero is G.zero
+  fun op(X,Y) is G.op(G.inv(X),G.inv(Y))
+  fun inv(X) is G.inv(X)
+}
+\end{lstlisting}
 \caption{A \q{group} Inverting Function}
 \label{invertGroupProgram}
 \end{program}
@@ -683,9 +672,9 @@ Generally, a \ntRef{TypeConstraint} on a \ntRef{TypeVariable} restricts in some 
 Similarly, a \ntRef{FieldConstraint} constrains the \ntRef{TypeVariable} so that any binding must be to a \ntRef{Type} that has the named field in its definition.
 
 For example, using \q{arithmetic} as a constraint allows us to say `the type can be anything that implements a form of arithmetic'. The type expression:
-\begin{alltt}
-\pcent{}t where arithmetic over \pcent{}t
-\end{alltt}
+\begin{lstlisting}
+%t where arithmetic over %t
+\end{lstlisting}
 denotes this kind of constrained type.
 
 \begin{aside}
@@ -707,9 +696,9 @@ It is possible to view a type variable binding itself as a form of constraint: i
 \end{figure}
 
 A type expression of the form:
-\begin{alltt}
-(\pcent{}t)=>\pcent{}t where comparable over \pcent{}t and arithmetic over \pcent{}t
-\end{alltt}
+\begin{lstlisting}
+(%t)=>%t where comparable over %t and arithmetic over %t
+\end{lstlisting}
 denotes a unary function type for any type that implements both the \q{comparable} and the \q{arithmetic} contracts (see Sections~\vref{comparisonPredicates} and \vref{arithmeticContract}).
 
 \begin{aside}
@@ -717,9 +706,9 @@ In many cases type inference will automatically result in constraints being adde
 \end{aside}
 
 It is possible mix different forms of \ntRef{TypeConstraint}; for example, if a \ntRef{TypeVariable} must be bound to a type that implements the \q{comparable} contract as well as having the \q{integer}-typed \q{ident} attribute, the type expression:
-\begin{alltt}
-comparable over \pcent{}t and \pcent{}t implements \{ ident has type integer \}
-\end{alltt}
+\begin{lstlisting}
+comparable over %t and %t implements { ident has type integer }
+\end{lstlisting}
 captures this.
 
 \begin{aside}
@@ -733,9 +722,9 @@ If a constrained type variable is unified with another type variable, then the c
 A \ntRef{ContractConstraint} is a requirement on a \ntRef{Type} -- or tuple of \ntRef{Type}s -- that whatever type it is, that there must exist an \q{implementation} of the \ntRef{Contract} for the \ntRef{Type} (see Section~\vref{contracts}).
 
 For example, the type constraint expression:
-\begin{alltt}
-comparable over \pcent{}t
-\end{alltt}
+\begin{lstlisting}
+comparable over %t
+\end{lstlisting}
 means that the type variable \q{\pcent{}t} may only unify with concrete types that implement the \q{comparable} contract.
 \begin{aside}
 If \q{\pcent{}t} is unified with another type variable, then the constraints on both type variables are \emph{merged}.
@@ -754,9 +743,9 @@ Since only named types may implement \ntRef{Contract}s, it is also not permissib
 \end{figure}
 
 It is possible for \ntRef{ContractConstraint}s to reference more than one type. For example, the standard \q{coercion} contract (see Program~\vref{typeCoercionContractFig}) references two types. A \q{coercion} \ntRef{ContractConstraint} will therefore look like:
-\begin{alltt}
-coercion over (\emph{srcType}, \emph{dstType})
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+coercion over ($\emph{srcType}$, $\emph{dstType}$)
+\end{lstlisting}
 where \q{\emph{srcType}} represents the `source' type of the coercion and \q{\emph{dstType}} represents the `destination' type.
 
 If the \q{determines} clause is used, then the \ntRef{Contract} being referenced must have a \emph{functional dependency}
@@ -783,16 +772,16 @@ A \emph{FieldConstraint} is a requirement on a variable that whatever type it is
 \end{figure}
 
 For example, in
-\begin{alltt}
-\pcent{}r implements \{ alpha has type string; beta has type long \}
-\end{alltt}
+\begin{lstlisting}
+%r implements { alpha has type string; beta has type long }
+\end{lstlisting}
 if \q{\pcent{}r} is unified against a concrete type then that type's \ntRef{RecordType} interface (see Section~\vref{algebraicInterface}) must contain both of \q{alpha} and \q{beta}. In addition, the fields must be of the right types.
 
 \begin{aside}
 It is also possible to require that an \ntRef{EncapsulatedType} exists. For example, the constraint:
-\begin{alltt}
-s implements \{ elem has kind type \}
-\end{alltt}
+\begin{lstlisting}
+s implements { elem has kind type }
+\end{lstlisting}
 requires that any actual binding for type \q{s} must include the embedded type \q{elem}.
 \end{aside}
 
@@ -810,17 +799,17 @@ An \ntRef{InstanceConstraint} is a requirement on a variable that any instantiat
 \end{figure}
 
 For example, in 
-\begin{alltt}
-\pcent{}r instance of (for all t such that (t)=>t)
-\end{alltt}
+\begin{lstlisting}
+%r instance of (for all t such that (t)=>t)
+\end{lstlisting}
 we establish a constraint on \q{\pcent{}r} that any binding of \q{\pcent{}r} must be some specialization of the function type:
-\begin{alltt}
+\begin{lstlisting}
 for all t such that (t)=>t
-\end{alltt}
+\end{lstlisting}
 Note that this would permit, for example, \q{\pcent{}r} to be bound to the \q{integer} function type:
-\begin{alltt}
+\begin{lstlisting}
 (integer)=>integer
-\end{alltt}
+\end{lstlisting}
 because this type is an instance of the \ntRef{UniversalType}.
 
 \begin{aside}
@@ -844,27 +833,16 @@ The kind of a type refers to whether the type is a regular type or a type constr
 \end{figure}
 
 For example, in 
-\begin{alltt}
-\pcent{}c has kind type
-\end{alltt}
+\begin{lstlisting}
+%c has kind type
+\end{lstlisting}
 we establish a constraint on \q{\pcent{}c} that any binding of \q{\pcent{}c} must be a \ntRef{Type} (in particular, it may not be bound to a type constructor.
 
 The constraint:
-\begin{alltt}
-\pcent{}d has kind type of (type,type)
-\end{alltt}
+\begin{lstlisting}
+%d has kind type of (type,type)
+\end{lstlisting}
 establishes the constraint that \q{\pcent{}d} must be bound to a type constructor (\emph{not} a \ntRef{Type}) or arity two. Given this constraint, it would not be legal to bind \q{\pcent{}d} to the standard type constructor \q{cons} (say) -- because \q{cons} is a type constructor of one argument.
-
-\begin{aside}
-\ntRef{HasKindConstraint}s typically arise from special forms of type expressions. For example, as noted in Section~\vref{typeVariable}, a type expression of the form:
-\begin{alltt}
-\pcent{}\pcent{}e
-\end{alltt}
-is equivalent to the type expression:
-\begin{alltt}
-\pcent{}e where \pcent{}e has kind type of type
-\end{alltt}
-\end{aside}
 
 \subsection{Tuple Constraint}
 \label{tupleConstraint}
@@ -881,9 +859,9 @@ A \emph{TupleConstraint} is a requirement on a variable that it is a tuple type.
 \end{figure}
 
 For example, in
-\begin{alltt}
-\pcent{}r is tuple
-\end{alltt}
+\begin{lstlisting}
+%r is tuple
+\end{lstlisting}
 if \q{\pcent{}r} is unified against a concrete type then that type must be a \ntRef{TupleType}.
 
 \section{Type Annotations}
@@ -891,13 +869,13 @@ if \q{\pcent{}r} is unified against a concrete type then that type must be a \nt
 An \ntRef{Annotation} is a statement that declares a variable to have a certain \ntRef{Type} or a \ntRef{Type} to have a certain \ntRef{Kind}.
 
 For example, 
-\begin{alltt}
+\begin{lstlisting}
 alpha has type for all t such that (t)=>string
-\end{alltt}
+\end{lstlisting}
 is a \ntRef{TypeAnnotation}, whereas
-\begin{alltt}
+\begin{lstlisting}
 el has kind type
-\end{alltt}
+\end{lstlisting}
 is a \ntRef{KindAnnotation}.
 
 \begin{figure}[htbp]
@@ -945,9 +923,9 @@ Note that the any type variables on the right hand side of a \ntRef{TypeAlias} s
 \end{aside}
 
 For example, the statement:
-\begin{alltt}
+\begin{lstlisting}
 type time is alias of integer
-\end{alltt}
+\end{lstlisting}
 declares a new type that is an alias for \q{time} -- i.e., that it is actually equivalent to the \q{integer} type.
 \begin{aside}
 Type aliases allow the programmer to signal that a particular type is being used in a special way. In addition, during program development, type aliases are useful to provide markers for types that will be elaborated further with a regular algebraic definition.
@@ -994,18 +972,18 @@ Free functions are technically bijections -- they are one-to-one -- i.e., they h
 \end{aside}
 
 For example, the type definition:
-\begin{alltt}
+\begin{lstlisting}
 type person is someone(string,integer) 
-            or noone;
-\end{alltt}
+            or noone
+\end{lstlisting}
 induces the constructor functions:
-\begin{alltt}
+\begin{lstlisting}
 someone has type (string,integer) <=> person;
-\end{alltt}
+\end{lstlisting}
 and
-\begin{alltt}
+\begin{lstlisting}
 noone has type ()<=>person;
-\end{alltt}
+\end{lstlisting}
 The complete set of constructor functions introduced within an algebraic type definition is complete: i.e., they define all the possible values of the type.
 \end{aside}
 
@@ -1028,9 +1006,9 @@ An enumerated symbol is written as an identifier. The fact that an identifier ha
 \end{figure}
 
 The standard type \q{boolean} is defined in terms of two enumerated symbols: \q{true} and \q{false}:
-\begin{alltt}
-type boolean is true or false;
-\end{alltt}
+\begin{lstlisting}
+type boolean is true or false
+\end{lstlisting}
 
 \begin{aside}
 An enumerated symbol must be unique across all types within the scope of the type definition.
@@ -1059,9 +1037,9 @@ A labeled tuple expression or pattern is written in the style of a function call
 \end{figure}
 
 For example, a type definition for wrapping return values with an error code could have a definition:
-\begin{alltt}
-type returnType of t is error(string) or ok(t);
-\end{alltt}
+\begin{lstlisting}
+type returnType of t is error(string) or ok(t)
+\end{lstlisting}
 A function returning a value of type \q{returnType} would either return \q{ok(\emph{value})} or \q{error("\emph{message}")}, where the message explained the error.
 
 Labeled tuples are well suited to situations where the number of arguments is limited and fairly obvious.
@@ -1086,11 +1064,11 @@ Labeled records denote constructors whose elements are addressed by name rather 
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{RecordConstructor}&\arrow&\ntRef{Identifier}\q{\{}\,\ntRef{RecordElement}\ \sequence{;}\ntRef{RecordElement}\ \q{\}}\\
-\ntDef{RecordElement}&\arrow&\ntRef{Annotation}\\
+\ntDef{RecordConstructor}&\arrow&\ntRef{Identifier}\q{\{}\,\ntRef{ElementType}\ \sequence{;}\ntRef{ElementType}\ \q{\}}\\
+\ntDef{ElementType}&\arrow&\ntRef{Annotation}\\
 &\choice&\ntRef{Identifier}\ \q{default}\ \q{is}\ \ntRef{Expression}\\
 &\choice&\ntRef{Identifier}\ \q{default}\ \q{:=}\ \ntRef{Expression}\\
-&\choice&\ntRef{Identifier}\q{(}\ntRef{Variable}\sequence{,}\ntRef{Variable}\q{)}\ \q{default}\ \q{is}\ \ntRef{Expression}
+&\choice&\q{fun}\ \ntRef{Identifier}\q{(}\ntRef{Variable}\sequence{,}\ntRef{Variable}\q{)}\,\q{default}\,\q{is}\,\ntRef{Expression}
 %&\choice&\q{assert}\ \ntRef{Condition}
 \end{eqnarray*}
 \caption{Labeled Record Constructor}
@@ -1098,17 +1076,17 @@ Labeled records denote constructors whose elements are addressed by name rather 
 \end{figure}
 If there is more than one record constructor for a type then any attributes that they have in common must have the same type associated with them. For example, the type definition for a two-three tree structure is illustrated in Program~\vref{twoThree}.
 \begin{program}
-\begin{alltt}
+\begin{lstlisting}
 type twoThree of s is 
-  three\{ left has type twoThree of s; 
+  three{ left has type twoThree of s; 
          label has type s;
          right has type twoThree of s
-       \}
-  or two\{ left has type twoThree of s; 
+       }
+  or two{ left has type twoThree of s; 
          right has type twoThree of s
-       \}
+       }
   or empty;
-\end{alltt}
+\end{lstlisting}
 \caption{A \q{twoThree} tree type}\label{twoThree}
 \end{program}
 The \q{left} and \q{right} attributes in the two constructors are required to have the same type because they are shared by the two records.
@@ -1132,21 +1110,21 @@ It is permitted to associate a default value with a field of an record construct
 
 For example, for convenience, we might add \q{default} annotations in the \q{twoThree} type defined above, resulting in the type definition in Program~\vref{twoThreeDef}.
 \begin{program}
-\begin{alltt}
+\begin{lstlisting}
 type twoThree of s is
-  three\{ left has type twoThree of s;
+  three{ left has type twoThree of s;
          left default is empty;
          label has type s;
          right has type twoThree of s;
          right default is empty;
-       \}
-  or two\{ left has type twoThree of s; 
+       }
+  or two{ left has type twoThree of s; 
          left default is empty;
          right has type twoThree of s;
          right default is empty;
-       \}
+       }
   or empty;
-\end{alltt}
+\end{lstlisting}
 \caption{A \q{twoThree} tree type with defaults}\label{twoThreeDef}
 \end{program}
 
@@ -1156,14 +1134,14 @@ type twoThree of s is
 A default value expression for an attribute is evaluated in the scope that is valid for the type definition itself. The default value expression may reference variables that are in scope at the point of type definition. The default value expression may also reference \emph{other} fields of the record constructor -- as though they were variables -- provided that they themselves do not have \q{default}s associated with them.
 
 For example, in this definition of \q{Person}:
-\begin{alltt}
-type Person is someone\{
+\begin{lstlisting}
+type Person is someone{
   name has type string;
   dob has type date;
   age has type ()=>float;
-  age default is fn() => now()-dob;
-\}
-\end{alltt}
+  fun age() default is now()-dob;
+}
+\end{lstlisting}
 there is a \q{default} definition of the \q{age} field that is used if a given \q{someone} record literal does not mention a value for \q{age}. This \q{default} definition makes use of the \q{dob} field as though it were a free variable of the \q{age} function.
 \end{aside}
 
@@ -1171,16 +1149,16 @@ there is a \q{default} definition of the \q{age} field that is used if a given \
 \index{expressions!default!assignable field}
 \index{ref field@\q{ref} field!default value}
 To declare a \q{default} value for a \q{ref} field, the form:
-\begin{alltt}
-\emph{name} default := \emph{Exp}
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+$\ntRef{Identifier}$ default := $\ntRef{Expression}$
+\end{lstlisting}
 should be used. For example, in the type:
-\begin{alltt}
-type account is account\{
+\begin{lstlisting}
+type account is account{
   balance has type ref long;
   balance default := 0L
-\}
-\end{alltt}
+}
+\end{lstlisting}
 the \q{balance} field is a \q{ref} field, and its default value is \q{0L}.
 
 \subsubsection{Type Variables and Safe Algebraic Type Definitions}
@@ -1193,24 +1171,24 @@ Specifically, any unbound type variables mentioned in a type definition must als
 \end{aside}
 
 For example, the type definition:
-\begin{alltt}
-type opaque is op(\pcent{}t)
-\end{alltt}
+\begin{lstlisting}
+type opaque is op(%t)
+\end{lstlisting}
 is not valid because the type variable \q{\pcent{}t} mentioned in the \q{op} constructor is not mentioned in the \ntRef{TypeSpec}.
 
 \begin{aside}
 The reason for this is that type safety cannot be guaranteed for such constructors. For example, consider the invalid function:
-\begin{alltt}
-badOp(op(23)) is false;
-\end{alltt}
+\begin{lstlisting}
+fun badOp(op(23)) is false;
+\end{lstlisting}
 The type signature for \q{badOp} is 
-\begin{alltt}
+\begin{lstlisting}
 badOp has type (opaque)=>boolean
-\end{alltt}
+\end{lstlisting}
 and, according to type inference rules, an expression such as:
-\begin{alltt}
+\begin{lstlisting}
 badOp(op("alpha"))
-\end{alltt}
+\end{lstlisting}
 would be type safe. However, this expression will lead to a run-time failure when the integer 23 is compared against the string \q{"alpha"}.
 \end{aside}
 
@@ -1221,13 +1199,13 @@ Note that the converse case, where a type variable is mentioned in the \ntRef{Ty
 It \emph{is} possible to have type variables mentioned in a constructor that are not defined in the \ntRef{TypeSpec}. The constraint is that such type variables must be closed by quantification.
 
 For example, the type definition:
-\begin{alltt}
-univ is univ(for all t such that t)
-\end{alltt}
+\begin{lstlisting}
+type univ is univ(for all t such that t)
+\end{lstlisting}
 is a legally valid \ntRef{AlgebraicType} definition; albeit one that is quite restricted. Locally quantified types are commonly associated with function types:
-\begin{alltt}
-uniFun is uniFun(for all t such that (t,t)=>t)
-\end{alltt}
+\begin{lstlisting}
+type uniFun is uniFun(for all t such that (t,t)=>t)
+\end{lstlisting}
 
 \subsection{Automatic Synthesis of Contract Implementations}
 \index{automatically synthesizing implementations}
@@ -1236,12 +1214,12 @@ uniFun is uniFun(for all t such that (t,t)=>t)
 In some cases, the `regular' implementation of a contract by be predicted by examining the algebraic type definition itself. The \Sr compiler automatically generates implementations of the \q{equality} and the \q{pPrint} contracts, for example, by inspecting the type definition itself.
 
 A programmer may extend this system of atomically implementing contracts by implementing a special macro whose name is of the form \q{implement\_\q{name}}. A type definition that is marked:
-\begin{alltt}
-type person is some\{
+\begin{lstlisting}[mathescape=true]
+type person is some{
   name has type string;
-\} or noOne 
-  implementing \emph{name}
-\end{alltt}
+} or noOne 
+  implementing $\ntRef{Identifier}$
+\end{lstlisting}
 will result in the macro \q{implement\_\q{name}} being invoked on the type definition. 
 
 This is used, for example, to allow coercion between types and the standard \q{quoted} type to be synthesized, instead of being constructed manually.
@@ -1253,11 +1231,11 @@ An \ntRef{AlgebraicType} definition induces an interface that is composed of all
 This interface -- which takes the form of a \ntRef{RecordType} -- contains a \ntRef{Annotation} for every \ntRef{Annotation} that is present in a \ntRef{RecordConstructor}.
 
 For example, the interface for the \q{account} type above consists of:
-\begin{alltt}
-\{
+\begin{lstlisting}
+{
   balance has type ref long;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 
 This interface is used when determining the type soundness of a \ntRef{RecordAccess} expression.
 \begin{aside}
@@ -1278,18 +1256,18 @@ A \ntRef{TypeWitness} definition declares that a given type exists. It is used t
 \end{figure}
 
 For example, in the expression:
-\begin{alltt}
-group\{
+\begin{lstlisting}
+group{
   type integer counts as elem;
-  inv(X) is -X;
-  op(X,Y) is X+Y;
-  zero is 0;
-\}
-\end{alltt}
+  fun inv(X) is -X;
+  fun op(X,Y) is X+Y;
+  def zero is 0;
+}
+\end{lstlisting}
 the statement:
-\begin{alltt}
+\begin{lstlisting}
 type integer counts as elem
-\end{alltt}
+\end{lstlisting}
 asserts that the type \q{integer} is a witness for the existentially quantified type \q{elem}.
 \begin{aside}
 \ntRef{TypeWitness} statements are inherently internal statements: the witness type itself is not exposed by the record that contains the \ntRef{TypeWitness} statement.
@@ -1308,20 +1286,20 @@ A contract definition is a statement that defines the functions and action proce
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{Contract}&\arrow&\q{contract}\ \ntRef{Identifier}\ \q{over}\ \ntRef{ContractSpec}\ \q{is}\\
-&&\q{\{}\,\ntRef{RecordElement}\sequence{;}\ntRef{RecordElement}\,\q{\}}\\
-\ntDef{ContractSpec}&\arrow&\ntRef{TypeArgSpec}\ [\,\q{determines}\ \ntRef{TypeArgSpec}\ ]
+\ntDef{Contract}&\arrow&\q{contract}\ \ntRef{ContractSpec}\ \q{is}\\
+&&\q{\{}\,\ntRef{ElementType}\sequence{;}\ntRef{ElementType}\,\q{\}}\\
+\ntDef{ContractSpec}&\arrow&\ntRef{Identifier}\ \q{over}\ \ntRef{TypeArgSpec}\ [\,\q{determines}\ \ntRef{TypeArgSpec}\ ]
 \end{eqnarray*}
 \caption{Contract Statement}
 \label{ContractFig}
 \end{figure}
 
 For example, the contract that underlies type coercion (see Section~\vref{typeCoercionExpression}) is:
-\begin{alltt}
-contract coercion over (s,t) is \{
+\begin{lstlisting}
+contract coercion over (s,t) is {
   coerce has type (s)=>t
-\}
-\end{alltt}
+}
+\end{lstlisting}
 
 \index{default values!contract}
 A contract statement may also include \emph{defaults} for the names defined in the contract. If a given contract implementation does not give an implementation for a name that has a default associated for it, then the default is used.
@@ -1343,14 +1321,14 @@ For example, the \q{arithmetic} contract in Program~\vref{arithmeticContractProg
 \index{determines@\q{determines}}
 
 For certain forms of contract, it may be that the type parameters may not all be independent of each other. For example, consider the standard \q{iterable} contract (defined in Program~\vref{iterateContractProg}) which reads:
-\begin{alltt}
-contract iterable over coll determines el is \{
+\begin{lstlisting}
+contract iterable over coll determines el is {
   iterate has type 
     for all r such that 
       (coll,(el,IterState of r)=>IterState of r,IterState of r) => 
         IterState of r;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 The intention of the \q{iterable} contract is to support processing collections of elements in a sequential manner. The type parameter \q{coll} identifies the collection to be iterated over; and the type parameter \q{el} identifies the type of each element.
 
 However, the collection's type uniquely determines the type of each element: the element type is not independent of the collection. For example, to iterate over a \q{cons of \pcent{}t}, each element will be of type \q{\pcent{}t}; and to iterate over a \q{string} each element will be a \q{char} (even though the \q{string} type does not mention \q{char}).
@@ -1365,8 +1343,7 @@ A contract implementation is a specification of how a contract may be implemente
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{Implementation}&\arrow&\q{implementation}\ \ntRef{Identifier}\ \q{over}\ \ntRef{ContractSpec}\ [\,\q{default}\,]\ \q{is}\\
-&&\ntRef{Expression}
+\ntDef{Implementation}&\arrow&\q{implementation}\ \ntRef{ContractSpec}\ [\,\q{default}\,]\ \q{is}\ \ntRef{Expression}
 \end{eqnarray*}
 \caption{Contract Implementation Statement}
 \label{ContractImplementationFig}
@@ -1388,14 +1365,14 @@ A \q{contract} implementation may either take the form of a regular \ntRef{Anony
 Usually, the implementation of a \q{contract} is fairly straightforward. Program~\vref{consSize}, for example, gives the implementation of the standard \q{sizeable} contract for the \q{cons} type.
 
 \begin{program}
-\begin{alltt}
-implementation sizeable over cons of \pcent{}e is \{
-  size(nil) is 0;
-  size(cons(_,T)) is size(T)+1;
-  isEmpty(nil) is true;
-  isEmpty(_) default is false;
-\}
-\end{alltt}
+\begin{lstlisting}
+implementation sizeable over cons of \pcent{}e is {
+  fun size(nil) is 0
+   |  size(cons(_,T)) is size(T)+1
+  fun isEmpty(nil) is true
+   |  isEmpty(_) default is false
+}
+\end{lstlisting}
 \caption{Implementation of \q{sizeable} for \q{cons} values\label{consSize}}
 \end{program}
 
@@ -1404,11 +1381,11 @@ implementation sizeable over cons of \pcent{}e is \{
 \index{type!contracts!functional dependencies}
 
 Implementing a contract which has a functional dependency is exactly analogous to implementing a regular contract. The dependent type(s) must be identified in the \q{implementation} statement. For example, the initial part of the implementation of the \q{arithmetic} contract between \q{integer}s and \q{float}s is:
-\begin{alltt}
-implementation arithmetic over (integer,float) determines float is \{
-  integer(L) + float(R) is float(\_\_integer_float(L),R);
-  \ldots
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+implementation arithmetic over (integer,float) determines float is {
+  fun integer(L) + float(R) is float(__integer_float(L),R)
+  $\ldots$
+\end{lstlisting}
 Note that this implementation implies that whenever an integer value is involved with a floating point value, the result will always be floating point.
 
 \subsubsection{Default Contract Implementation}
@@ -1423,10 +1400,11 @@ A \q{default} implementation for a contract denotes an implementation to use for
 It is strongly recommended that the \q{default} implementation is generic; i.e., that the definition of the individual functions are generic. The contract type should be denoted by a variable and all the contract functions should be generic.
 
 For example, the implementation statement:
-\begin{alltt}
-implementation equality over \pcent{}t default is \{
-  L=R is \_\_equal(L,R)
-\end{alltt}
+\begin{lstlisting}
+implementation equality over %t default is {
+  fun L=R is __equal(L,R)
+}
+\end{lstlisting}
 uses a generic internal definition of \q{\_\_equal}.
 \end{aside}
 
@@ -1435,27 +1413,27 @@ As noted above, a \q{default} implementation is only used in restricted circumst
 \item[No available implementation] If a contract is referenced for a type that does not implement the contract then the \q{default} implementation will be used. 
 
 For example, given a contract:
-\begin{alltt}
-contract foo over \pcent{}t is \{
-  bar has type (\pcent{}t)=>boolean;
-\}
-\end{alltt}
+\begin{lstlisting}
+contract foo over t is {
+  bar has type (t)=>boolean;
+}
+\end{lstlisting}
 and the functional expression:
-\begin{alltt}
+\begin{lstlisting}
 bar("fred")
-\end{alltt}
+\end{lstlisting}
 then, if \q{foo} is not implemented for \q{string}s then the \q{default} implementation will be used for this expression. Of course, if there is no \q{default} implementation then a compile error will be flagged.
 \item[Variable type]
 In a few circumstances a reference may be made to a contract involving no known types. For example, in the condition:
-\begin{alltt}
-XX is nil=nil
-\end{alltt}
+\begin{lstlisting}
+def XX is nil=nil
+\end{lstlisting}
 there is a hidden type variable associated with the enumerated symbol \q{nil}. 
 \begin{aside}
 The symbol \q{nil} is from the standard definition of \q{cons}:
-\begin{alltt}
+\begin{lstlisting}
 type cons of t is nil or cons(t,cons of t)
-\end{alltt}
+\end{lstlisting}
 \end{aside}
 Since the type of \q{nil} is `under-constrained' -- i.e., the type of \q{nil} as an expression involves a type variable that is not constrained at all by the \q{nil} symbol -- even if \q{equality} is implemented for many types there is no way of knowing which implementation to use in this situation. In this case, a \q{default} implementation will be used if provided.
 \end{description}
@@ -1467,35 +1445,39 @@ More complex contract implementations may require the use of auxiliary function 
 
 For example, Program~\vref{consCompare} implements the \q{comparable} contract for \q{cons} values.
 \begin{program}
-\begin{alltt}
-implementation comparable over
-          cons of t where comparable over t and equality over t
-  is\{
-    X < Y is consLess(X,Y);
-    X <= Y is consLessEq(X,Y);
-    X > Y is consLess(Y,X);
-    X >= Y is consLessEq(Y,X);
-  \} using \{
-    consLess(cons of [],cons of [\_ ,.. \_]) is true;
-    consLess(cons of [X,..L1],cons of [X,..L2]) is consLess(L1,L2);
-    consLess(cons of [X,..\_], cons of [Y,..\_]) where X<Y is true;
-    consLess(_,_) default is false;
+\begin{lstlisting}
+implementation comparable over cons of t where
+      comparable over t and equality over t
+  is{
+    fun X < Y is consLess(X,Y)
+    fun X =< Y is consLessEq(X,Y)
+    fun X > Y is consLess(Y,X)
+    fun X >= Y is consLessEq(Y,X)
+  } using {
+    consLess has type for all t such that
+      (cons of t,cons of t)=>boolean
+    fun consLess([],[_ ,.. _]) is true
+     |  consLess([X,..L1],[X,..L2]) is consLess(L1,L2)
+     |  consLess([X,.._], [Y,.._]) where X<Y is true
+     |  consLess(_,_) default is false
     
-    consLessEq(cons of [],_) is true;
-    consLessEq(cons of [X,..L1],cons of [Y,..L2]) where X<=Y is
-      consLessEq(L1,L2);
-    consLessEq(_,_) default is false;
-  \}
-\end{alltt}
+    consLessEq has type for all t such that
+      (cons of t,cons of t)=>boolean
+    fun consLessEq([],_) is true
+     |  consLessEq([X,..L1],[Y,..L2]) where X=<Y is
+          consLessEq(L1,L2)
+     |  consLessEq(_,_) default is false
+  }
+\end{lstlisting}
 \caption{Implementation of \q{comparable} for \q{cons} values\label{consCompare}}
 \end{program}
 
 
 \begin{aside}
 The implementation of \q{comparable} for \q{cons} types is based on a requirement that the individual elements of lists must also be compared. Hence the clause
-\begin{alltt}
-cons of \pcent{}t where comparable over t and equality over t
-\end{alltt}
+\begin{lstlisting}
+cons of t where comparable over t and equality over t
+\end{lstlisting}
 in the head of the \q{contract} \q{implementation} statement in Program~\vref{consCompare}. The primary job of the definition of \q{<} within Program~\vref{consCompare} is to show how \q{cons} values may be compared. Our definition of inequality for \q{cons} values assumes that:
 \begin{enumerate}[a.]
 \item empty lists are less than any non-empty list;
@@ -1503,24 +1485,24 @@ in the head of the \q{contract} \q{implementation} statement in Program~\vref{co
 \item if the first elements of the two lists are identical then we consider the tails of each list.
 \end{enumerate}
 \begin{aside}
-The curious reader may wonder why we introduce a new name \q{consLessEq} in order to define \q{<=} (and, by extension \q{consLess} for \q{<} etc.). The reason for this has to do with limitations on type inference in the context of recursive programs: within the equations that define a function, any \emph{use} of the function symbol must represent a recursive use. For example, in the equation:
-\begin{alltt}
-consLessEq(cons\{X;..L1\},cons\{Y;..L2\}) where X<=Y is
-    consLessEq(L1,L2);
-\end{alltt}
+The curious reader may wonder why we introduce a new name \q{consLessEq} in order to define \q{=<} (and, by extension \q{consLess} for \q{<} etc.). The reason for this has to do with limitations on type inference in the context of recursive programs: within the equations that define a function, any \emph{use} of the function symbol must represent a recursive use. For example, in the equation:
+\begin{lstlisting}
+fun consLessEq([X,..L1],[Y,..L2]) where X=<Y is
+      consLessEq(L1,L2);
+\end{lstlisting}
 the occurrence of \q{consLessEq} in the right hand side of the equation represents a recursive call to the function (\q{consLessEq}) being defined.
 
-However, if we tried to define \q{<=} without the use of the auxiliary name we would get two occurrences of \q{<=} which really represent different functions:
-\begin{alltt}
-cons\{X;..L1\} <= cons\{Y;..L2\} where X<=Y is L1 <= L2;
-\end{alltt}
-However, the two occurrences of \q{<=} refer to \emph{different} kinds of use: one is as a `normal' overloaded occurrence of \q{<=} and once as a recursive call to the function being defined.
+However, if we tried to define \q{=<} without the use of the auxiliary name we would get two occurrences of \q{=<} which really represent different functions:
+\begin{lstlisting}
+fun cons of [X,..L1] =< cons of [Y,..L2] where X=<Y is L1 =< L2
+\end{lstlisting}
+However, the two occurrences of \q{=<} refer to \emph{different} kinds of use: one is as a `normal' overloaded occurrence of \q{=<} and once as a recursive call to the function being defined.
 
 Normally, outside of the definition of the function, it is permitted to allow a given function to be used in different uses -- always assuming that the types are consistent. However, within the definition of a function, all occurrences of the function symbol must refer to the same function.
 
-In the case of the \q{<=} equation above, the type inference system would not be able to distinguish a recursive call from a call to a different overloaded function of the same name; and would assume that both uses of \q{<=} are intended to be part of the definition. This, in turn, would result in a type error being generated.
+In the case of the \q{=<} equation above, the type inference system would not be able to distinguish a recursive call from a call to a different overloaded function of the same name; and would assume that both uses of \q{=<} are intended to be part of the definition. This, in turn, would result in a type error being generated.
 
-In summary, when defining an overloaded function like \q{<=}, we have to introduce an auxiliary function to `carry' the recursion.
+In summary, when defining an overloaded function like \q{=<}, we have to introduce an auxiliary function to `carry' the recursion.
 \end{aside}
 \end{aside}
 
@@ -1535,48 +1517,51 @@ In defining the implementation of a contract, each of the variables that are par
 When a program refers to a contract-defined function -- i.e., a variable that is declared within a \q{contract} -- then that reference must be \emph{resolved} to an actual program before the program can be said to be executable.
 
 For example, consider the expression:
-\begin{alltt}
+\begin{lstlisting}
 A+3
-\end{alltt}
+\end{lstlisting}
 The \q{(+)} function is part of the \q{arithmetic} contract (see Section~\vref{arithmeticContract}) which means that we need to resolve the call to \q{(+)} to an actual implemented function.
 
 The type signature for \q{(+)} is:
-\begin{alltt}
+\begin{lstlisting}
 for all t such that (t,t)=>t where arithmetic over t
-\end{alltt}
+\end{lstlisting}
 where the constraint
-\begin{alltt}
+\begin{lstlisting}
 arithmetic over t
-\end{alltt}
+\end{lstlisting}
 is satisfied for any \q{t} for which there is an \q{implementation} of \q{arithmetic}. 
 
 In this case we know, because \q{3} is an \q{integer} that the type of \q{A} must also be \q{integer} -- as is the type of the whole expression. So, the actual constraint after taking type inference into account is:
-\begin{alltt}
+\begin{lstlisting}
 arithmetic over integer
-\end{alltt}
+\end{lstlisting}
 which \emph{is} satisfied because there is a standard implementation of \q{arithmetic} for \q{integer}.
 
 Implementations can be viewed as functions whose value is a record of all the elements of the defined contract. For example, the implementation function of \q{arithmetic} over \q{integer} has a definition that is similar to:
-\begin{alltt}
-arithmetic\#integer() is arithmetic\{ X+Y is \_integer\_plus(X,Y); \ldots \}
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+fun arithmetic#integer() is arithmetic{
+    fun X+Y is _integer_plus(X,Y);
+    $\ldots$
+  }
+\end{lstlisting}
 
 Resolving the expression \q{A+3} is achieved by replacing the abstract function \q{(+)} with an actual function:
-\begin{alltt}
-arithmetic\#integer().+(A,3)
-\end{alltt}
+\begin{lstlisting}
+arithmetic#integer().+(A,3)
+\end{lstlisting}
 
 In some cases, there is not sufficient information about the types of variables to fully resolve the appropriate definition to use. In this case, it must be true that the type(s) involved must be variable and that they `surface' to a point where the type variable(s) are generalized.
 
 Consider the function:
-\begin{alltt}
-addSq(X,Y) is X+Y*Y
-\end{alltt}
+\begin{lstlisting}
+fun addSq(X,Y) is X+Y*Y
+\end{lstlisting}
 
 The type of \q{X} and \q{Y} are not completely known, and are denoted by the same type variable (\q{t}) say; \q{t} is, however, a constrained type that is bound by the scope of the \q{addSq} function itself. In fact, the type signature of \q{addSq} reflects this:
-\begin{alltt}
+\begin{lstlisting}
 for all t such that (t,t)=>t where arithmetic over t
-\end{alltt}
+\end{lstlisting}
 The \q{arithmetic} contract requirement has surfaced to the same level where the type variable \q{t} is bound.
 
 In general, where an overloaded name is used, there are two permitted possibilities: the type constraints implied by the overloaded name are subsumed by an explicit type equality or the type variable is bound in some \ntRef{ThetaEnvironment}.
@@ -1586,19 +1571,19 @@ The third possibility: where the constrained type is a type variable but is not 
 \end{aside}
 
 There is not enough information here to `fix' an actual implementation to use within the definition of \q{addSq}; and so we resolve by rewriting the \q{addSq} function to take an additional argument -- the \q{arithmetic} dictionary represented by the variable \q{D}:
-\begin{alltt}
-addSq\#(D) is let\{
-  addSq'(X,Y) is D.+(X,D.*(Y,Y));
-\} in addSq'
-\end{alltt}
+\begin{lstlisting}
+fun addSq#(D) is let{
+  fun addSq'(X,Y) is D.+(X,D.*(Y,Y));
+} in addSq'
+\end{lstlisting}
 In addition (sic), we will have to also resolve all \emph{calls} to \q{addSq} as well. A call to \q{addSq} such as:
-\begin{alltt}
+\begin{lstlisting}
 addSq(A,3)
-\end{alltt}
+\end{lstlisting}
 will be rewritten to:
-\begin{alltt}
-addSq\#(arithmetic\#integer())(A,3)
-\end{alltt}
+\begin{lstlisting}
+addSq#(arithmetic#integer())(A,3)
+\end{lstlisting}
 because we know from the presence of the literal integer that \q{addSq} is being used with \q{integer} arguments.
 
 Resolving for contract implementations `pushes out' from expressions such as \q{A+3} outward until all references to contracts have been resolved by explicit implementations.
@@ -1606,7 +1591,7 @@ Resolving for contract implementations `pushes out' from expressions such as \q{
 It is an error for the top-level of a program to contain unresolved references to contracts.
 \end{aside}
 
-The formal rules for satisfying (and hence resolving) contract constraints are shown in Section~\vref{satisfyingContracts}.
+The formal rules for satisfying (and hence resolving) contract constraints are shown in Section~\vref{overloading}.
 
 
 \subsection{Standard Contracts}
@@ -1617,7 +1602,7 @@ The formal rules for satisfying (and hence resolving) contract constraints are s
 The language defines a few contracts as standard. These cover, for example, the concepts of \q{equality}, \q{comparable}, and \q{sizeable} entities and the \q{arithmetic} operations. These contracts are integral to the semantics of the language.
 
 \begin{longtable}[hbtp]{|lll|}
-\caption{Standard Contracts\label{standardContractTable}}\\ 
+\caption{Standard Contracts}\label{standardContractTable}\\ 
 \hline
 Contract&Description&\\
 \hline
@@ -1845,9 +1830,9 @@ the former subsumes the bound type of the latter without affecting the bound var
 %\index{resolving contract constraints}
 %
 %A \ntRef{ContractConstraint} of the form:
-%\begin{alltt}
+%\begin{lstlisting}[mathescape=true]
 %\emph{Contract} over (\emph{Type\sub1}\sequence{,}\emph{Type\subn}) \ldots
-%\end{alltt}
+%\end{lstlisting}
 %or
 %\begin{alltt}
 %\emph{Contract} over (\emph{Type\sub1}\sequence{,}\emph{Type\subn}) determines (\emph{Type\sub{n+1}}\sequence{,}\emph{Type\sub{n+m}}) \ldots

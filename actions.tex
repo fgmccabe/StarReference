@@ -8,10 +8,10 @@ An action is the performance of an operation in a particular context.
 \begin{figure}[htbp]
 \begin{eqnarray*}
 \ntDef{Action}&\arrow&\ntRef{NullAction}\ \choice\ \ntRef{ActionBlock}\\
-\ntDef{Action}&\choice&\ntRef{LocalVariable}\ \choice\ \ntRef{TypeAnnotation}\\
+&\choice&\ntRef{LocalVariable}\ \choice\ \ntRef{TypeAnnotation}\\
 &\choice&\ntRef{Assignment}\ \choice\ \ntRef{InvokeAction}\ \choice\ \ntRef{IgnoreAction}\\
 &\choice&\ntRef{ForLoop}\ \choice\ \ntRef{WhileLoop}\ \choice\ \ntRef{ConditionAction}\\
-&\choice&\ntRef{CaseAction}\ \choice\ \ntRef{LetAction}\\
+&\choice&\ntRef{SwitchAction}\ \choice\ \ntRef{LetAction}\\
 &\choice&\ntRef{ValisAction}\ \choice\ \ntRef{AssertAction}\\
 &\choice&\ntRef{RaiseAction}\ \choice\ \ntRef{TryAction}
 \end{eqnarray*}
@@ -47,7 +47,7 @@ It is named a local variable simply because it's scope is limited to the block o
 \begin{figure}[htbp]
 \begin{eqnarray*}
 \ntDef{LocalVariable}&\arrow&\q{var}\ \ntRef{Identifier}\ \q{:=}\ \ntRef{Expression}\\
-&\choice&[\q{var}]\,\ntRef{Pattern}\ \q{is}\ \ntRef{Expression}
+&\choice&\q{def}\,\ntRef{Pattern}\ \q{is}\ \ntRef{Expression}
 \end{eqnarray*}
 \caption{Local Variable}
 \label{localVariableFig}
@@ -59,52 +59,52 @@ The scope of a local variable declaration is from the local declaration itself t
 It is an error for a variable to be referenced within its own definition. Recursive definitions are not permitted as \ntRef{LocalVariable}s.
 \end{aside}
 
-A local variable declared using the \q{var}\ldots\q{:=} form is \emph{re-assignable}; whereas a variable declared using the \q{is} form is not. The type of a re-assignable variable is a \q{ref}erence type (see Section~\vref{referenceType}). For example, given the \ntRef{LocalVariable} declaration:
-\begin{alltt}
+A local variable declared using the \q{var}\ldots\q{:=} form is \emph{re-assignable}; whereas a variable declared using the \q{def}\ldots\q{is} form is not. The type of a re-assignable variable is a \q{ref}erence type (see Section~\vref{referenceType}). For example, given the \ntRef{LocalVariable} declaration:
+\begin{lstlisting}
 X := 3
-\end{alltt}
+\end{lstlisting}
 then the variable \q{X} has type \q{ref integer}.
 
 If the left hand side of an \q{is} local variable definition is an identifier, or is an unlabeled tuple, then the \q{var} prefix is not required. However, it is good practice to use \q{var} in situations that may be confusing.
 
 \begin{aside}
 Note that the left hand side of an \q{is} definition is a \q{Pattern}, not simply an \q{Identifier}. One primary use for this form is to allow the `unpacking' of function results. For example, the function \q{ddivide} returns a pair of values: the quotient and the remainder result of dividing the first argument by the second:
-\begin{alltt}
-ddivide(X,Y) is (X/Y,X\%Y)
-\end{alltt}
+\begin{lstlisting}
+fun ddivide(X,Y) is (X/Y,X%Y)
+\end{lstlisting}
 We can unpack the results of a call to \q{ddivide} using a \ntRef{TuplePattern} on the left hand side of the declaration:
-\begin{alltt}
-var (Q,R) is ddivide(34,3)
-\end{alltt}
+\begin{lstlisting}
+def (Q,R) is ddivide(34,3)
+\end{lstlisting}
 which would have the effect of binding \q{Q} to 11, and \q{R} to 1.
 \begin{aside}
 The reason that we get \q{integer} division with this call to \q{ddivide} is that the arguments to \q{ddivide} -- \q{34} and \q{3} -- are \q{integer}. The slightly different call:
-\begin{alltt}
-var (FQ,FR) is ddivide(34.0,3.0)
-\end{alltt}
+\begin{lstlisting}
+def (FQ,FR) is ddivide(34.0,3.0)
+\end{lstlisting}
 relies on \q{float}int point \q{arithmetic} and results in binding \q{FQ} to 11.333333, and \q{FR} to 1.0.
 \end{aside}
 \end{aside}
 
 \begin{aside}
 Local variables may be reassigned by an assignment action anywhere \emph{in the same} block as the variable declaration itself. For example, the following, somewhat complex, scenario:
-\begin{alltt}
+\begin{lstlisting}
 valof\{
   var X := 0;
-  var inc is (procedure() do \{ X:=X+1; \})
+  def inc is (() do { X:=X+1; })
   valis X
 \}
-\end{alltt}
+\end{lstlisting}
 the assignment to \q{X} within the \q{inc} procedure is permitted; even though it  side-effect a variable not defined directly within the procedure.
 \end{aside}
 
 \subsubsection{Declaring Variables}
 \index{variable!declaration}
 The type of a \ntRef{Variable} can be declared in an action sequence using a \ntRef{TypeAnnotation} statement prior to the declaration itself:
-\begin{alltt}
+\begin{lstlisting}
 X has type ref integer;
 var X := 3
-\end{alltt}
+\end{lstlisting}
 
 \subsubsection{Type Safety}
 A variable declaration is type safe if the type of the variable is the same as the type of the expression giving its value.
@@ -115,7 +115,7 @@ Of course, it is often the case that the type of a variable is determined from i
 \begin{prooftree}
 \AxiomC{\typeprd{E}{Ex}{T}}
 \AxiomC{\typeprd{E}{P}{T}}
-\BinaryInfC{\typesafe{E}{\q{var} P\ \q{is}\ Ex}}
+\BinaryInfC{\typesafe{E}{\q{def} P\ \q{is}\ Ex}}
 \end{prooftree}
 
 \begin{prooftree}
@@ -129,9 +129,9 @@ Of course, it is often the case that the type of a variable is determined from i
 \index{action!assignment}
 \index{assignment}
 The assignment action \q{:=} replaces the contents of a variable with a new value. For example:
-\begin{alltt}
+\begin{lstlisting}
 Count := Count+3
-\end{alltt}
+\end{lstlisting}
 changes the value associated with the variable \q{Count} to \q{Count+3} -- where \q{Count+3} refers to the `old' value of \q{Count}.
 
 There are a number of variations on the basic form of assignment; it is possible to `replace' an element of a \q{list} or an attribute of a record. However, semantically, all the different syntactic forms of assignment have a common root: that of changing a variable to have a different value.
@@ -203,30 +203,30 @@ An \q{indexable} sequence may be updated using the square index notation on the 
 \end{figure}
 
 An assignment of the form:
-\begin{alltt}
+\begin{lstlisting}
 A[ix] := 34
-\end{alltt}
+\end{lstlisting}
 is syntactic short-hand for
-\begin{alltt}
+\begin{lstlisting}
 A := A[with ix->34]
-\end{alltt}
+\end{lstlisting}
 which, in turn, is shorthand for:
-\begin{alltt}
-A := \_set\_indexed(A,ix,34)
-\end{alltt}
+\begin{lstlisting}
+A := _set_indexed(A,ix,34)
+\end{lstlisting}
 
 An assignment of the form:
-\begin{alltt}
+\begin{lstlisting}
 remove C[ix]
-\end{alltt}
+\end{lstlisting}
 means to delete the identified element of the collection and is syntactic shorthand for the assignment:
-\begin{alltt}
+\begin{lstlisting}
 A := A[without ix]
-\end{alltt}
+\end{lstlisting}
 which, in turn, is shorthand for:
-\begin{alltt}
-A := \_delete\_indexed(A,ix)
-\end{alltt}
+\begin{lstlisting}
+A := _delete_indexed(A,ix)
+\end{lstlisting}
 
 \begin{aside}
 As noted in Section~\vref{indexableContract}, the sequence assignment is not restricted to sequences with \q{integer} indices. The same assignment statement also applies to \q{dictionary} updates.
@@ -396,26 +396,26 @@ A \q{for} loop is used to iterate over the elements of a collection. The collect
 \end{figure}
 \noindent
 For example, the loop:
-\begin{alltt}
+\begin{lstlisting}
 for ("j",X) in list of [ ("j","s"), ("k","t"), ("j","u") ] do
   logMsg(info,X);
-\end{alltt}
+\end{lstlisting}
 results in log messages (see Section~\vref{logMsg}) being printed for \q{"s"} and \q{"u"} (but not for \q{"t"} because \q{("j",X)} does not match against \q{("k","t")}).
 
 A variant of the \q{for} loop allows access to the `index' of the element being processed. For example, in the loop:
-\begin{alltt}
+\begin{lstlisting}
 for Ix->P in array of ["alpha", "beta", "gamma"] do
-  logMsg(info,"P=\$P, index=\$Ix");
-\end{alltt}
+  logMsg(info,"P=$P, index=$Ix");
+\end{lstlisting}
 the variable \q{Ix} is successively bound to the index of the element being processed. 
 
 A \q{for} loop implies a \emph{scope extension}: variables declared in the pattern have their scope extend to the body of the loop. In this case the variable \q{X} introduced in the pattern is available for use in the \q{logMsg} procedure call.
 
 A particularly common case of for loop is the numeric for loop:
-\begin{alltt}
+\begin{lstlisting}
 for Ix in range(0,10,1) do
-  logMsg(info,"\$Ix")
-\end{alltt}
+  logMsg(info,"$Ix")
+\end{lstlisting}
 This will result in the integers 0 through 9 being displayed on the log.
 
 \subsubsection{Type Safety}
@@ -458,14 +458,14 @@ The \q{while} loop is used to repetitively evaluate a condition. The loop contin
 \end{figure}
 
 A \q{while} loop only makes sense if there is a possibility of successive iterations of the body causing a change of state that would make the condition unsatisfiable. A common paradigm for this is the class of \emph{relaxation} algorithms: algorithms that continue until nothing changes:
-\begin{alltt}
+\begin{lstlisting}[escapechar=|]
 var done := false;
-while not done do\{
+while not done do{
   done := true;
-  if \ldots then
+  if |\ldots| then
     done := false;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 
 Like the \q{for} loop, a \q{while} loop also implies a scope extension. Variables defined within the governing condition are available for use within the body of the loop.
 \begin{aside}
@@ -504,10 +504,10 @@ In general, a condition may be satisfied in many different ways. The conditional
 \end{aside}
 
 For example, we can use a \ntRef{Search} condition to verify that an element is in a collection. The fragment:
-\begin{alltt}
-if \{name="j"; amount=X\} in Scores then
-  \emph{Action}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+if {name="j"; amount=X} in Scores then
+  |\ntRef{Action}|
+\end{lstlisting}
 tests to see if there is an entry that matches \q{\{name="j"; amount=X\}} in the \q{Scores} collection; and, if there is, binds the variable \q{X} appropriately within \q{\emph{Action}}.
 
 \subsubsection{Type Safety}
@@ -521,59 +521,59 @@ A conditional action is type safe if the condition is safe, and if both the bran
 \end{prooftree}
 
 
-\subsection{Case Actions}
-\label{caseAction}
-\index{action!case@\q{case}}
-\index{case action@\q{case} action}
+\subsection{Switch Actions}
+\label{SwitchAction}
+\index{action!switch@\q{switch}}
+\index{switch action@\q{switch} action}
 
-A \q{case} action uses a selector expression and a set of action rules to determine which action to perform.
+A \q{switch} action uses a selector expression and a set of action rules to determine which action to perform.
 \begin{aside}
-As with \q{case} expressions (see Section~\vref{caseExpression}). \q{case} actions are often constructed during the process of compiling other kinds of program.
+As with \q{switch} expressions (see Section~\vref{caseExpression}). \q{switch} actions are often constructed during the process of compiling other kinds of program.
 \end{aside}
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{CaseAction}&\arrow&\q{case}\ \ntRef{Expression}\ \q{in}\ \ntRef{CaseActionBody}\\
-\ntDef{CaseActionBody}&\arrow&\q{\{}\ntRef{ActionArm}\sequence{\q{;}}\ntRef{ActionArm}\,\q{\}}\\
-\ntDef{ActionArm}&\arrow&\ntRef{Pattern}\ \q{do}\ \ntRef{Action}\\
-&\choice&\ntRef{Pattern}\ \q{default}\ \q{do}\ \ntRef{Action}
+\ntDef{SwitchAction}&\arrow&\q{switch}\ \ntRef{Expression}\ \q{in}\ \ntRef{SwitchActionBody}\\
+\ntDef{SwitchActionBody}&\arrow&\q{\{}\ntRef{ActionArm}\sequence{\q{;}}\ntRef{ActionArm}\,\q{\}}\\
+\ntDef{ActionArm}&\arrow&\q{case}\ \ntRef{Pattern}\ \q{do}\ \ntRef{Action}\\
+&\choice&\q{case}\ \ntRef{Pattern}\ \q{default}\ \q{do}\ \ntRef{Action}
 \end{eqnarray*}
-\caption{Case Action}
-\label{caseActionFig}
+\caption{Switch Action}
+\label{SwitchActionFig}
 \end{figure}
 
-The `selector' expression is evaluated, and then, at most one of the \ntRef{CaseAction}s is selected based on whether the \ntRef{Pattern} matches or not. If one of these does match, then the corresponding \ntRef{Action} on the right hand side is performed.
+The `selector' expression is evaluated, and then, at most one of the \ntRef{SwitchAction}s is selected based on whether the \ntRef{Pattern} matches or not. If one of these does match, then the corresponding \ntRef{Action} on the right hand side is performed.
 
 If none of the \ntRef{ActionArm}'s case patterns match, and if a \q{default} \ntRef{Action} is specified, then that action is performed. If a \q{default} is not specified then \q{nothing} is performed.
 
 Program~\vref{treeWalkProg} shows an example of using a \q{case} action to walk a tree in left-to-right ordering.
 \begin{program}
-\begin{alltt}
+\begin{lstlisting}
 type tree of t is empty or node(tree of t, t, tree of t);
 
 walk has type for all t such that (tree of t, (t)=>())=>()
-walk(T,P) \{
-  case T in \{
-    empty do nothing;
-    node(L,Lb,R) do \{
+prc walk(T,P) do {
+  switch T in {
+    case empty do nothing;
+    case node(L,Lb,R) do {
       walk(L,P);
       P(Lb); -- visit the node
       walk(R,P)
-    \}
-  \}
-\};
-\end{alltt}
+    }
+  }
+};
+\end{lstlisting}
 \caption{A Left-to-Right Tree Walk Program\label{treeWalkProg}}
 \end{program}
 
 
 Each \ntRef{ActionArm}'s pattern may introduce variables; these variables are `in scope' only for the corresponding case action.
 
-Optionally, a \q{case} action may have a \q{default} clause. If none of the cases in the \ntRef{CaseActionBody} match then the \q{default} case is performed. If there is no \q{default} clause, then if none of the cases match \q{nothing} is performed -- and execution continues with the next action.
+Optionally, a \q{case} action may have a \q{default} clause. If none of the cases in the \ntRef{SwitchActionBody} match then the \q{default} case is performed. If there is no \q{default} clause, then if none of the cases match \q{nothing} is performed -- and execution continues with the next action.
 
 
 \paragraph{Evaluation Order}
-The \ntRef{ActionArm}s in a \ntRef{CaseAction} are tried in the order that they are written -- with the exception of any \q{default} \ntRef{ActionArm} -- which is guaranteed to be attempted only if all others do not apply.
+The \ntRef{ActionArm}s in a \ntRef{SwitchAction} are tried in the order that they are written -- with the exception of any \q{default} \ntRef{ActionArm} -- which is guaranteed to be attempted only if all others do not apply.
 
 \subsubsection{Type Safety}
 The type safety requirements of a \q{case} action are that the types of the patterns of each \ntRef{ActionArm} are the same, and are the same as the selector expression. In addition, the right hand sides of the \ntRef{ActionArm}s should also be consistently typed.
@@ -582,7 +582,7 @@ The type safety requirements of a \q{case} action are that the types of the patt
 \AxiomC{\typeprd{E}{S}{T}}
 \AxiomC{\typeprd{E}{P\subi}{T}}
 \AxiomC{\typesafe{E$\cup{}$varsIn(P\subi)}{A\subi}}
-\TrinaryInfC{\typesafe{E}{\q{case}\ S\ \q{in\{}\,P\sub1\ \q{do}\ A\sub1\sequence{;}P\subn\ \q{do}\ A\subn\ \q{\}}}}
+\TrinaryInfC{\typesafe{E}{\q{switch}\ S\ \q{in\{}\,\q{case}\,P\sub1\ \q{do}\ A\sub1\sequence{;}\q{case}\,P\subn\ \q{do}\ A\subn\ \q{\}}}}
 \end{prooftree}
 
 In the case that there is a \q{default} clause, then that too must be type safe:
@@ -590,7 +590,7 @@ In the case that there is a \q{default} clause, then that too must be type safe:
 \AxiomC{\typeprd{E}{S}{T}}
 \AxiomC{\typeprd{E}{P\subi}{T}}
 \AxiomC{\typesafe{E$\cup{}$varsIn(P\subi)}{A\subi}}
-\TrinaryInfC{\typesafe{E}{\q{case}\ S\ \q{in\{}\,P\sub1\ \q{do}\ A\sub1\sequence{;}P\sub{n-1}\ \q{do}\ A\sub{n-1}\, \q{;} P\subn\ \q{default do} A\subn\,\q{\}}}}
+\TrinaryInfC{\typesafe{E}{\q{switch}\ S\ \q{in\{}\,\ldots\q{; case}\, P\subn\ \q{default do} A\subn\q{;}\ldots\,\q{\}}}}
 \end{prooftree}
 
 \subsection{Valis Action}
@@ -658,9 +658,9 @@ Exceptions and their handling center on the \q{exception} type. When an exceptio
 
 The definition of the \q{exception} type is given in Program~\vref{exceptionDef}.
 \begin{program}
-\begin{alltt}
+\begin{lstlisting}
 type exception is exception(string,any,location)
-\end{alltt}
+\end{lstlisting}
 \caption{The definition of the standard \q{exception} type\label{exceptionDef}}
 \end{program}
 
@@ -689,23 +689,23 @@ There are two forms to the \q{raise} action's argument: in the first form only t
 In the second form, a \q{string} `code' is given also. This form permits programs to communicate a short flag to the handling mechanism as well as a value. If the code is not given then \q{nonString} is assumed.
 
 A \q{raise} action is equivalent to a call to the standard builtin-function \q{\_raise}. For example, the \q{raise} action:
-\begin{alltt}
+\begin{lstlisting}
 raise "An exceptional raise"
-\end{alltt}
+\end{lstlisting}
 is equivalent to a call to 
-\begin{alltt}
+\begin{lstlisting}
 _raise(exception(nonString,"An exceptional raise" cast any,__location__))
-\end{alltt}
+\end{lstlisting}
 where \q{\_\_location\_\_} is a special \q{location}-valued variable that denotes the source location of the expression itself; see Section~\vref{locationVar}.
 
 The action:
-\begin{alltt}
+\begin{lstlisting}
 raise "error":34
-\end{alltt}
+\end{lstlisting}
 denotes the call:
-\begin{alltt}
+\begin{lstlisting}
 _raise(exception("error",34 cast any,__location__))
-\end{alltt}
+\end{lstlisting}
 
 A \q{raise} action will cause the current action to abort. If the \q{raise} action is in the dynamic scope of a \ntRef{TryAction} then the protected \ntRef{Action} of that \ntRef{TryAction} is aborted and the recovery \ntRef{Action} is entered.
 
@@ -725,25 +725,25 @@ The `code' portion of the \q{exception} value is useful in situations where prog
 The \q{try} \ldots{} \q{on abort} action allows recovery from actions and expressions that cause exceptions.
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{TryAction}&\arrow&\q{try}\ \ntRef{Action}\ \q{on abort}\ \ntRef{CaseActionBody}
+\ntDef{TryAction}&\arrow&\q{try}\ \ntRef{Action}\ \q{on abort}\ \ntRef{SwitchActionBody}
 \end{eqnarray*}
 \caption{Try Action}
 \label{tryActionFig}
 \end{figure}
 
-If an exception is caused during the execution of the protected \ntRef{Action} then the handler in entered. This handler takes the form of the body of a \ntRef{CaseAction} -- i.e., is a sequence of recovery clauses, each of which is a \ntRef{ActionArm}. The pattern part of the recovery clause is matched against the exception value; and the first pattern that matches is used to recover from the exception.
+If an exception is caused during the execution of the protected \ntRef{Action} then the handler in entered. This handler takes the form of the body of a \ntRef{SwitchAction} -- i.e., is a sequence of recovery clauses, each of which is a \ntRef{ActionArm}. The pattern part of the recovery clause is matched against the exception value; and the first pattern that matches is used to recover from the exception.
 
 Exceptions are caused either by an error condition -- such as when the equations of a function fail to match a call -- or by an explicit invocation of the \q{raise} action/expression.
 
 For example, in the fragment:
-\begin{alltt}
-try\{
-  A is first(nil); -- Will raise an exception
-  logMsg(info,"A is \$A");
-\} on abort \{
-  E do logMsg(info,"Had exception: \$E");
-\}
-\end{alltt}
+\begin{lstlisting}
+try{
+  def A is first(nil); -- Will raise an exception
+  logMsg(info,"A is $A");
+} on abort {
+  case E do logMsg(info,"Had exception: $E");
+}
+\end{lstlisting}
 the evaluation of \q{first(nil)} will fail because \q{nil} is empty. As a result, the rest of the \ntRef{Action} it is embedded in is aborted and execution continues with the recovery clause.
 
 \subsubsection{Type Safety}

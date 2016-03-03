@@ -39,7 +39,7 @@ A \q{task} expression consists of a \q{task}-labeled \ntRef{ActionBlock}.
 
 A \q{task} is `created' with the \q{task} notation:
 \begin{alltt}
-T is task\{ logMsg(info,"This is a task action") \}
+def T is task\{ logMsg(info,"This is a task action") \}
 \end{alltt}
 \begin{aside}
 Apart from \q{background} tasks (see Section~\vref{backgroundTask}), a \ntRef{TaskExpression} is not `started' until it is \q{perform}ed or \q{valof} is applied.
@@ -52,22 +52,22 @@ This is the same as for all \ntRef{ComputationExpression}s.
 
 \ntRef{TaskExpression}s may have values; and may be composed and constructed like other expressions. For example, the function:
 \begin{alltt}
-tt(X) is task\{
-  Y is 2;
+fun tt(X) is task\{
+  def Y is 2;
   valis X+Y;
 \}
 \end{alltt}
 represents a rather elaborate way of adding 2 to a number. As with \q{T} above, the expression:
 \begin{alltt}
-I is tt(3)
+def I is tt(3)
 \end{alltt}
 is not an \q{integer} but an \q{integer}-valued \ntRef{TaskExpression}. The value returned may be extracted using \q{valof}:
 \begin{alltt}
-Five is valof I
+def Five is valof I
 \end{alltt}
 As with all \ntRef{ComputationExpression}s, if there is a possibility that the \ntRef{TaskExpression} will fail, then the \q{on abort} variant of \q{valof} should be used:
 \begin{alltt}
-Five is valof I 
+Fdef ive is valof I 
   on abort \{ E do \{ 
     logMsg(info,"Was not expecting this");
     valis nonInteger
@@ -219,7 +219,7 @@ A classic use of \q{guardRv} is to enable a semantic condition to be satisfied b
 \begin{alltt}
 var Q := queue of [];
 \ldots
-testQ() is task\{
+fun testQ() is task\{
   if empty(Q) then
     valis neverRv
   else
@@ -245,14 +245,14 @@ The first argument of \q{wrapRv} is the \q{rendezvous} that is actually waited o
 
 One use for the \q{wrapRv} function is to perform another \q{rendezvous} wait. For example:
 \begin{alltt}
-requestReply(SCh,RCh,Msg) is guardRv(sendRv(Ch,Msg),
-                                fn(_) => wait for recvRv(RCh))
+fun requestReply(SCh,RCh,Msg) is guardRv(sendRv(Ch,Msg),
+                                (_) => wait for recvRv(RCh))
 \end{alltt}
 will send a \q{Msg} on the `send channel' \q{SCh}; and once that message was successfully sent will wait for a reply on the \q{RCh} channel.
 
 \q{requestRepl} is a \q{rendezvous}-valued function; and so can be used in conjunction with other \q{rendezvous} expressions. For example, to send a message to two other \q{task}s but only wait for one result we might use:
 \begin{alltt}
-R is valof wait for chooseRv\{
+def R is valof wait for chooseRv\{
   requestReply(S1,RCh);
   requestReply(S2,RCh)
   \}
@@ -274,7 +274,7 @@ withNackRv(F)
 \end{alltt}
 \q{F} should be a function that takes a \q{rendezvous} and returns a \q{rendezvous}:
 \begin{alltt}
-F(A) is recvRv(Ch)
+fun F(A) is recvRv(Ch)
 \end{alltt}
 The type of \q{A} is \q{rendezvous of ()}.
 
@@ -289,9 +289,9 @@ However, if this \q{rendezvous} were in a \q{chooseRv} and a different \q{rendez
 
 A slightly more complex example should illustrate this:
 \begin{alltt}
-showMsg(Ch) is let\{
-  F(A) is valof\{
-    _ is background task \{
+fun showMsg(Ch) is let\{
+  fun F(A) is valof\{
+    ignore background task \{
       ignore wait for A; -- will block unless recvRv not active
       logMsg(info,"Did not receive message");
     \}

@@ -12,7 +12,7 @@ In addition to basic handling of JSON values, \Sr provides a form of path notati
 
 Program~\vref{infosetProg} defines the \q{json} type.
 \begin{program}
-\begin{alltt}
+\begin{lstlisting}
 type json is 
       iFalse or
       iTrue or
@@ -22,7 +22,7 @@ type json is
       iText(string) or
       iNum(long) or
       iFlt(float);
-\end{alltt}
+\end{lstlisting}
 \caption{The \q{json} Type\label{infosetProg}}
 \end{program}
 
@@ -50,20 +50,20 @@ can be represented using the \q{json} value shown in Figure~\vref{infosetEx}.
 
 \begin{figure}[hbt]
 \begin{alltt}
-iColl(dictionary of \{
-  "Image" -> iCol(dictionary of \{
-    "Width" -> iNum(800l);
-    "Height" -> iNum(600l);
-    "Title" -> iText("View from 15th Floor");
-    "Thumbnail" -> iColl(dictionary of \{
-      "Url" -> iText("http://www.example.com/image/481989943");
-      "Height" -> iNum(125l);
-      "Width" -> iText("100");
-    \});
+iColl(dictionary of [
+  "Image" -> iCol(dictionary of [
+    "Width" -> iNum(800l),
+    "Height" -> iNum(600l),
+    "Title" -> iText("View from 15th Floor"),
+    "Thumbnail" -> iColl(dictionary of [
+      "Url" -> iText("http://www.example.com/image/481989943"),
+      "Height" -> iNum(125l),
+      "Width" -> iText("100")
+    ]),
     "IDs" -> iSeq(list of [ 
       iNum(116l), iNum(943l), iNum(234l), iNum(38793)
     ])
-  \})\})
+  ])])
 \end{alltt}
 \caption{An Example \q{json} Value}
 \label{infosetEx}

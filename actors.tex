@@ -16,7 +16,7 @@ The core of actors in \Sr is the interaction protocol that they support. This pr
 By way of introduction, we first demonstrate \q{actor}s with a simple scenario -- a `chatty' situation involving two \q{actor}s talking to each other in an endless cycle\footnote{We shall see that the length of the conversation is limited by the available stack depth.} -- illustrated in Figure~\vref{pingPongProg}. 
 \begin{figure}[htbp]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{diagrams/PingAndPong}
+\includegraphics[width=0.6\textwidth]{diagrams/PingAndPong.pdf}
 \caption{Ping and Pong actors}
 \label{pingPongProg}
 \end{center}
@@ -39,7 +39,7 @@ Although \q{actor}s are first class values; in many cases it makes sense to use 
 \begin{program}
 \begin{alltt}
 chatty has type (()=>talker)=>talker;
-chatty(Who) is actor\{
+fun chatty(Who) is actor\{
  on Msg on ear do\{
    logMsg(info,"I heard \$Msg");
    notify Who() with "Did you hear [\$Msg]?" on ear;
@@ -66,8 +66,8 @@ Note that the form of this information itself comes in the form of a function. I
 We construct our scenario by defining two actors -- \q{ping} and \q{pong} -- in terms of the \q{chatty} function. The two actors `bounce' off of each other in a circular interdependent structure. In the scenario, we build in the interdependence by passing each \q{actor} to the other -- in a \ntRef{ThetaEnvironment} -- and making use of \ntRef{MemoFunction}s:
 \begin{alltt}
 let\{
-  ping is memo chatty(pong);
-  pong is memo chatty(ping);
+  def ping is memo chatty(pong);
+  def pong is memo chatty(ping);
 \}
 \end{alltt}
 \begin{aside}
@@ -79,8 +79,8 @@ Of course, each of \q{ping} and \q{pong} are functionally identical as they were
 In order to start the two actors off, we send one of them a \q{notify} \ntRef{SpeechAction}:
 \begin{alltt}
 let\{
-  ping is memo chatty(pong);
-  pong is memo chatty(ping);
+  def ping is memo chatty(pong);
+  def pong is memo chatty(ping);
 \} in \{ notify ping() with "hello" on ear \}
 \end{alltt}
 
@@ -115,17 +115,17 @@ chatty is package\{
   \}
 
   chatty has type (()=>talker)=>talker;
-  chatty(Who) is actor\{
+  fun chatty(Who) is actor\{
     on Msg on ear do\{
       logMsg(info,"I heard \$Msg");
       notify Who() with "Did you hear [\$Msg]?" on ear;
     \};
   \}
   
-  main()\{
+  prc main() do \{
     let\{
-      ping is memo chatty(pong);
-      pong is memo chatty(ping);
+      def ping is memo chatty(pong);
+      def pong is memo chatty(ping);
     \} in \{ notify ping() with "hello" on ear \}
   \}
 \}
@@ -392,18 +392,18 @@ An example of this is shown in Program~\vref{stockTicker} which defines an actor
 
 \begin{program}
 \begin{alltt}
-stocker() is actor\{
+fun stocker() is actor\{
   on (Price,When) on tick do extend prices with (Price,When);
 
-  average(Frm,To) is valof\{
-    Prices is all Pr where (Pr,W) in prices and Frm<=W and W<To;
+  fun average(Frm,To) is valof\{
+    def Prices is all Pr where (Pr,W) in prices and Frm=<W and W<To;
     valis Prices/size(Prices);
   \}
   
-  clear(Frm,To) do delete ((Pr,W) where Frm<=W and W<To) in prices;
+  prc clear(Frm,To) do delete ((Pr,W) where Frm=<W and W<To) in prices;
 \} using \{
   prices has type list of ((float,eventTime));
-  prices is list of [];
+  def prices is list of [];
 \}  
 \end{alltt}
 \caption{A Stock Actor}
@@ -493,7 +493,7 @@ notify \emph{Ag} with \emph{Event} on \emph{Channel}
 \end{alltt}
 becomes:
 \begin{alltt}
-_notify(\emph{Ag},fn AA=>\emph{Channel}(\emph{Event}))
+_notify(\emph{Ag}, (AA)=>\emph{Channel}(\emph{Event}))
 \end{alltt}
 
 A \q{query} is encoded into a call of \q{\_query} with four arguments. Specifically, the \q{query}:
@@ -502,12 +502,12 @@ query \emph{Ag} with \emph{Expression}
 \end{alltt}
 becomes:
 \begin{alltt}
-\_query(\emph{Ag},fn AA=>\emph{Expression},fn ()=><|\emph{Expression}|>,
-     fn ()=> dictionary of \{"\emph{F\sub1}"->F\sub1 as quoted\sequence{;}"\emph{F\subn}"->F\subn as quoted\})
+\_query(\emph{Ag}, (AA)=>\emph{Expression}, ()=><|\emph{Expression}|>,
+      ()=> dictionary of ["\emph{F\sub1}"->F\sub1 as quoted\sequence{,}"\emph{F\subn}"->F\subn as quoted\,])
 \end{alltt}
 where
 \begin{alltt}
-dictionary of \{"\emph{F\sub1}"->F\sub1 as quoted\sequence{;}"\emph{F\subn}"->F\subn as quoted\}
+dictionary of ["\emph{F\sub1}"->F\sub1 as quoted\sequence{,}"\emph{F\subn}"->F\subn as quoted\,]
 \end{alltt}
 is a dictionary of all the free variables in \emph{Expression} and the expressions of the form
 \begin{alltt}
@@ -517,7 +517,7 @@ are, in effect, a \emph{serialization} of the value of the free variable as a \q
 
 The function:
 \begin{alltt}
-fn ()=><|\emph{Expression}|>
+()=><|\emph{Expression}|>
 \end{alltt}
 can be used by the receiver of the \q{query} if it either does not trust the function or if it needs to transform the query in some way. 
 
@@ -528,8 +528,8 @@ request \emph{Ag} to \emph{Act}
 \end{alltt}
 is translated to the call:
 \begin{alltt}
-_request(\emph{Ag},fn AA=>\emph{Act},fn ()=><|\emph{Act}|>,
-      fn ()=>dictionary of \{"\emph{F\sub1}"->F\sub1 as quoted\sequence{;}"\emph{F\subn}"->F\subn as quoted\})
+_request(\emph{Ag}, (AA)=>\emph{Act}, ()=><|\emph{Act}|>,
+       ()=>dictionary of ["\emph{F\sub1}"->F\sub1 as quoted\sequence{,}"\emph{F\subn}"->F\subn as quoted\,])
 \end{alltt}
 with a similar interpretation of the arguments.
 
@@ -560,9 +560,9 @@ The implementation of the speech contract for \q{actor} is shown in Program~\vre
 \begin{program}
 \begin{alltt}
 implementation speech over for all t such that actor of t determines t is \{
-  \_query(act0r(Ac),Qf,_,_) is Qf(Ac);
-  \_request(act0r(Ac),Rf,_,_) do Rf(Ac);
-  \_notify(act0r(Ac),Np) do Np(Ac);
+  fun \_query(act0r(Ac),Qf,_,_) is Qf(Ac);
+  prc \_request(act0r(Ac),Rf,_,_) do Rf(Ac);
+  prc \_notify(act0r(Ac),Np) do Np(Ac);
 \};
 \end{alltt}
 \caption{Actor's Implementation of the Speech Contract}
@@ -593,14 +593,14 @@ Program~\vref{concSieveProg} shows an example using \q{concurrent actor}s. This 
 \begin{program}
 \begin{alltt}
 filterActor(P) is concurrent actor\{
-  private var Nx := fn _ => task\{\};
+  private var Nx :=  (_) => task\{\};
     
   \{ Nx := newPrime \};
     
-  private newPrime(X) is let\{
-    Fx is filterActor(X);
+  private fun newPrime(X) is let\{
+    def Fx is filterActor(X);
       
-    filterPrime(XX) is task{ notify Fx with XX on input};
+    fun filterPrime(XX) is task{ notify Fx with XX on input};
   \} in task \{
       logMsg(info,"new prime $X");
       Nx := filterPrime;

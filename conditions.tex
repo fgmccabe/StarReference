@@ -13,7 +13,7 @@ Figure~\vref{conditionFormFig} illustrates the general forms of condition.
 \begin{figure}[htbp]
 \begin{eqnarray*}
 \ntDef{Condition}&\arrow&\ntRef{MatchesCondition}\\
-&\choice&\ntRef{MemberCondition}\\
+%&\choice&\ntRef{MemberCondition}\\
 &\choice&\ntRef{SearchCondition}\\
 &\choice&\ntRef{IndexedSearch}\\
 &\choice&\ntRef{ConjunctionCondition}\\
@@ -23,6 +23,7 @@ Figure~\vref{conditionFormFig} illustrates the general forms of condition.
 &\choice&\ntRef{NegationCondition}\\
 &\choice&\ntRef{ConditionalCondition}\\
 &\choice&\ntRef{HasValueCondition}\\
+&\choice&\ntRef{PresentCondition}\\
 &\choice&\q{(}\ \ntRef{Condition}\ \q{)}\\
 &\choice&\ntRef{Expression}
 \end{eqnarray*}
@@ -64,7 +65,7 @@ A \q{matches} condition is type safe if the types of the left hand side and righ
 
 
 \subsection{Has Value Condition}
-\label{optionUnwrap}
+\label{hasValueCond}
 \index{has value operator@\q{has value} operator}
 \index{accessing an optional value}
 \index{option chaining}
@@ -83,17 +84,17 @@ The \q{has value} condition is satisfied if its right hand side expression is a 
 One common use of the \q{has value} condition is to 'bring into scope' a variable which represents the wrapped content of the \q{option}al value.
 
 For example, suppose that \q{P} has the type given by
-\begin{alltt}
+\begin{lstlisting}
 P has type option of Person
-\end{alltt}
+\end{lstlisting}
 then the condition in the equation:
-\begin{alltt}
-nameOf(P) where P has value PP is PP.name
-\end{alltt}
+\begin{lstlisting}
+fun nameOf(P) where P has value PP is PP.name
+\end{lstlisting}
 unwraps the optional value of \q{P} into the non-optional \q{PP}. Note that this particular example can be better written:
-\begin{alltt}
-nameOf(P) is P?.name
-\end{alltt}
+\begin{lstlisting}
+fun nameOf(P) is P?.name
+\end{lstlisting}
 since this makes the resulting type also \q{option}al.
 
 \subsubsection{Type Safety}
@@ -104,56 +105,40 @@ A \q{has value} condition is type safe iff the expression on the left is consist
 \BinaryInfC{\typesat{E}{V\ \q{has value}\ P}}
 \end{prooftree}
 
+\subsection{Present Condition}
+\label{presentCond}
+\index{present operator@\q{present} operator}
+\index{accessing an optional value}
+\index{option chaining}
 
-\subsection{Membership Condition}
-\label{memberCondition}
-An \ntRef{MemberCondition} condition is satisfied when a given indexed element is in the collection.
+The \q{present} operator can be used as a \ntRef{Condition} to test an \q{option}al to see if it has a value.
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{MemberCondition}&\arrow&\ntRef{Expression}\q{[}\ntRef{Expression}\q{]}\ \q{matches}\ \ntRef{Pattern}\\
-&\choice&\q{present}\ \ntRef{Expression}\q{[}\ntRef{Expression}\q{]}
+\ntDef{PresentCondition}&\arrow&\q{present}\ \ntRef{Expression}
 \end{eqnarray*}
-\caption{Member Condition}
-\label{memberSearchFormFig}
+\caption{Option Present Condition}\label{optionPresentFig}
 \end{figure}
 
-\begin{aside}
-The collection being searched must implement the \q{indexable} contract -- see Section~\vref{indexableContract}.
-\end{aside}
+The \q{present} condition is satisfied if its right hand side expression is a \q{some} value.
 
-A condition such as
-\begin{alltt}
-L[Ix] matches V where V>0
-\end{alltt}
-is satisfied when the \q{Ix}$^{th}$ element of \q{L} is greater than zero.
+One common use of the \q{present} condition is to test to see if an entry is present in a \q{dictionary}.
 
-\begin{aside}
-\begin{aside}
-This condition is actually a special case of the \ntRef{MatchesCondition}. However, for convenience, the meaning of this condition is adjusted somewhat. 
-This variant of the \ntRef{MatchesCondition} relies on the \q{indexable} contract -- see Program~\vref{indexableContractDef} -- in particular on the \q{\_index} function  defined in that contract.
-
-Instead of \q{raise}ing an exception in the case that the identified element does not exist in the collection, the condition simply fails.
-I.e., the condition:
-\begin{alltt}
-L[Ix] matches \emph{Ptn}
-\end{alltt}
-is actually equivalent to:
-\begin{alltt}
-_index(Ix,L) matches some(Ptn) 
-\end{alltt}
-\end{aside}
-\end{aside}
+For example, suppose that \q{D} has value
+\begin{lstlisting}
+def D is dictionary of [1 -> "alpha", 2-> "beta"]
+\end{lstlisting}
+then the condition in the equation:
+\begin{lstlisting}
+fun isThere(K) is present D[K]
+\end{lstlisting}
+tests the the optional value of \q{D[K]} and is satisfied if the key \q{K} is present in the dictionary.
 
 \subsubsection{Type Safety}
-A \ntRef{MemberCondition} condition is type safe if the type of the pattern corresponds to an element of the type of the collection.
+A \q{present} condition is type safe iff the expression on the left is an optional value:
 \begin{prooftree}
-\def\ScoreOverhang{1pt}
-\insertBetweenHyps{\hskip 1ex}
-\AxiomC{\typeprd{E}{Ky}{T\sub{k}}}
-\AxiomC{\typeprd{E}{Vl}{T\sub{v}}}
-\AxiomC{\typeprd{E}{C}{\q{indexable over }T\ \q{determines}\ (T\sub{k},T\sub{v})}}
-\TrinaryInfC{\typesat{E}{C\q{[}Ky\q{]}\ \q{matches}\ Vl}}
+\AxiomC{\typeprd{E}{V}{\q{option of }T\sub{v}}}
+\UnaryInfC{\typesat{E}{\q{present}\ V}}
 \end{prooftree}
 
 \subsection{Search Condition}
@@ -173,17 +158,17 @@ The collection being searched must implement the \q{iterable} contract -- see Se
 \end{aside}
 
 For example, the search condition:
-\begin{alltt}
+\begin{lstlisting}
 (X,"john") in parent
-\end{alltt}
+\end{lstlisting}
 is satisfied (potentially multiple times) if there is a pair of the form:
-\begin{alltt}
-(\emph{Val},"john")
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+(|\emph{Val}|,"john")
+\end{lstlisting}
 `in' the collection identified as \q{parent}. If \q{parent} were defined as the list:
-\begin{alltt}
+\begin{lstlisting}
 list of [ ("alpha","john"), ("beta","peter"), ("gamma","john") ]
-\end{alltt}
+\end{lstlisting}
 then the search condition has two solutions: one corresponding to \q{"alpha"} and the other to \q{"gamma"}.
 
 \subsubsection{Type Safety}
@@ -212,13 +197,13 @@ The collection being searched must implement the \q{indexed\_iterable} contract 
 \end{aside}
 
 \ntRef{IndexedSearch} conditions allow the programmer to not only access the element of the collection but also its `position' within the collection. For example, the condition:
-\begin{alltt}
+\begin{lstlisting}
 (Ix->V where V>0 and Ix<10) in L
-\end{alltt}
+\end{lstlisting}
 is satisfied for those elements in \q{L} which are greater than zero, and whose index is less than 10.
 
 \begin{aside}
-One of the important differences between an \ntRef{IndexedSearch} and a \ntRef{MemberCondition} is that the latter can be satisfied at most once, whereas the \ntRef{IndexSearch} could potentially be satisfied for each element of the collection -- depending, of course, on the patterns involved.
+One of the important features of the \ntRef{IndexedSearch} is that the \ntRef{IndexSearch} could potentially be satisfied for each element of the collection -- depending, of course, on the patterns involved.
 \end{aside}
 
 \subsubsection{Type Safety}
@@ -253,17 +238,17 @@ There is \emph{no} guarantee as to any order of evaluation of the arms of a cond
 
 \begin{aside}
 The \q{where} variant of conjunction is syntactic convenience to allow conditions of the form:
-\begin{alltt}
-foo(rs) is (r in rs where r > 0) ? some(r) | none
-\end{alltt}
+\begin{lstlisting}
+fun foo(rs) is (r in rs where r > 0) ? some(r) : none
+\end{lstlisting}
 which would otherwise be written:
-\begin{alltt}
-foo(rs) is (r in rs and r > 0) ? some(r) | none
-\end{alltt}
+\begin{lstlisting}
+fun foo(rs) is (r in rs and r > 0) ? some(r) : none
+\end{lstlisting}
 or
-\begin{alltt}
-foo(rs) is ((r where r > 0) in rs) ? some(r) | none
-\end{alltt}
+\begin{lstlisting}
+fun foo(rs) is ((r where r > 0) in rs) ? some(r) : none
+\end{lstlisting}
 \end{aside}
 
 \subsubsection{Type Safety}
@@ -336,17 +321,17 @@ An \emph{implication} condition -- using the \q{implies} operator -- is satisfie
 \end{figure}
 
 For example, the state of having only sons can be defined as the condition that all ones children are male. This can be expressed using the condition:
-\begin{alltt}
+\begin{lstlisting}
 (P,X) in children implies X in male 
-\end{alltt}
+\end{lstlisting}
 
 \begin{aside}
 Like negation, an \q{implies} condition can never result in binding a variable to a value. It can only be used to verify a condition. Thus, to actually look for people who only have sons, a separate `generator' condition is needed. 
 
 A query expression such as:
-\begin{alltt}
+\begin{lstlisting}
 (P,_) in children and (P,X) in children implies X in male
-\end{alltt}
+\end{lstlisting}
 is effectively using the first `\q{(P,X) in children}' condition to find a person who has children, where the second implies condition verifies that \q{P }only has sons.
 \end{aside}
 
@@ -374,25 +359,25 @@ A whenever condition is type safe iff the two arms are type safe.
 An \q{otherwise} condition is semantically similar to a disjunction: an \q{otherwise} condition is satisfied if either the left hand side is satisfied or the right hand side is satisfied. However, it is actually extremely difficult to give a purely declarative semantics for the \q{otherwise} condition -- the right hand side of an \q{otherwise} \emph{must not be attempted} if there is at least one way of satisfying the left hand side.
 
 For example, given a list \q{childOf}, the query:
-\begin{alltt}
+\begin{lstlisting}
 all Ch where (Ch,"john") in childOf otherwise noone matches Ch
-\end{alltt}
+\end{lstlisting}
 results in an \q{array} containing all the children of \q{"john"}; unless \q{"john"} has no children, in which case the result will contain the singleton \q{noone}.\footnote{Assuming of course that \q{noone} is a type safe value for a \q{person}.}
 
 More precisely, given a condition of the form:
-\begin{alltt}
-\emph{Q\sub1} otherwise \emph{Q\sub2}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+|\emph{Q\sub1}| otherwise |\emph{Q\sub2}|
+\end{lstlisting}
 if there exist \emph{any} instances that satisfy \q{\emph{Q\sub1}} condition then that is the \emph{only} way of satisfying the condition; otherwise the condition is satisfied if \q{\emph{Q\sub2}} can be satisfied.
 \begin{aside}
 The \q{otherwise} query can be used in situations similar to those where a \emph{left outer join} would be used. If \q{A} and \q{B} are two collections, then
-\begin{alltt}
+\begin{lstlisting}
 A otherwise B
-\end{alltt}
+\end{lstlisting}
 (where \q{A} and \q{B} have suitable variables in common) is analogous to
-\begin{alltt}
+\begin{lstlisting}
 A left outer join B
-\end{alltt}
+\end{lstlisting}
 assuming a suitable join condition.
 \end{aside}
 
@@ -413,18 +398,19 @@ A conditional condition is used when the actual condition to apply depends on a 
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{ConditionalCondition}&\q{(}\ \ntRef{Condition}\ \q{?}\ \ntRef{Condition}\ \q{|}\ \ntRef{Condition}\q{)}
+\ntDef{ConditionalCondition}&\q{(}\ \ntRef{Condition}\ \q{?}\ \ntRef{Condition}\ \q{:}\ \ntRef{Condition}\q{)}
 \end{eqnarray*}
 \caption{Conditional Condition}
 \label{conditionalConditionFig}
 \end{figure}
 
 For example, if the salary of an employee may be gotten from two different relations depending on whether the employee was a manager or not, the salary may be retrieved using a query:
-\begin{alltt}
-all S where ( isManager(P) ? 
-                  (P,S) in manager_salary |
+\begin{lstlisting}
+list of { all S where ( isManager(P) ? 
+                  (P,S) in manager_salary :
                   (P,S) in employee_salary )
-\end{alltt}
+        }
+\end{lstlisting}
 
 As with conditional expressions (see Section~\vref{conditionalExpression}), the test part of the \ntRef{ConditionalCondition} is evaluated and, depending on whether the test is \emph{satisfiable} or not, the `then' branch or the `else' branch is used in the query constraint.
 
@@ -457,7 +443,7 @@ A \ntRef{ConditionalCondition} is type safe iff the three arms of the conditiona
 \AxiomC{\typesat{E}{T}}
 \AxiomC{\typesat{E}{L}}
 \AxiomC{\typesat{E}{R}}
-\TrinaryInfC{\typesat{E}{\q{(}\,T\ \q{?} L\ \q{|}\ R\,\q{)}}}
+\TrinaryInfC{\typesat{E}{\q{(}\,T\ \q{?} L\ \q{:}\ R\,\q{)}}}
 \end{prooftree}
 
 \section{Satisfaction Semantics}
@@ -479,9 +465,9 @@ A variable may occur in an outer context as well as within the query. Such a var
 
 \begin{description}
 \item[A \ntRef{SearchCondition}] of the form:
-\begin{alltt}
-\ntRef{Pattern} in \ntRef{Expression}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+|\ntRef{Pattern}| in |\ntRef{Expression}|
+\end{lstlisting}
 is considered satisfiable for any value in the collection identified by \ntRef{Expression} that matches the \ntRef{Pattern}. 
 \end{description}
 
@@ -494,21 +480,19 @@ In the case of an \q{all} query and the \q{view} definition, the computed result
 \index{conditions!relative order of terms}
 \index{order of terms in conditions}
 It is important to note that, in the case of a conjunction or disjunction, the relative order of terms is not relevant. For example the conditions
-\begin{alltt}
+\begin{lstlisting}
 X in male and ("fred",X) in parent
-\end{alltt}
+\end{lstlisting}
 and
-\begin{alltt}
+\begin{lstlisting}
 ("fred",X) in parent and X in male
-\end{alltt}
+\end{lstlisting}
 have the same solutions -- are satisfied for the same bindings of the variable \q{X}.
 \end{aside}
 
 \subsubsection{Type Safety}
 \label{querytypesatty}
 A relational query is type if the type of the pattern is consistent with the type of the elements of the tuple.
-
-
 
 \section{Standard Predicates}
 \label{predicates}
@@ -525,11 +509,11 @@ Equality is based on the \q{equality} contract -- see Program~\vref{equalityCont
 \index{type!contracts!equality@\q{equality}}
 \index{equality contract@\q{equality} contract}
 \begin{program}
-\begin{alltt}
-contract equality over t is \{
+\begin{lstlisting}
+contract equality over t is {
   (=) has type (t,t)=>boolean;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The Standard \q{equality} Contract\label{equalityContract}}
 \end{program}
 
@@ -540,22 +524,22 @@ It is not necessary to explicitly implement the \q{equality} contract. The langu
 \index{"=@\q{=} predicate}
 \index{equality predicate}
 \q{=} is part of the standard \q{equality} contract.
-\begin{alltt}
+\begin{lstlisting}
 (=) has type for all t such that (t,t) => boolean where equality over t
-\end{alltt}
+\end{lstlisting}
 In general, equality is \emph{not} defined for all values. In particular, equality is not defined for functions, procedures and other program values.\footnote{Whether two expressions that denote functions of the same type denote the same function is, in general, not effectively decidable.}
 
 \subsection{\q{!=} -- not equals}
 \label{notEqualsPredicate}
 \index{"!=@\q{"!=} predicate}
 \index{inequality predicate}
-\begin{alltt}
+\begin{lstlisting}
 (!=) has type for all t such that (t,t) => boolean where equality over t
-\end{alltt}
+\end{lstlisting}
 The \q{!=} predicate has a standard definition that makes it equivalent to a negated equality:
-\begin{alltt}
+\begin{lstlisting}
 X != Y is not X=Y
-\end{alltt}
+\end{lstlisting}
 
 \subsection{The \q{comparable} contract}
 \label{comparisonPredicates}
@@ -568,45 +552,45 @@ Comparison is \emph{not} automatically implemented for all types -- the standard
 \index{type!contracts!comparable@\q{comparable}}
 \index{comparable contract@\q{comparable} contract}
 \begin{program}
-\begin{alltt}
-contract comparable over t is \{
+\begin{lstlisting}
+contract comparable over t is {
   (<) has type (t,t)=>boolean;
-  (<=) has type (t,t)=>boolean;
+  (=<) has type (t,t)=>boolean;
   (>) has type (t,t)=>boolean;
   (>=) has type (t,t)=>boolean;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The Standard \q{comparable} Contract\label{comparableContract}}
 \end{program}
 
 \subsection{\q{<} -- less than}
 \index{<@\q{<} predicate}
-\begin{alltt}
+\begin{lstlisting}
 (<) has type for all t such that (t,t)=>boolean where comparable over t
-\end{alltt}
+\end{lstlisting}
 
 The \q{<} predicate is satisfied if the left argument is less than the right argument. The precise definition of less than depends on the actual implementation of the \q{comparable} contract for the type being compared; however, for arithmetic types, less than is defined as being arithmetic less than. For \q{string}s, one string is less than another if it is smaller in the standard lexicographic ordering of strings.
 
-\subsection{\q{<=} -- less than or equal}
-\index{<=@\q{<=} predicate}
-\begin{alltt}
-(<=) has type for all t such that (t,t)=>boolean where comparable over t
-\end{alltt}
+\subsection{\q{=<} -- less than or equal}
+\index{=<@\q{=<} predicate}
+\begin{lstlisting}
+(=<) has type for all t such that (t,t)=>boolean where comparable over t
+\end{lstlisting}
 
-The \q{<=} predicate is satisfied if the left argument is less than or equals to the right argument.
+The \q{=<} predicate is satisfied if the left argument is less than or equals to the right argument.
 
 \subsection{\q{>} -- greater than}
 \index{>@\q{>} predicate}
-\begin{alltt}
+\begin{lstlisting}
 (>) has type for all t such that (t,t)=>boolean where comparable over t
-\end{alltt}
+\end{lstlisting}
 
 The \q{>} predicate is satisfied if the left argument is greater than the right argument.
 
 \subsection{\q{>=} -- greater then or equal}
 \index{>=@\q{>=} predicate}
-\begin{alltt}
+\begin{lstlisting}
 (>=) has type for all t such that (t,t)=>boolean where comparable over t
-\end{alltt}
+\end{lstlisting}
 
 The \q{>=} predicate is satisfied if the left argument is greater than or equal to the right argument.

@@ -18,7 +18,7 @@ where \emph{Directory} is the installation directory of the \Sr compiler's jar f
 For example, a simple \q{"hello world"} program may look like:
 \begin{alltt}
 hello is package\{
-  main() do 
+  prc main() do 
     logMsg(info,"hello world");
 \}
 \end{alltt}
@@ -37,7 +37,7 @@ For example, in the \q{sample} package:
 \begin{alltt}
 sample is package\{
   main has type (long,string,float)=>();
-  main(L,S,F) do
+  prc main(L,S,F) do
     logMsg(info,"first arg=\$L, second=\$S, third=\$F");
 \}
 \end{alltt}

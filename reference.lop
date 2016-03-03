@@ -1,66 +1,67 @@
-\contentsline {program}{\numberline {2.1}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt double}}{double}} filter}}{17}{program.2.1}
-\contentsline {program}{\numberline {2.2}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt group}}{group}} Type}}{19}{program.2.2}
-\contentsline {program}{\numberline {2.3}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt integer}}{integer}} {\texorpdfstring {\unhbox \voidb@x \hbox {\tt group}}{group}} Record}}{19}{program.2.3}
-\contentsline {program}{\numberline {2.4}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt group}}{group}} Inverting Function}}{20}{program.2.4}
-\contentsline {program}{\numberline {2.5}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt twoThree}}{twoThree}} tree type}}{29}{program.2.5}
-\contentsline {program}{\numberline {2.6}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt twoThree}}{twoThree}} tree type with defaults}}{30}{program.2.6}
-\contentsline {program}{\numberline {2.7}{\ignorespaces Implementation of {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sizeable}}{sizeable}} for {\texorpdfstring {\unhbox \voidb@x \hbox {\tt cons}}{cons}} values}}{36}{program.2.7}
-\contentsline {program}{\numberline {2.8}{\ignorespaces Implementation of {\texorpdfstring {\unhbox \voidb@x \hbox {\tt comparable}}{comparable}} for {\texorpdfstring {\unhbox \voidb@x \hbox {\tt cons}}{cons}} values}}{38}{program.2.8}
-\contentsline {program}{\numberline {4.1}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt option}}{option}} Type}}{70}{program.4.1}
-\contentsline {program}{\numberline {4.2}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt case}}{case}} of Dogs Program}}{78}{program.4.2}
-\contentsline {program}{\numberline {4.3}{\ignorespaces A Counting Program}}{83}{program.4.3}
-\contentsline {program}{\numberline {4.4}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt quoted}}{quoted}} Type}}{85}{program.4.4}
-\contentsline {program}{\numberline {4.5}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt astLocation}}{astLocation}} Type}}{86}{program.4.5}
-\contentsline {program}{\numberline {4.6}{\ignorespaces Coercion Contract {\texorpdfstring {\unhbox \voidb@x \hbox {\tt coercion}}{coercion}}}}{88}{program.4.6}
-\contentsline {program}{\numberline {6.1}{\ignorespaces A Left-to-Right Tree Walk Program}}{119}{program.6.1}
-\contentsline {program}{\numberline {6.2}{\ignorespaces The definition of the standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt exception}}{exception}} type}}{121}{program.6.2}
-\contentsline {program}{\numberline {7.1}{\ignorespaces Factorial Function}}{130}{program.7.1}
-\contentsline {program}{\numberline {7.2}{\ignorespaces Filtering {\texorpdfstring {\unhbox \voidb@x \hbox {\tt list}}{list}}s with Pattern Abstractions}}{136}{program.7.2}
-\contentsline {program}{\numberline {8.1}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt uri}}{uri}} Type Description}}{144}{program.8.1}
-\contentsline {program}{\numberline {8.2}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt catalog}}{catalog}} Type}}{148}{program.8.2}
-\contentsline {program}{\numberline {9.1}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt equality}}{equality}} Contract}}{162}{program.9.1}
-\contentsline {program}{\numberline {9.2}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt comparable}}{comparable}} Contract}}{163}{program.9.2}
-\contentsline {program}{\numberline {11.1}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt arithmetic}}{arithmetic}} Contract}}{171}{program.11.1}
-\contentsline {program}{\numberline {11.2}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt largeSmall}}{largeSmall}} Contract}}{174}{program.11.2}
-\contentsline {program}{\numberline {11.3}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt bitstring}}{bitstring}} Contract}}{175}{program.11.3}
-\contentsline {program}{\numberline {11.4}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt trig}}{trig}} Contract}}{177}{program.11.4}
-\contentsline {program}{\numberline {11.5}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt math}}{math}} Contract}}{182}{program.11.5}
-\contentsline {program}{\numberline {11.6}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt range}}{range}} Type}}{185}{program.11.6}
-\contentsline {program}{\numberline {12.1}{\ignorespaces The Structured String {\texorpdfstring {\unhbox \voidb@x \hbox {\tt pP}}{pP}} type}}{187}{program.12.1}
-\contentsline {program}{\numberline {12.2}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt pPrint}}{pPrint}} Contract}}{188}{program.12.2}
-\contentsline {program}{\numberline {12.3}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt formatting}}{formatting}} Contract}}{190}{program.12.3}
-\contentsline {program}{\numberline {13.1}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sequence}}{sequence}} Contract}}{198}{program.13.1}
-\contentsline {program}{\numberline {13.2}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sequence}}{sequence}} Reversal Function}}{199}{program.13.2}
-\contentsline {program}{\numberline {13.3}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt concatenate}}{concatenate}} Contract}}{200}{program.13.3}
-\contentsline {program}{\numberline {13.4}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt reversible}}{reversible}} Contract}}{201}{program.13.4}
-\contentsline {program}{\numberline {13.5}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sets}}{sets}} Contract}}{201}{program.13.5}
-\contentsline {program}{\numberline {13.6}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sorting}}{sorting}} Contract}}{202}{program.13.6}
-\contentsline {program}{\numberline {13.7}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sizeable}}{sizeable}} Contract}}{203}{program.13.7}
-\contentsline {program}{\numberline {13.8}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt indexable}}{indexable}} Contract}}{204}{program.13.8}
-\contentsline {program}{\numberline {13.9}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sliceable}}{sliceable}} Contract}}{205}{program.13.9}
-\contentsline {program}{\numberline {13.10}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt iterable}}{iterable}} Contract}}{207}{program.13.10}
-\contentsline {program}{\numberline {13.11}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt indexed\_iterable}}{indexed\_iterable}} Contract}}{209}{program.13.11}
-\contentsline {program}{\numberline {13.12}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt mappable}}{mappable}} Contract}}{210}{program.13.12}
-\contentsline {program}{\numberline {13.13}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt filterable}}{filterable}} Contract}}{210}{program.13.13}
-\contentsline {program}{\numberline {13.14}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt foldable}}{foldable}} Contract}}{211}{program.13.14}
-\contentsline {program}{\numberline {13.15}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt updateable}}{updateable}} Contract}}{214}{program.13.15}
-\contentsline {program}{\numberline {13.16}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt explosion}}{explosion}} Contract}}{217}{program.13.16}
-\contentsline {program}{\numberline {13.17}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt cons}}{cons}} Type}}{219}{program.13.17}
-\contentsline {program}{\numberline {13.18}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt queue}}{queue}} Type}}{220}{program.13.18}
-\contentsline {program}{\numberline {16.1}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt json}}{json}} Type}}{229}{program.16.1}
-\contentsline {program}{\numberline {16.2}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt infoPathKey}}{infoPathKey}} and {\texorpdfstring {\unhbox \voidb@x \hbox {\tt infoPath}}{infoPath}} Types}}{231}{program.16.2}
-\contentsline {program}{\numberline {17.1}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt computation}}{computation}} Contract}}{238}{program.17.1}
-\contentsline {program}{\numberline {17.2}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt execution}}{execution}} Contract}}{240}{program.17.2}
-\contentsline {program}{\numberline {17.3}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt injection}}{injection}} Contract}}{240}{program.17.3}
-\contentsline {program}{\numberline {17.4}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt action}}{action}} Contract}}{242}{program.17.4}
-\contentsline {program}{\numberline {17.5}{\ignorespaces Implementing the {\texorpdfstring {\unhbox \voidb@x \hbox {\tt computation}}{computation}} contract for {\texorpdfstring {\unhbox \voidb@x \hbox {\tt maybe}}{maybe}}}}{243}{program.17.5}
-\contentsline {program}{\numberline {19.1}{\ignorespaces Type Schema Used by Chatty {\texorpdfstring {\unhbox \voidb@x \hbox {\tt actor}}{actor}}s}}{258}{program.19.1}
-\contentsline {program}{\numberline {19.2}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt chatty}}{chatty}} Actor Generator}}{258}{program.19.2}
-\contentsline {program}{\numberline {19.3}{\ignorespaces The Complete {\texorpdfstring {\unhbox \voidb@x \hbox {\tt chatty}}{chatty}} Actor Scenario}}{260}{program.19.3}
-\contentsline {program}{\numberline {19.4}{\ignorespaces A Stock Actor}}{266}{program.19.4}
-\contentsline {program}{\numberline {19.5}{\ignorespaces Success Result Type}}{267}{program.19.5}
-\contentsline {program}{\numberline {19.6}{\ignorespaces Speech Contract Used by {\texorpdfstring {\unhbox \voidb@x \hbox {\tt actor}}{actor}}s}}{267}{program.19.6}
-\contentsline {program}{\numberline {19.7}{\ignorespaces Standard Light Weight {\texorpdfstring {\unhbox \voidb@x \hbox {\tt actor}}{actor}} Type}}{269}{program.19.7}
-\contentsline {program}{\numberline {19.8}{\ignorespaces Actor's Implementation of the Speech Contract}}{269}{program.19.8}
-\contentsline {program}{\numberline {19.9}{\ignorespaces Sieve of Erastosthenes as Concurrent Actors}}{270}{program.19.9}
-\contentsline {program}{\numberline {C.1}{\ignorespaces Macros that implement Pascal-style programs}}{302}{program.C.1}
+\contentsline {program}{\numberline {3.1}{\ignorespaces Macros that implement Pascal-style programs}}{26}{program.3.1}
+\contentsline {program}{\numberline {4.1}{\ignorespaces Factorial Function}}{33}{program.4.1}
+\contentsline {program}{\numberline {4.2}{\ignorespaces Filtering {\texorpdfstring {\unhbox \voidb@x \hbox {\tt list}}{list}}s with Pattern Abstractions}}{38}{program.4.2}
+\contentsline {program}{\numberline {5.1}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt double}}{double}} filter}}{50}{program.5.1}
+\contentsline {program}{\numberline {5.2}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt group}}{group}} Type}}{52}{program.5.2}
+\contentsline {program}{\numberline {5.3}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt integer}}{integer}} {\texorpdfstring {\unhbox \voidb@x \hbox {\tt group}}{group}} Record}}{53}{program.5.3}
+\contentsline {program}{\numberline {5.4}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt group}}{group}} Inverting Function}}{54}{program.5.4}
+\contentsline {program}{\numberline {5.5}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt twoThree}}{twoThree}} tree type}}{63}{program.5.5}
+\contentsline {program}{\numberline {5.6}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt twoThree}}{twoThree}} tree type with defaults}}{64}{program.5.6}
+\contentsline {program}{\numberline {5.7}{\ignorespaces Implementation of {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sizeable}}{sizeable}} for {\texorpdfstring {\unhbox \voidb@x \hbox {\tt cons}}{cons}} values}}{69}{program.5.7}
+\contentsline {program}{\numberline {5.8}{\ignorespaces Implementation of {\texorpdfstring {\unhbox \voidb@x \hbox {\tt comparable}}{comparable}} for {\texorpdfstring {\unhbox \voidb@x \hbox {\tt cons}}{cons}} values}}{72}{program.5.8}
+\contentsline {program}{\numberline {7.1}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt option}}{option}} Type}}{102}{program.7.1}
+\contentsline {program}{\numberline {7.2}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt case}}{case}} of Dogs Program}}{111}{program.7.2}
+\contentsline {program}{\numberline {7.3}{\ignorespaces A Counting Program}}{116}{program.7.3}
+\contentsline {program}{\numberline {7.4}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt quoted}}{quoted}} Type}}{118}{program.7.4}
+\contentsline {program}{\numberline {7.5}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt astLocation}}{astLocation}} Type}}{119}{program.7.5}
+\contentsline {program}{\numberline {7.6}{\ignorespaces Coercion Contract {\texorpdfstring {\unhbox \voidb@x \hbox {\tt coercion}}{coercion}}}}{120}{program.7.6}
+\contentsline {program}{\numberline {9.1}{\ignorespaces A Left-to-Right Tree Walk Program}}{150}{program.9.1}
+\contentsline {program}{\numberline {9.2}{\ignorespaces The definition of the standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt exception}}{exception}} type}}{152}{program.9.2}
+\contentsline {program}{\numberline {10.1}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt equality}}{equality}} Contract}}{168}{program.10.1}
+\contentsline {program}{\numberline {10.2}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt comparable}}{comparable}} Contract}}{169}{program.10.2}
+\contentsline {program}{\numberline {12.1}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt arithmetic}}{arithmetic}} Contract}}{177}{program.12.1}
+\contentsline {program}{\numberline {12.2}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt largeSmall}}{largeSmall}} Contract}}{180}{program.12.2}
+\contentsline {program}{\numberline {12.3}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt bitstring}}{bitstring}} Contract}}{181}{program.12.3}
+\contentsline {program}{\numberline {12.4}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt trig}}{trig}} Contract}}{183}{program.12.4}
+\contentsline {program}{\numberline {12.5}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt math}}{math}} Contract}}{187}{program.12.5}
+\contentsline {program}{\numberline {12.6}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt range}}{range}} Type}}{190}{program.12.6}
+\contentsline {program}{\numberline {13.1}{\ignorespaces The Structured String {\texorpdfstring {\unhbox \voidb@x \hbox {\tt pP}}{pP}} type}}{191}{program.13.1}
+\contentsline {program}{\numberline {13.2}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt pPrint}}{pPrint}} Contract}}{192}{program.13.2}
+\contentsline {program}{\numberline {13.3}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt formatting}}{formatting}} Contract}}{194}{program.13.3}
+\contentsline {program}{\numberline {14.1}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sequence}}{sequence}} Contract}}{202}{program.14.1}
+\contentsline {program}{\numberline {14.2}{\ignorespaces A {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sequence}}{sequence}} Reversal Function}}{203}{program.14.2}
+\contentsline {program}{\numberline {14.3}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt concatenate}}{concatenate}} Contract}}{204}{program.14.3}
+\contentsline {program}{\numberline {14.4}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt reversible}}{reversible}} Contract}}{205}{program.14.4}
+\contentsline {program}{\numberline {14.5}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sets}}{sets}} Contract}}{205}{program.14.5}
+\contentsline {program}{\numberline {14.6}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sorting}}{sorting}} Contract}}{206}{program.14.6}
+\contentsline {program}{\numberline {14.7}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sizeable}}{sizeable}} Contract}}{207}{program.14.7}
+\contentsline {program}{\numberline {14.8}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt indexable}}{indexable}} Contract}}{208}{program.14.8}
+\contentsline {program}{\numberline {14.9}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt sliceable}}{sliceable}} Contract}}{209}{program.14.9}
+\contentsline {program}{\numberline {14.10}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt iterable}}{iterable}} Contract}}{210}{program.14.10}
+\contentsline {program}{\numberline {14.11}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt indexed\_iterable}}{indexed\_iterable}} Contract}}{212}{program.14.11}
+\contentsline {program}{\numberline {14.12}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt mappable}}{mappable}} Contract}}{213}{program.14.12}
+\contentsline {program}{\numberline {14.13}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt filterable}}{filterable}} Contract}}{214}{program.14.13}
+\contentsline {program}{\numberline {14.14}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt foldable}}{foldable}} Contract}}{215}{program.14.14}
+\contentsline {program}{\numberline {14.15}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt updateable}}{updateable}} Contract}}{217}{program.14.15}
+\contentsline {program}{\numberline {14.16}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt explosion}}{explosion}} Contract}}{221}{program.14.16}
+\contentsline {program}{\numberline {14.17}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt cons}}{cons}} Type}}{222}{program.14.17}
+\contentsline {program}{\numberline {14.18}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt queue}}{queue}} Type}}{223}{program.14.18}
+\contentsline {program}{\numberline {17.1}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt json}}{json}} Type}}{233}{program.17.1}
+\contentsline {program}{\numberline {17.2}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt infoPathKey}}{infoPathKey}} and {\texorpdfstring {\unhbox \voidb@x \hbox {\tt infoPath}}{infoPath}} Types}}{235}{program.17.2}
+\contentsline {program}{\numberline {18.1}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt computation}}{computation}} Contract}}{242}{program.18.1}
+\contentsline {program}{\numberline {18.2}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt execution}}{execution}} Contract}}{244}{program.18.2}
+\contentsline {program}{\numberline {18.3}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt injection}}{injection}} Contract}}{244}{program.18.3}
+\contentsline {program}{\numberline {18.4}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt action}}{action}} Contract}}{246}{program.18.4}
+\contentsline {program}{\numberline {18.5}{\ignorespaces Implementation of Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt execution}}{execution}} Contracts for the {\texorpdfstring {\unhbox \voidb@x \hbox {\tt action}}{action}} Monad}}{246}{program.18.5}
+\contentsline {program}{\numberline {18.6}{\ignorespaces Implementing the {\texorpdfstring {\unhbox \voidb@x \hbox {\tt computation}}{computation}} contract for {\texorpdfstring {\unhbox \voidb@x \hbox {\tt maybe}}{maybe}}}}{247}{program.18.6}
+\contentsline {program}{\numberline {20.1}{\ignorespaces Type Schema Used by Chatty {\texorpdfstring {\unhbox \voidb@x \hbox {\tt actor}}{actor}}s}}{262}{program.20.1}
+\contentsline {program}{\numberline {20.2}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt chatty}}{chatty}} Actor Generator}}{262}{program.20.2}
+\contentsline {program}{\numberline {20.3}{\ignorespaces The Complete {\texorpdfstring {\unhbox \voidb@x \hbox {\tt chatty}}{chatty}} Actor Scenario}}{264}{program.20.3}
+\contentsline {program}{\numberline {20.4}{\ignorespaces A Stock Actor}}{270}{program.20.4}
+\contentsline {program}{\numberline {20.5}{\ignorespaces Success Result Type}}{271}{program.20.5}
+\contentsline {program}{\numberline {20.6}{\ignorespaces Speech Contract Used by {\texorpdfstring {\unhbox \voidb@x \hbox {\tt actor}}{actor}}s}}{271}{program.20.6}
+\contentsline {program}{\numberline {20.7}{\ignorespaces Standard Light Weight {\texorpdfstring {\unhbox \voidb@x \hbox {\tt actor}}{actor}} Type}}{273}{program.20.7}
+\contentsline {program}{\numberline {20.8}{\ignorespaces Actor's Implementation of the Speech Contract}}{273}{program.20.8}
+\contentsline {program}{\numberline {20.9}{\ignorespaces Sieve of Erastosthenes as Concurrent Actors}}{274}{program.20.9}
+\contentsline {program}{\numberline {23.1}{\ignorespaces The Standard {\texorpdfstring {\unhbox \voidb@x \hbox {\tt uri}}{uri}} Type Description}}{290}{program.23.1}
+\contentsline {program}{\numberline {23.2}{\ignorespaces The {\texorpdfstring {\unhbox \voidb@x \hbox {\tt catalog}}{catalog}} Type}}{294}{program.23.2}

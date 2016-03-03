@@ -31,20 +31,20 @@ In addition to the standard collection contracts, there are several standard typ
 The \q{sequence} contract has additional syntactic support in the form of specific sequence notation for expressions (see Section~\vref{sequenceExpression}) and patterns (see Section~\vref{sequencePattern}).
 
 An expression of the form:
-\begin{alltt}
-[E\sub1\sequence{,}E\subn]
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+[E|\sub1\sequence{,}|E|\subn|]
+\end{lstlisting}
 is equivalent to the expression:
-\begin{alltt}
-\_cons(E\sub1,\sequence{}\_cons(E\subn,\_nil())\sequence{})
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+_cons(E|\sub1|,|\sequence{}|_cons(E|\subn|,_nil())|\sequence{}|)
+\end{lstlisting}
 Similarly, the pattern:
-\begin{alltt}
-[P\sub1\sequence{,}P\subn]
-\end{alltt}is equivalent to the expanded pattern:
-\begin{alltt}
-\_pair(P\sub1,\sequence{}\_pair(P\subn,\_empty())\sequence{})
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+[P|\sub1\sequence{,}|P|\subn|]
+\end{lstlisting}is equivalent to the expanded pattern:
+\begin{lstlisting}[escapechar=|]
+_pair(P|\sub1,\sequence{}|_pair(P|\subn|,_empty())|\sequence{}|)
+\end{lstlisting}
 This notation makes literals involving the \q{sequence} contract easier to write.
 
 \subsection{The \q{sequence} Contract}
@@ -53,29 +53,29 @@ This notation makes literals involving the \q{sequence} contract easier to write
 The \q{sequence} contract defines the equivalent of an abstract type that is `about' sequences. It is defined in Program~\vref{sequenceContractDef}. The elements of the \q{sequence} contract are sufficient to allow abstract sequential processing of sequences.
 
 \begin{program}[hbtp]
-\begin{alltt}
-contract sequence over s determines e is \{
-  \_empty has type ()<=s;
-  \_pair has type (e,s)<=s;
-  \_cons has type (e,s)=>s;
-  \_apnd has type (s,e)=>s;
-  \_back has type (s,e)<=s;
-  \_nil has type ()=>s;
-\}
-\end{alltt}
+\begin{lstlisting}
+contract sequence over s determines e is {
+  _empty has type ()<=s;
+  _pair has type (e,s)<=s;
+  _cons has type (e,s)=>s;
+  _apnd has type (s,e)=>s;
+  _back has type (s,e)<=s;
+  _nil has type ()=>s;
+}
+\end{lstlisting}
 \caption{The Standard \q{sequence} Contract}\label{sequenceContractDef}
 \end{program}
 \noindent
 For example, the \q{reverse} function in Program~\vref{reverseProgram} is defined for any form of sequence; i.e., for any type that implements the \q{sequence} contract.
 \begin{program}[hbtp]
-\begin{alltt}
+\begin{lstlisting}
 reverse has type for all e,t such that (t)=>t where
   sequence over t determines e
-reverse(S) is let\{
-  rev(\_empty(),R) is R;
-  rev(\_pair(H,T),R) is rev(T,\_cons(H,R));
-\} in rev(S,\_nil());
-\end{alltt}
+fun reverse(S) is let{
+  fun rev(_empty(),R) is R
+  |  rev(_pair(H,T),R) is rev(T,_cons(H,R))
+} in rev(S,_nil());
+\end{lstlisting}
 \caption{A \q{sequence} Reversal Function}\label{reverseProgram}
 \end{program}
 \begin{aside}
@@ -85,10 +85,10 @@ The \q{sequence} contract has a \emph{functional dependency} -- see Section~\vre
 \subsection{\q{\_empty} -- Empty Sequence Pattern}
 \label{emptyPattern}
 \index{sequence contract@\q{sequence} contract!empty@\q{empty}}
-\begin{alltt}
-\_empty has type for all e,t such that ()<=t 
+\begin{lstlisting}
+_empty has type for all e,t such that ()<=t 
                  where sequence over t determines e
-\end{alltt}
+\end{lstlisting}
 
 The \q{\_empty} pattern is satisfied when matching an empty sequence.
 
@@ -99,29 +99,29 @@ The use of pattern abstractions is a normal feature of contracts that are aimed 
 \subsection{\q{\_pair} -- Non-Empty Sequence Pattern}
 \label{nonEmptyPattern}
 \index{sequence contract@\q{sequence} contract!pair@\q{pair}}
-\begin{alltt}
-\_pair has type type for all e,t such that (e,t)<=t
+\begin{lstlisting}
+_pair has type type for all e,t such that (e,t)<=t
                      where sequence over t determines e
-\end{alltt}
+\end{lstlisting}
 
 The \q{\_pair} pattern is satisfied when matching an non-empty sequence. A successful match results in the head and tail part of the sequence also being match.
 
 \subsection{\q{\_cons} -- Add to Front of Sequence}
 \label{consFunction}
 \index{sequence contract@\q{sequence} contract!cons@\q{cons}}
-\begin{alltt}
-\_cons has type type for all e,t such that (e,t)=>t
+\begin{lstlisting}
+_cons has type type for all e,t such that (e,t)=>t
                      where sequence over t determines e
-\end{alltt}
+\end{lstlisting}
 The \q{\_cons} function is used to `cons' an element to the front of a \q{sequence} -- returning a new sequence with the new element at the front.
 
 \subsection{\q{\_apnd} -- Add to End of Sequence}
 \label{appendFunction}
 \index{sequence contract@\q{sequence} contract!apnd@\q{apnd}}
-\begin{alltt}
-\_apnd has type type for all e,t such that (t,e)=>t
+\begin{lstlisting}
+_apnd has type type for all e,t such that (t,e)=>t
                      where sequence over t determines e
-\end{alltt}
+\end{lstlisting}
 The \q{\_apnd} function is used to append an element to the end of a \q{sequence}. I.e., a subsequent match against the \q{sequence} using the \q{\_pair} pattern will 'pick up' the newly appended element only after all existing elements have been removed.
 
 \begin{aside}
@@ -131,10 +131,10 @@ Depending on the implementation type that backs a particular \q{sequence}, the p
 \subsection{\q{\_back} -- Non-Empty Sequence Pattern}
 \label{backPattern}
 \index{sequence contract@\q{sequence} contract!back@\q{back}}
-\begin{alltt}
-\_back has type type for all e,t such that (t,e)<=t
+\begin{lstlisting}
+_back has type type for all e,t such that (t,e)<=t
                      where sequence over t determines e
-\end{alltt}
+\end{lstlisting}
 
 Like the \q{\_pair} pattern, the \q{\_back} pattern is satisfied when matching an non-empty sequence. A successful match results in the last element of the sequence being matched -- as well as the front portion of the sequence.
 
@@ -145,10 +145,10 @@ Depending on the implementation type that backs a particular \q{sequence}, the p
 \subsection{\q{\_nil} -- Construct Empty Sequence}
 \label{newFunction}
 \index{sequence contract@\q{sequence} contract!cons@\q{cons}}
-\begin{alltt}
-\_nil has type type for all e,t such that ()=>t
+\begin{lstlisting}
+_nil has type type for all e,t such that ()=>t
                     where sequence over t determines e
-\end{alltt}
+\end{lstlisting}
 The \q{\_nil} function is used to construct an empty instance of the sequence.
 
 \section{Collection Notation}
@@ -160,11 +160,11 @@ Like the sequence notation, the collection notation is intended to allow collect
 The \q{concatenate} contract defines a single function that implements the `concatenation' of two values together.
 
 \begin{program}[H]
-\begin{alltt}
-contract concatenate over s is \{
+\begin{lstlisting}
+contract concatenate over s is {
   (++) has type (s,s)=>s;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The Standard \q{concatenate} Contract}\label{concatenateContractDef}
 \end{program}
 \noindent
@@ -173,9 +173,9 @@ contract concatenate over s is \{
 \label{concatFunction}
 \index{concatenate contract@\q{concatenate} contract!++@\q{++}}
 \index{concatenate sequences}
-\begin{alltt}
-(++) has type for all s such that (s,s)=>s where sliceable over s
-\end{alltt}
+\begin{lstlisting}
+(++) has type for all s such that (s,s)=>s where concatenate over s
+\end{lstlisting}
 The meaning of \q{S++T} is a new sequence where the elements of \q{S} come `first' and the elements of \q{T} come `next'.
 
 \section{The \q{reversible} Contract}
@@ -184,11 +184,11 @@ The meaning of \q{S++T} is a new sequence where the elements of \q{S} come `firs
 The \q{reversible} contract defines a single function that implements the `reverse' of function.
 
 \begin{program}[H]
-\begin{alltt}
-contract reversible over s is \{
+\begin{lstlisting}
+contract reversible over s is {
   reverse has type (s)=>s;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The Standard \q{reversible} Contract}\label{reversibleContractDef}
 \end{program}
 \noindent
@@ -197,9 +197,9 @@ contract reversible over s is \{
 \label{reverseFunction}
 \index{reversible contract@\q{reversible} contract!reverse\q{reverse}}
 \index{reverse sequences}
-\begin{alltt}
-\q{reverse} has type for all s such that (s)=>s where reversible over s
-\end{alltt}
+\begin{lstlisting}
+reverse has type for all s such that (s)=>s where reversible over s
+\end{lstlisting}
 The meaning of \q{reverse(S)} is a new sequence where the elements of \q{S} are reversed.
 
 \begin{aside}
@@ -211,13 +211,13 @@ The standard \q{sets} contract defines set operations over collections.
 \index{sets contract@\q{sets} contract}
 
 \begin{program}[hbtp]
-\begin{alltt}
-contract sets over s is \{
+\begin{lstlisting}
+contract sets over s is {
   union has type (s,s)=>s;
   intersect has type (s,s)=>s;
   complement has type (s,s)=>s;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The Standard \q{sets} Contract}\label{setContractDef}
 \end{program}
 \noindent
@@ -226,9 +226,9 @@ contract sets over s is \{
 \label{unionFunction}
 \index{sets contract@\q{sets} contract!union@\q{union}}
 \index{union sequences}
-\begin{alltt}
+\begin{lstlisting}
 union has type for all s such that (s,s)=>s where sets over s
-\end{alltt}
+\end{lstlisting}
 The meaning of \q{union(S,T)} is a new sequence consisting of elements of \q{S} merged with elements of \q{T}. Duplicate elements -- elements that appear in both \q{S} and \q{T} will not be duplicated in the result.
 
 \begin{aside}
@@ -243,9 +243,9 @@ There is no guarantee that the order of elements in the result reflects the orde
 \label{intersectFunction}
 \index{sets contract@\q{sets} contract!intersect@\q{intersect}}
 \index{intersect sequences}
-\begin{alltt}
+\begin{lstlisting}
 intersect has type for all s such that (s,s)=>s where sets over s
-\end{alltt}
+\end{lstlisting}
 The meaning of \q{intersect(S,T)} is a new sequence consisting of elements of \q{S} intersected with elements of \q{T}. Only elements that appear in both \q{S} and \q{T} will appear in the result.
 
 \begin{aside}
@@ -256,9 +256,9 @@ There is no guarantee as to the order of elements in the result of \q{intersect}
 \label{complementFunction}
 \index{sets contract@\q{sets} contract!complement@\q{complement}}
 \index{complement sequences}
-\begin{alltt}
+\begin{lstlisting}
 complement has type for all s such that (s,s)=>s where sets over s
-\end{alltt}
+\end{lstlisting}
 The meaning of \q{complement(S,T)} is a new sequence consisting of elements of \q{S} which \emph{do not} occur within \q{T}.
 
 \begin{aside}
@@ -271,12 +271,12 @@ There is no guarantee as to the order of elements in the result of \q{complement
 The \q{sorting} contract defines what it means to `sort' a collection. The contract itself is defined in Program~\vref{sortContractProg}.
 
 \begin{program}[H]
-\begin{alltt}
-contract sorting over coll determines el is \{
+\begin{lstlisting}
+contract sorting over coll determines el is {
   sort has type 
       (coll,(el,el)=>boolean) => coll;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The \q{sorting} Contract\label{sortContractProg}}
 \end{program}
 
@@ -284,11 +284,11 @@ contract sorting over coll determines el is \{
 \label{sortFunction}
 \index{sorting contract@\q{sorting} contract!sort\q{sort}}
 \index{sort a collection}
-\begin{alltt}
+\begin{lstlisting}
 sort has type for all el, coll such that
     (coll,(el,el)=>boolean) => coll where
        sorting over coll determines el
-\end{alltt}
+\end{lstlisting}
 
 The \q{sort} function sorts a function -- using a supplied comparator function to compare elements. The comparator function should return true if the second argument is greater than or equal to the first.
 
@@ -308,30 +308,30 @@ The standard \q{sizeable} contract is defined for those collections that have a 
 The \q{sizeable} contract -- which is defined in Program~\vref{sizeableContractProg} -- defines the functions \q{size} and \q{isEmpty}.
 
 \begin{program}
-\begin{alltt}
-contract sizeable of t is \{
+\begin{lstlisting}
+contract sizeable of t is {
   size has type (t) => integer;
   isEmpty has type (t) => boolean;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The Standard \q{sizeable} Contract\label{sizeableContractProg}}
 \end{program}
 
 \subsection{\q{size} -- Size of a \q{sizeable} Collection}
 \label{sizeFunction}
 \index{sizeable contract@\q{sizeable} contract!size@\q{size}}
-\begin{alltt}
+\begin{lstlisting}
 size has type for all t such that (t)=>integer where sizeable over t
-\end{alltt}
+\end{lstlisting}
 
 The \q{size} function returns the number of elements of a \q{sizeable} collection. The precise meaning of the \q{size} function is likely to be type-specific; for example, for \q{string}s, the \q{size} of a \q{string} is the number of characters in the string.
 
 \subsection{\q{isEmpty} -- Is a \q{sizeable} Collection Empty}
 \label{isEmptyFunction}
 \index{sizeable contract@\q{sizeable} contract!isEmpty@\q{isEmpty}}
-\begin{alltt}
+\begin{lstlisting}
 isEmpty has type for all t such that (t)=>boolean where sizeable over t
-\end{alltt}
+\end{lstlisting}
 The \q{isEmpty} function returns \q{true} if the collection has no elements.
 
 \section{The \q{indexable} Contract}
@@ -339,12 +339,13 @@ The \q{isEmpty} function returns \q{true} if the collection has no elements.
 The \q{indexable} contract defines the functions that relate to the `indexable' expressions.
 
 \begin{program}
-\begin{alltt}
-contract indexable over s determines (k,v) is \{
+\begin{lstlisting}
+contract indexable over s determines (k,v) is {
   _index has type (s,k)=>option of v;
   _set_indexed has type (s,k,v)=>s;
   _delete_indexed has type (s,k)=>s;
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The Standard \q{indexable} Contract}\label{indexableContractDef}
 \end{program}
 
@@ -357,10 +358,10 @@ Note that special notation supports high-level access to the \q{indexable} and \
 \subsection{\q{\_index} -- Index Element}
 \label{indexFunction}
 \index{indexable contract@\q{indexable} contract!_index@\q{\_index}}
-\begin{alltt}
+\begin{lstlisting}
 _index has type for all s,k,v such that (s,k)=>option of v
                 where indexable over s determines (k,v)
-\end{alltt}
+\end{lstlisting}
 \begin{aside}
 The type of the index depends on the implementation of the contract. In the case of \q{list}s, the index is \q{integer}; and the first index is zero.
 \end{aside}
@@ -372,10 +373,10 @@ If the index is not valid, for example if the index into a list is longer than t
 \label{indexReplaceFunction}
 \index{indexable contract@\q{indexable} contract!_set_indexed@\q{\_set\_indexed}}
 \index{replace element in collection}
-\begin{alltt}
-\_set\_indexed has type for all s,k,v such that (s,k,v)=>s
+\begin{lstlisting}
+_set_indexed has type for all s,k,v such that (s,k,v)=>s
                         where indexable over s determines (k,v)
-\end{alltt}
+\end{lstlisting}
 The \q{\_set\_indexed} function is used to represent the result of replacing an indexed element of a collection with a new value. The value returned is a new collection with every element identical to the original except that the ix\super{th} element is replaced.
 
 If the index is out of range, i.e., if there is no element in the collection that corresponds to the requested index, then an error exception will be raised.
@@ -386,7 +387,7 @@ If the index is out of range, i.e., if there is no element in the collection tha
 \index{remove element from collection}
 
 \begin{alltt}
-\_delete\_indexed has type for all s,k,v such that (s,k)=>s
+_delete_indexed has type for all s,k,v such that (s,k)=>s
                            where indexable over s determines (k,v)
 \end{alltt}
 The \q{\_delete\_indexed} function is used to remove an element from a collection. The \q{\_delete\_indexed} function returns a collection with the identified element removed. The element to delete is identified by its key, not by the kay/value pair.
@@ -399,12 +400,12 @@ If the index is out of range, i.e., if there is no element in the collection tha
 \label{sliceableContract}
 The \q{sliceable} contract defines what it means to extract and update sub-sequences of collections. The contract -- defined in Program~\vref{sliceableContractProg} -- contains functions that extract a subsequence and replace a subsequence.
 \begin{program}[htb]
-\begin{alltt}
-contract sliceable over t is \{
-  \_slice has type (t,integer,integer)=>t;
-  \_splice has type (t,integer,integer,t)=>t;
-\}
-\end{alltt}
+\begin{lstlisting}
+contract sliceable over t is {
+  _slice has type (t,integer,integer)=>t;
+  _splice has type (t,integer,integer,t)=>t;
+}
+\end{lstlisting}
 \caption{The \q{sliceable} Contract\label{sliceableContractProg}}
 \end{program}
 As detailed below, the \q{sliceable} contract is supported by a `slice' notation that is based on the square bracket notation used to support indexing elements of collections.
@@ -413,22 +414,22 @@ As detailed below, the \q{sliceable} contract is supported by a `slice' notation
 \label{sliceFunction}
 \index{sliceable contract@\q{sliceable} contract!_slice@\q{\_slice}}
 \index{extract subsequence of sequence}
-\begin{alltt}
-\_slice has type for all t such that (t,integer,integer)=>t
+\begin{lstlisting}
+_slice has type for all t such that (t,integer,integer)=>t
                  where sliceable over t
-\end{alltt}
+\end{lstlisting}
 The meaning of \q{\_slice(S,Fr,To)} is that a subset of the sequence in \q{S} is extracted, starting with index position \q{Fr} up to -- but not including -- the index position \q{To}. The first index of the sequence is assumed to be zero.
 
 If \q{To} is smaller than the length of the sequence then then the result will be shortened accordingly.
 
 The \q{\_slice} function has a special syntax which is similar to that used for list indexing:
-\begin{alltt}
+\begin{lstlisting}
 C[Fr:To]
-\end{alltt}
+\end{lstlisting}
 is equivalent to the expression
-\begin{alltt}
-\_slice(C,Fr,To)
-\end{alltt}
+\begin{lstlisting}
+_slice(C,Fr,To)
+\end{lstlisting}
 
 \begin{aside}
 The contract signature, and the type signature for \q{\_slice} do not mention the type of the elements of the sequence.
@@ -436,9 +437,9 @@ The contract signature, and the type signature for \q{\_slice} do not mention th
 
 \begin{aside}
 For any sequence \q{S}, for any positive integers \q{F} $\ge0$ and \q{T}$\ge$\q{F}, the following identity is expected to hold for implementations of \q{\_slice}:
-\begin{alltt}
+\begin{lstlisting}
 S[F:T]++S[T:size(S)] = S
-\end{alltt}
+\end{lstlisting}
 Note, in particular if \q{F} is greater than or equal to the \q{size} of the sequence then the result of \q{\_slice} will be an empty sequence. This is different to the behavior for \q{\_index} where an exception is \q{raise}d when the index is not present in the sequence.
 \end{aside}
 
@@ -450,38 +451,38 @@ In addition to being implemented for \q{list}s, and \q{cons} lists, the \q{slice
 \label{spliceFunction}
 \index{sliceable contract@\q{sliceable} contract!_splice@\q{\_splice}}
 \index{replace subsequence of sequence}
-\begin{alltt}
-\_splice has type for all t such that (t,integer,integer,t)=>t
+\begin{lstlisting}
+_splice has type for all t such that (t,integer,integer,t)=>t
                   where sliceable over t
-\end{alltt}
+\end{lstlisting}
 The meaning of \q{\_splice(S,Fr,To,R)} is that a subsequence of \q{S} is replace with \q{R}. Starting with index position \q{Fr}, the elements up until -- but not including -- the position \q{To} are replaced by \q{R}. The first index of the sequence is assumed to be zero.
 
 If \q{To} is greater than or equal to the \q{size} of the sequence then the result will be to replace the remaining of the sequence with the new elements.
 
 The \q{\_splice} function has a special syntax which is similar to that used for updating list elements:
-\begin{alltt}
+\begin{lstlisting}
 C[Fr:To] := S
-\end{alltt}
+\end{lstlisting}
 is equivalent to the action
-\begin{alltt}
-C := \_splice(C,Fr,To,S)
-\end{alltt}
+\begin{lstlisting}
+C := _splice(C,Fr,To,S)
+\end{lstlisting}
 
 \section{The \q{iterable} Contract}
 \label{iterableContract}
 The \q{iterable} contract defines what it means to `iterate' over a collection. The contract itself is defined in Program~\vref{iterateContractProg} and it makes use of the standard \q{IterState} type.
 
 \begin{program}[H]
-\begin{alltt}
-contract iterable over coll determines el is \{
-  \_iterate has type 
+\begin{lstlisting}
+contract iterable over coll determines el is {
+  _iterate has type 
     for all r such that 
       (coll,(el,IterState of r)=>IterState of r,IterState of r) => 
         IterState of r;
-\}
+}
 
 type IterState of t is NoneFound or NoMore(t) or ContinueWith(t);
-\end{alltt}
+\end{lstlisting}
 \caption{The \q{iterable} Contract\label{iterateContractProg}}
 \end{program}
 
@@ -491,20 +492,20 @@ The \q{iterable} contract defines a single function -- \q{\_iterate} -- which is
 \label{iterateFunction}
 \index{iterable contract@\q{iterable} contract!\_iterate@\q{\_iterate}}
 \index{iterate over collection}
-\begin{alltt}
-\_iterate has type 
+\begin{lstlisting}
+_iterate has type 
     for all coll, el, r such that 
       (coll,(el,IterState of r)=>IterState of r,IterState of r) => 
         IterState of r 
       where iterable over coll determines el
-\end{alltt}
+\end{lstlisting}
 
 The \q{\_iterate} function traverses a collection -- in an order that is `natural' to teh type of the collection -- applying a `client function' to each element.
 
-The client function takes the form:
-\begin{alltt}
-fun(El,State) is NewState
-\end{alltt}
+The client function has the type:
+\begin{lstlisting}
+(el,IterState of r)=>IterState of r
+\end{lstlisting}
 where \q{El} is an element of the collection and \q{State} and \q{NewState} represent the `state' of the iteration and are of the type \q{IterState}.
 
 \begin{aside}
@@ -526,10 +527,11 @@ The \q{\_iterate} function should terminate processing the collection if the cli
 \end{description}
 
 For example, to find positive integer values in a collection this client function could be used:
-\begin{alltt}
-findPositive(X, ContinueWith(L)) where X>=0 is ContinueWith(cons(X,L));
-findPositive(_,S) default is S;
-\end{alltt}
+\begin{lstlisting}
+fun findPositive(X, ContinueWith(L)) where X>=0 is
+       ContinueWith(cons(X,L))
+ |  findPositive(_,S) default is S;
+\end{lstlisting}
 \begin{aside}
 The \q{\_iterate} function is used automatically for \ntRef{SearchCondition}s; however, the programmer is also free to explicitly use the \q{\_iterate} function.
 \end{aside}
@@ -549,46 +551,47 @@ Hence the formulation of \q{\_iterate} as an explicitly universally quantified f
 The \q{indexed\_iterable} contract defines what it means to `iterate' over a sequence where elements have a location within the sequence. The contract itself is defined in Program~\vref{indexedIterateContractProg} and it also makes use of the standard \q{IterState} type seen in Program~\vref{iterateContractProg}.
 
 \begin{program}[H]
-\begin{alltt}
-contract indexed\_iterable over s determines (k,v) is \{
+\begin{lstlisting}
+contract indexed_iterable over s determines (k,v) is {
   _ixiterate has type 
     for all r such that 
       (s,(k,v,IterState of r)=>IterState of r,IterState of r) => 
         IterState of r;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The \q{indexed\_iterable} Contract\label{indexedIterateContractProg}}
 \end{program}
 
 The \q{indexed\_iterable} contract defines a single function -- \q{\_ixiterate} -- which is used to `iterate' over a sequence applying a client function to each element of the collection whilst keeping track of the index of the element within the collection that is being processed.
 
 \subsection{\q{\_ixiterate} -- Iterate over collection}
-\label{iterateFunction}
+\label{indexIterateFunction}
 \index{indexed\_iterable contract@\q{indexed\_iterable} contract!\_ixiterate@\q{\_ixiterate}}
 \index{iterate over collection}
-\begin{alltt}
+\begin{lstlisting}
 _ixiterate has type 
     for all coll,k,v,r such that 
       (coll,(k,v,IterState of r)=>IterState of r,IterState of r) => 
         IterState of r
       where indexed\_iterable over coll determines (k,v)
-\end{alltt}
+\end{lstlisting}
 
 The \q{\_ixiterate} function traverses a collection -- in an order that is `natural' to the type of the collection -- applying a `client function' to each element. As it traverses the collection \q{\_ixiterate} keeps track of the index of the element within the collection.
 
 The client function takes the form:
-\begin{alltt}
-fun(Ix,El,State) is NewState
-\end{alltt}
+\begin{lstlisting}
+fun client(Ix,El,State) is NewState
+\end{lstlisting}
 where \q{Ix} is a value that denotes the `position' of the element within the collection, \q{El} is an element of the collection and \q{State} and \q{NewState} represent the `state' of the iteration and are of the type \q{IterState}.
 
 The interpretation of the \q{State} is the same as for the \q{iterable} contract.
 
 For example, to find the location within a \q{cons} list of an element that is greater than zero we can use the client function:
-\begin{alltt}
-indexOfPositive(Ix,X, ContinueWith(L)) where X>=0 is ContinueWith(cons(Ix,L));
-indexOfPositive(_,_,S) default is S;
-\end{alltt}
+\begin{lstlisting}
+fun indexOfPositive(Ix,X, ContinueWith(L)) where X>=0 is
+      ContinueWith(cons(Ix,L))
+ |  indexOfPositive(_,_,S) default is S;
+\end{lstlisting}
 \begin{aside}
 The \q{\_ixiterate} function is used automatically in \ntRef{IndexedSearch} conditions; however, the programmer is also free to explicitly use the \q{indexed\_iterable} contract.
 \end{aside}
@@ -598,11 +601,11 @@ The \q{\_ixiterate} function is used automatically in \ntRef{IndexedSearch} cond
 The \q{mappable} contract defines what it means to be able to apply a function over a collection. It contains a single \q{map} function:
 
 \begin{program}[H]
-\begin{alltt}
-contract mappable over c is \{
+\begin{lstlisting}
+contract mappable over c is {
   map has type for all e,f such that ((e)=>f,c of e) => c of f;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The \q{mappable} Contract\label{mapContractProg}}
 \end{program}
 
@@ -610,19 +613,19 @@ contract mappable over c is \{
 \label{mapFunction}
 
 The \q{map} function applies a function to a collection to produce a new collection. Its type is given by:
-\begin{alltt}
+\begin{lstlisting}
 map has type for all e,f such that ((e)=>f,c of e) => c of f where
   mappable over c
-\end{alltt}
+\end{lstlisting}
 For example, we can use \q{map} to construct a list of \q{string} representations of \q{integer} values by mapping \q{display} (see \vref{displayFunction}):
 
-\begin{alltt}
+\begin{lstlisting}
 map(list of [1,2,3,4],display)
-\end{alltt}
+\end{lstlisting}
 the value of which is the \q{list}:
-\begin{alltt}
+\begin{lstlisting}
 list of ["1","2","3","4"]
-\end{alltt}
+\end{lstlisting}
 
 Note the slightly unusual quantification over the collection type. The \q{map} function must be able to accept a generic function as its transformation function.
 
@@ -632,11 +635,11 @@ The \q{filterable} contract contains a single function -- \q{filter} -- that can
 
 
 \begin{program}[H]
-\begin{alltt}
-contract filterable over t determines e is \{
+\begin{lstlisting}
+contract filterable over t determines e is {
   filter has type ((e)=>boolean,t) => t
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The \q{filterable} Contract\label{filterContractProg}}
 \end{program}
 
@@ -645,39 +648,39 @@ contract filterable over t determines e is \{
 \label{filterFunction}
 
 The \q{filter} function applies a predicate to a collection to produce a new collection -- containing only elements that satisfy the predicate. Its type is given by:
-\begin{alltt}
+\begin{lstlisting}
 filter has type for all e,t such that ((e)=>boolean,t) => t where
   filterable over t determines e
-\end{alltt}
+\end{lstlisting}
 For example, we can use \q{filter} to eliminate odd numbers from a list of \q{integer}s:
-\begin{alltt}
-filter(list of [1,2,3,4,5,6],fn X=>X\%2=0)
-\end{alltt}
+\begin{lstlisting}
+filter(list of [1,2,3,4,5,6],(X)=>X%2=0)
+\end{lstlisting}
 which has value:
-\begin{alltt}
+\begin{lstlisting}
 list of [2,4,6]
-\end{alltt}
+\end{lstlisting}
 
 \section{The \q{foldable} Contract}
 \label{foldableContract}
 The \q{foldable} contract defines another variant of iterating over collections while aggregating. The \q{foldable} contract defines two functions: \q{leftFold} and \q{rightFold}.
 
 \begin{program}[H]
-\begin{alltt}
-contract foldable over c determines e is \{
+\begin{lstlisting}
+contract foldable over c determines e is {
   leftFold has type for all st such that ((st,e)=>st,st,c)=>st;
   leftFold1 has type ((e,e)=>e,c) => e;
   rightFold has type for all st such that ((e,st)=>st,st,c)=>st;
   rightFold1 has type ((e,e)=>e,c)=>e;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The \q{foldable} Contract\label{foldableContractProg}}
 \end{program}
 
 For example, to add together a collection of \q{integer}s, one can use a \q{leftFold} (or equivalently a \q{rightFold}) expression:
-\begin{alltt}
+\begin{lstlisting}
 leftFold((+),0,list of [1, 2, 3, 4])
-\end{alltt}
+\end{lstlisting}
 which has value \q{10}.
 
 \begin{aside}
@@ -691,27 +694,27 @@ Some functions are commutative -- like \q{(+)} -- in which case the value return
 \subsection{\q{leftFold} -- Aggregate from the Left}
 \label{leftFold}
 The \q{leftFold} function reduces a sequence by successively applying a function from the beginning of the sequence.
-\begin{alltt}
+\begin{lstlisting}
 leftFold has type for all e,c,s such that
     ((s,e)=>s,s,c) => s where foldable over c determines e
-\end{alltt}
+\end{lstlisting}
 The client function takes the form:
-\begin{alltt}
-leftClient(\emph{Acc},\emph{El}) is \emph{Acc'}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+fun leftClient(|\emph{Acc}|,|\emph{El}|) is |\emph{Acc'}|
+\end{lstlisting}
 where \q{\emph{Acc}} is the accumulated result so far, \q{\emph{El}} is successive elements of the collection and \q{\emph{Acc'}} is the result of applying the client function to the element.
 
 \subsection{\q{leftFold1} -- Non-zero Aggregate from the Left}
 \label{leftFold1}
 The \q{leftFold1} function reduces a sequence by successively applying a function from the beginning of the sequence. The first element of the sequence is used as the initial `state':
-\begin{alltt}
+\begin{lstlisting}
 leftFold1 has type for all e,c such that
     ((e,e)=>e,c) => c where foldable over c determines e
-\end{alltt}
+\end{lstlisting}
 The client function takes the form:
-\begin{alltt}
-leftClient(\emph{Acc},\emph{El}) is \emph{Acc'}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+fun leftClient(|\emph{Acc}|,|\emph{El}|) is |\emph{Acc'}|
+\end{lstlisting}
 where \q{\emph{Acc}} is the accumulated result so far, \q{\emph{El}} is successive elements of the collection and \q{\emph{Acc'}} is the result of applying the client function to the element.
 
 \begin{aside}
@@ -729,14 +732,14 @@ The standard contract for \q{foldable} includes a \emph{default} implementation 
 \subsection{\q{rightFold} -- Aggregate from the Right}
 \label{rightFold}
 The \q{rightFold} function reduces a sequence by successively applying a function from the end of the sequence.
-\begin{alltt}
+\begin{lstlisting}
 rightFold has type for all e,c,s such that
     ((e,s)=>s,s,c) => s where foldable over c determines e
-\end{alltt}
+\end{lstlisting}
 The client function takes the form:
-\begin{alltt}
-rightClient(\emph{El},\emph{Acc}) is \emph{Acc'}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+fun rightClient(|\emph{El}|,|\emph{Acc}|) is |\emph{Acc'}|
+\end{lstlisting}
 where \q{\emph{Acc}} is the accumulated result so far, \q{\emph{El}} is succesive elements of the collection and \q{\emph{Acc'}} is the result of applying the client function to the element.
 
 \begin{aside}
@@ -748,16 +751,16 @@ This reflects the difference in expected associativity of the clients.
 \subsection{\q{rightFold1} -- Non-zero Aggregate from the Right}
 \label{rightFold1}
 The \q{rightFold1} function reduces a sequence by successively applying a function from the end of the sequence. The last element of the sequence is used as the initial `state':
-\begin{alltt}
+\begin{lstlisting}
 rightFold1 has type for all e,c such that
     ((e,e)=>e,c) => c where foldable over c determines e
-\end{alltt}
+\end{lstlisting}
 
 \begin{aside}
 The client function has the same form as that for \q{leftFold1}; in particular its type is the same. However, the order of arguments is different: in particular, the client function should take the form:
-\begin{alltt}
-rightClient(\emph{El},\emph{Acc}) is \emph{Acc'}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+fun rightClient(|\emph{El}|,|\emph{Acc}|) is |\emph{Acc'}|
+\end{lstlisting}
 with successive elements being passed in to the first argument and the accumulated state in the second.
 \end{aside}
 
@@ -825,14 +828,14 @@ The standard contract for \q{foldable} includes a \emph{default} implementation 
 The \q{updateable} contract captures some key functions involved in updating collections. The contract -- which is defined in Program~\vref{updateableContractProg} -- contains definitions for adding elements to a collection, merging two collections, updating a collection and deleting elements from the collection.
 
 \begin{program}[H]
-\begin{alltt}
-contract updateable over r determines t is \{
+\begin{lstlisting}
+contract updateable over r determines t is {
     _extend has type (r,t)=>r;
     _merge has type (r, r) => r;
     _delete has type (r, ()<=t) => r;
     _update has type (r, ()<=t, (t)=>t) => r;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The \q{updateable} Contract}\label{updateableContractProg}
 \end{program}
 
@@ -857,59 +860,59 @@ The first `argument' of many of these actions is a \ntRef{Target}, i.e., they ha
 \subsection{\q{\_extend} a Collection}
 \label{extend}
 The \q{\_extend} function is used to `add' an element to a collection:
-\begin{alltt}
-\_extend has type for all r,t such that (r,t)=>r
+\begin{lstlisting}
+_extend has type for all r,t such that (r,t)=>r
                   where updateable over r determines t
-\end{alltt}
+\end{lstlisting}
 
 As an example of the use of \q{\_extend}, consider the \ntRef{Action}:
-\begin{alltt}
+\begin{lstlisting}
 extend R with ("fred",23)
-\end{alltt}
+\end{lstlisting}
 assuming that \q{R} was defined as a list:
-\begin{alltt}
+\begin{lstlisting}
 var R := list of [ ("peter",20) ]
-\end{alltt}
+\end{lstlisting}
 then after the \q{extend}, \q{R} will contain two tuples:
-\begin{alltt}
+\begin{lstlisting}
 list of [ ("fred", 23), ("peter",20) ]
-\end{alltt}
+\end{lstlisting}
 
 \begin{aside}
 Note that there is no implied commitment to preserve order of insertion into a collection. I.e., a sequence of \q{\_extend}s into a collection may not be visible when the collection is iterated over or searched.
 \end{aside}
 
 The relationship between the \q{extend} action and the \q{\_extend} function is captured in the macro rule:
-\begin{alltt}
-#extend ?Tgt with ?Exp ==> Tgt := \_extend(Tgt,Exp)
-\end{alltt}
+\begin{lstlisting}
+#extend ?Tgt with ?Exp ==> Tgt := _extend(Tgt,Exp)
+\end{lstlisting}
 
 
 \subsection{\q{\_merge} a Collection}
 \label{merge}
 The \q{\_merge} function is used to merge a collection with another one.
-\begin{alltt}
-\_merge has type for all r,t such that (r,r)=>r
+\begin{lstlisting}
+_merge has type for all r,t such that (r,r)=>r
                  where updateable over r determines t
-\end{alltt}
+\end{lstlisting}
 
 \begin{aside}
 Technically a \q{\_merge} is equivalent to a sequence of \q{\_extend}s. However, for situations where many elements may be added simultaneously, using \q{\_merge} offer opportunities for more optimal implementations.
 \end{aside}
 
 As an example of the use of \q{\_merge}, consider the \ntRef{Action}:
-\begin{alltt}
-merge R with list of [ ("john",2), ("alfred",10) ]
-\end{alltt}
+\begin{lstlisting}
+merge R with list of [("john",2), ("alfred",10)]
+\end{lstlisting}
 then, assuming the same \q{R} as above, after the \q{merge}, \q{R} will contain:
-\begin{alltt}
-list of [ ("fred", 23), ("john",2), ("alfred",10), ("peter",20) ]
-\end{alltt}
+\begin{lstlisting}
+list of [("fred", 23), ("john",2), ("alfred",10), ("peter",20)]
+\end{lstlisting}
 
 The relationship between the \q{merge} action and the \q{\_merge} function is captured in the macro rule:
-\begin{alltt}
-#merge ?Tgt with ?Rel ==> Tgt := \_merge(Tgt,Rel)
-\end{alltt}
+\begin{lstlisting}
+#merge ?Tgt with ?Rel ==> Tgt := _merge(Tgt,Rel)
+\end{lstlisting}
 
 \begin{aside}
 One constraint of the \q{\_merge} function is that the type of the two collections must be the same. This is not necessary if an iteration is hand-coded using separate \q{\_extend} calls.
@@ -918,10 +921,10 @@ One constraint of the \q{\_merge} function is that the type of the two collectio
 \subsection{\q{\_update} a Collection}
 \label{update}
 The \q{\_update} function is used to update one or more elements in a collection simultaneously.
-\begin{alltt}
-\_update has type for all r,t such that (r, ()<=t, (t)=>t) => r
+\begin{lstlisting}
+_update has type for all r,t such that (r, ()<=t, (t)=>t) => r
                   where updateable over r determines t
-\end{alltt}
+\end{lstlisting}
 This function takes three arguments: the collection to be updated, a \ntRef{Pattern} to identify which elements of the collection to update and a \ntRef{Function} to transform selected elements.
 
 \begin{aside}
@@ -931,33 +934,33 @@ The \ntRef{UpdateAction} notation for \q{update} hides the existence of the patt
 The \q{\_update} function `tests' each element of the collection to see if it should be updated. If an element is to be updated, then the transform function performs the change.
 
 For example, to double all entries in \q{R} then we can use the action:
-\begin{alltt}
+\begin{lstlisting}
 update (N,X) in R with (N,X+X)
-\end{alltt}
+\end{lstlisting}
 If we wanted to constrain the update to entries whose first element was less than \q{"fred"} we could use:
-\begin{alltt}
+\begin{lstlisting}
 update ((N,X) where N<"fred") in R with (N,2*X)
-\end{alltt}
+\end{lstlisting}
 This last action would change \q{R} to:
-\begin{alltt}
+\begin{lstlisting}
 list of [ ("fred", 23), ("john",2), ("alfred",20), ("peter",20) ]
-\end{alltt}
+\end{lstlisting}
 (since only \q{"alfred"} is less than \q{"fred"} in the standard lexicographical ordering).
 
 The macro that defines the \q{update} notation in terms of \q{\_update} is:
-\begin{alltt}
+\begin{lstlisting}
 #update ?Ptn in ?Tgt with ?Exp ==> Tgt := 
-   \_update(Tgt,(pattern() from Ptn),fn Ptn => Exp)
-\end{alltt}
+   _update(Tgt,(() from Ptn), (Ptn) => Exp)
+\end{lstlisting}
 
 
 \subsection{\q{\_delete} Elements from a Collection}
 \label{delete}
 The \q{\_delete} function is used to remove selected elements from a collection.
-\begin{alltt}
-\_delete has type for all r,t such that (r, ()<=t) => r
+\begin{lstlisting}
+_delete has type for all r,t such that (r, ()<=t) => r
                   where updateable over r determines t
-\end{alltt}
+\end{lstlisting}
 This function takes two arguments: the collection to be updated and a \ntRef{Pattern} to identify which elements of the collection to remove.
 
 \begin{aside}
@@ -967,18 +970,18 @@ The \ntRef{UpdateAction} notation for \q{delete} hides the explicit existence of
 The \q{\_delete} function `tests' each element of the collection to see if it should be deleted.
 
 For example, to delete all entries in \q{R}  whose second element is less than 10 we can use the action:
-\begin{alltt}
+\begin{lstlisting}
 delete ((N,X) where X<10) in R
-\end{alltt}
+\end{lstlisting}
 This last action would change \q{R} to:
-\begin{alltt}
-list of [ ("fred", 23), ("alfred",20), ("peter",20) ]
-\end{alltt}
+\begin{lstlisting}
+list of [("fred", 23), ("alfred",20), ("peter",20)]
+\end{lstlisting}
 
 The macro that defines the \q{delete} notation in terms of \q{\_delete} is:
-\begin{alltt}
-#delete ?Ptn in ?Tgt with ?Exp ==> Tgt := \_delete(Tgt,(pattern() from Ptn))
-\end{alltt}
+\begin{lstlisting}
+#delete ?Ptn in ?Tgt with ?Exp ==> Tgt := _delete(Tgt,(() from Ptn))
+\end{lstlisting}
 
 
 \section{The \q{explosion} Contract}
@@ -988,12 +991,12 @@ The \q{explosion} contract defines what it means to `pack' or 'unpack' a collect
 The explosion contract is defined in Program~\vref{explosionContractProg}. Notice that this contract defines \q{coll} as a higher-kinder type -- specifically, it must have kind \q{type of type}.
 
 \begin{program}[H]
-\begin{alltt}
-contract explosion over (coll,packed) determines el is \{
+\begin{lstlisting}
+contract explosion over (coll,packed) determines el is {
   implode has type (coll of el)=>packed;
   explode has type (packed) => coll of el;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The \q{explosion} Contract\label{explosionContractProg}}
 \end{program}
 
@@ -1002,11 +1005,11 @@ contract explosion over (coll,packed) determines el is \{
 \index{explosion contract@\q{explosion} contract!implode\q{implode}}
 \index{pack a collection}
 
-\begin{alltt}
+\begin{lstlisting}
 implode has type for all coll, el, packed such that 
   (coll of el)=>packed where
     explosion over (coll,packed) determines el
-\end{alltt}
+\end{lstlisting}
 
 \noindent
 The \q{implode} function takes a collection and packs it into a suitably compressed form -- whose type depends on the implementation.
@@ -1019,11 +1022,11 @@ One typical use is to implode a \q{cons} list of \q{char}s into a \q{string}.\en
 \index{explosion contract@\q{explosion} contract!explode\q{explode}}
 \index{un a collection}
 
-\begin{alltt}
+\begin{lstlisting}
 explode has type has type for all coll, el, packed such that 
   (packed) => coll of el where
     explosion over (coll,packed) determines el
-\end{alltt}
+\end{lstlisting}
 
 \noindent
 The \q{explode} function takes a packed object and expands it into a suitable collection.
@@ -1041,23 +1044,23 @@ The \q{list} type's implementation is optimized for random access: i.e., for its
 \label{listLiteral}
 \index{list@\q{list}!literal}
 Since the \q{list} type implements the \q{sequence} contract, the standard sequence notation can be used to represent list values and patterns (see Section~\vref{sequenceExpression} and Section~\vref{sequencePattern}). I.e., an expression of the form:
-\begin{alltt}
-list of [E\sub1\sequence{,}E\subn]
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+list of [E|\sub1\sequence{,}|E|\subn|]
+\end{lstlisting}
 denotes the \q{list} of elements \q{E\sub1} through \q{E\subn}.
 
 For example:
-\begin{alltt}
+\begin{lstlisting}
 list of [1, 3, -10, 5]
-\end{alltt}
+\end{lstlisting}
 denotes an list of four \q{integer} elements. The expression:
-\begin{alltt}
+\begin{lstlisting}
 list of []
-\end{alltt}
+\end{lstlisting}
 denotes the empty \q{list}. Partial \q{list} expressions are also permitted:
-\begin{alltt}
+\begin{lstlisting}
 list of [1, 3, -10 ,.. X]
-\end{alltt}
+\end{lstlisting}
 denotes the result of \q{cons}ing the elements \q{1}, \q{3} and \q{-10} to the front of the list \q{X}.
 \begin{aside}
 The `tail' of an \q{list of} expression must also be an \q{list} value.
@@ -1067,13 +1070,13 @@ The `tail' of an \q{list of} expression must also be an \q{list} value.
 Of course, in most cases the `tail' part of a partial \q{list} pattern is denoted by a variable. In which case the tail variable is bound to a \q{list} that denotes the appropriate remainder of the \q{list}.
 
 For example, if the pattern \q{list of [X1,X2,..Tl]} is matched against:
-\begin{alltt}
+\begin{lstlisting}
 list of [1, 2, 3, 4, 5]
-\end{alltt}
+\end{lstlisting}
 then the variables \q{X1} and \q{X2} will be bound to \q{1} and \q{2} respectively, and \q{Tl} will be bound to:
-\begin{alltt}
+\begin{lstlisting}
 list of [3, 4, 5]
-\end{alltt}
+\end{lstlisting}
 \end{aside}
 
 \section{The \q{cons} Type}
@@ -1081,20 +1084,20 @@ list of [3, 4, 5]
 The \q{cons} type is a list type that implements the contracts \q{sequence}, \q{indexable}, \q{sizeable} and \q{iterable}. It is optimized for sequential processing. Unlike the \q{list} type, it is defined as a regular \ntRef{AlgebraicType} -- as can be seen in Program~\vref{consTypeProg}.
 
 \begin{program}[H]
-\begin{alltt}
+\begin{lstlisting}
 type cons of t is nil or cons(t,cons of t)
-\end{alltt}
+\end{lstlisting}
 \caption{The Standard \q{cons} Type}\label{consTypeProg}
 \end{program}
 
 The \ntRef{SequenceExpression} and \ntRef{SequencePattern} notations also apply to \q{cons} terms. So, an expression of the form
-\begin{alltt}
+\begin{lstlisting}
 cons of ["alpha", "beta", "gamma"]
-\end{alltt}
+\end{lstlisting}
 is equivalent to 
-\begin{alltt}
+\begin{lstlisting}
 cons("alpha", cons("beta", cons("gamma",Nil)))
-\end{alltt}
+\end{lstlisting}
 
 \begin{aside}
 The \q{cons} implementation of the \q{sequence} contract is asymmetric: \q{\_cons}ing an element to the front of the \q{cons} sequence if fundamentally a constant-time operation; as is the corresponding match using \q{\_pair}. However, the \q{\_apnd} and \q{\_back} operations are \emph{linear} on the size of the \q{cons} list.
@@ -1109,12 +1112,12 @@ The cost of `indexing' an element of a \q{cons} structure is linear on the size 
 The \q{queue} type is a sequence type that is symmetric to adding/removing elements from the front or the back. It is defined by the standard definition as shown in Program~\vref{queueTypeProg}.
 
 \begin{program}
-\begin{alltt}
-type queue of t is queue\{
+\begin{lstlisting}
+type queue of t is queue{
   front has type cons of t; -- The 'front' portion of the queue
   back has type cons of t;  -- The 'back' portion of the queue
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \caption{The Standard \q{queue} Type}\label{queueTypeProg}
 \end{program}
 \begin{aside}

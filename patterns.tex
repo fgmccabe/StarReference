@@ -13,7 +13,7 @@ Patterns are templates that are used to match against a value; possibly binding 
 &\choice&\ntRef{RecordPattern}\\
 &\choice&\ntRef{GuardedPattern}\\
 &\choice&\ntRef{MatchingPattern}\\
-&\choice&\ntRef{TypeCastPattern}\\
+%&\choice&\ntRef{TypeCastPattern}\\
 &\choice&\ntRef{TypeAnnotatedPattern}\\
 &\choice&\ntRef{PatternApplication}\\
 &\choice&\ntRef{SequencePattern}\\
@@ -38,30 +38,30 @@ Due to the scope hiding rule -- see Section~\vref{scopeHiding} -- it is required
 
 \begin{aside}
 A repeated occurrence of a variable in a pattern is equivalent to a call to the \q{=} predicate. For example, the pattern:
-\begin{alltt}
+\begin{lstlisting}
 (X,Y,X)
-\end{alltt}
+\end{lstlisting}
 is equivalent to the \ntRef{GuardedPattern} (see Section~\vref{guardPattern}):
-\begin{alltt}
+\begin{lstlisting}
 (X,Y,X1) where X=X1
-\end{alltt}
+\end{lstlisting}
 The \q{=} predicate is defined in the standard \q{equality} contract (see Section~\vref{equalityPredicates}); and therefore, the call and the pattern may not be valid if \q{equality} is not implemented for the type of \q{X}.
 \end{aside}
 
 \subsection{Scope of Pattern Variables}
 \index{variables!scope of}
 A pattern always occurs in the context of a \emph{scope extension} -- a new potential scope for variables. For example, in the equation:
-\begin{alltt}
-fact(N) is N*fact(N-1)
-\end{alltt}
+\begin{lstlisting}
+fun fact(N) is N*fact(N-1)
+\end{lstlisting}
 the pattern on the left hand side of the equation:
-\begin{alltt}
+\begin{lstlisting}
 fact(N)
-\end{alltt}
+\end{lstlisting}
 introduces variables that are in scope on the right hand side of the equation:
-\begin{alltt}
+\begin{lstlisting}
 N*fact(N-1)
-\end{alltt}
+\end{lstlisting}
 
 The actual scope of a pattern variable depends on the syntactic structure in which the pattern occurs: 
 \begin{description}
@@ -108,14 +108,14 @@ A literal string as a pattern matches exactly that string; the type of a string 
 \begin{aside}
 The operators that are used to denoted string interpolation expressions (see Section~\vref{StringInterpolation}) must \emph{not} be used in string patterns. In particular, the dollar and hash characters \emph{must} be quoted in a string pattern.
 
-For example, in the equation:
-\begin{alltt}
-hasDollar("has\$") is true
-\end{alltt}
+For example, in the function:
+\begin{lstlisting}
+fun hasDollar("has$") is true
+\end{lstlisting}
 the string pattern \q{"has\$"} is not legal. You should use:
-\begin{alltt}
-hasDollar("has\bsl\$") is true
-\end{alltt}
+\begin{lstlisting}
+fun hasDollar("has\$") is true
+\end{lstlisting}
 
 On the other hand, regular expression patterns are treated with special semantics (see Section~\vref{regularExpressions}).
 \end{aside}
@@ -137,25 +137,11 @@ The type of the pattern depends on the type of the number literal: \q{integer} l
 A regular expression denotes a pattern that can potentially match a \q{string}. Regular expressions are written using a notation that is very close to the standard regexp notation; the regular expression itself is enclosed in backquote characters: \q{`}
 
 For example, a regular expression that matches the common ASCII notion of identifier would be:
-\begin{alltt}
+\begin{lstlisting}
 `[a-zA-Z_][a-zA-Z_0-9]*`
-\end{alltt}
+\end{lstlisting}
 
 Most of the commonly used regular expression operators are supported -- character classes, star iteration and so on. In addition, there is a smooth integration of variables in regular expressions -- it is possible to mark a sub-expression to be bound to a variable.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-\ntDef{RegularExpression}&\arrow&\q{`}\ntRef{Regex}\q{`}\\
-\ntDef{Regex}&\arrow&\q{.}\\
-&\choice&\ntRef{CharRef}\\
-&\choice&\ntRef{DisjunctiveGroup}\\
-&\choice&\ntRef{CharacterClass}\\
-&\choice&\ntRef{Binding}\\
-&\choice&\ntRef{Regex} \ntRef{Cardinality}\\
-&\choice&\ntRef{Regex}\ \ntRef{Regex}
-\end{eqnarray*}
-\caption{Regular Expressions}\label{regexpFig}
-\end{figure}
 
 \index{regular expression!character reference}
 The simplest form of a regular expression is simply a character; which is denoted using a character reference. See Section~\vref{CharacterReference}.
@@ -200,22 +186,22 @@ Char Class&Meaning\\
 If the first character in a character class is the \q{\uphat} character, then the sense of the class is inverted: it matches all characters \emph{except} those mentioned in the remaining characters of the class.
 \begin{aside}
 In order to have a character class that positively looks for a \q{\uphat} character, it may either be escaped, as in:
-\begin{alltt}
-[\bsl\upht]
-\end{alltt}
+\begin{lstlisting}
+[\^]
+\end{lstlisting}
 or the class arranged so that \q{\uphat} is not the first character:
-\begin{alltt}
-[ab\uphat{}c]
-\end{alltt}
+\begin{lstlisting}
+[ab^c]
+\end{lstlisting}
 
 Analogously, in order to positively specify the \q{-} character in a character class it should either be escaped:
-\begin{alltt}
-[a\bsl{}-b]
-\end{alltt}
+\begin{lstlisting}
+[a\-b]
+\end{lstlisting}
 or put at the beginning of the character class (possibly after a leading \q{\uphat}):
-\begin{alltt}
+\begin{lstlisting}
 [-ab]
-\end{alltt}
+\end{lstlisting}
 \end{aside}
 
 \subsection{Disjunctive Regular Expressions}
@@ -247,35 +233,35 @@ A regular expression can be optional or repeated a number of times.
 The cardinality operators always refer to the regular expression immediately to the left of the operator. They control how many times that expression should be matched:
 \begin{description}
 \item[\q{?}] A cardinality of \q{?} means that the regular expression to the left is optional. For example,
-\begin{alltt}
+\begin{lstlisting}
 `[-+]?`
-\end{alltt}
+\end{lstlisting}
 will match a \q{-} or \q{+} character if present.
 \item[\q{*}]
 A cardinality of \q{*} means that the regular expression to the left may be matched zero or more times.
 
 For example, the pattern:
-\begin{alltt}
+\begin{lstlisting}
 `[0-9]*`
-\end{alltt}
+\end{lstlisting}
 will match any number of digit characters.\footnote{ASCII digit characters that is. Unicode contains many other digit characters not matched by this regular expression.} The classic regular for an identifier is:
-\begin{alltt}
+\begin{lstlisting}
 `[a-zA-Z_][a-zA-Z0-9_]*`
-\end{alltt}
+\end{lstlisting}
 meaning a letter followed by any number of letters and digits.
 
 \begin{aside}
 This is a so-called `greedy match': the pattern matches as many as possible of the pattern. This makes a difference if the pattern immediately following a star pattern may also match or partially match the starred pattern:
-\begin{alltt}
+\begin{lstlisting}
 `[a-f]*[a-z]*`
-\end{alltt}
+\end{lstlisting}
 \end{aside}
 \item[\q{+}] The \q{+} cardinality means that the regular expression to the left must be matched at least once, but can be matched any number of times beyond that.
 
 For example, the definition of an \q{integer} literal in many programming languages looks like:
-\begin{alltt}
+\begin{lstlisting}
 `[-+]?[0-9]+`
-\end{alltt}
+\end{lstlisting}
 I.e., an optional leading sign, followed by at least one decimal digit character.
 \end{description}
 
@@ -296,19 +282,19 @@ A variable in a regular expression is denoted by a colon character followed by t
 If the match is successful, then the variable is bound to the part of the string that corresponds to the regular expression within the parentheses. The type of the variable is \q{string}.
 
 For example, to pick out the third character of a \q{string}, and bind it to the variable \q{T}, we can use the pattern:
-\begin{alltt}
+\begin{lstlisting}
 `..(.:T).*`
-\end{alltt}
+\end{lstlisting}
 Any arbitrary subexpression can be extracted; for example, the regular expression:
-\begin{alltt}
+\begin{lstlisting}
 `.*(a+:T).*`
-\end{alltt}
+\end{lstlisting}
 looks for the first substring consisting of \q{a} characters.
 \begin{aside}
 It is not defined if a variable regular expression is itself repeated, or is part of an optional regular expression. For example, the meaning of:
-\begin{alltt}
+\begin{lstlisting}
 `([a-z]+:I)?`
-\end{alltt}
+\end{lstlisting}
 is undefined (since the variable pattern itself is optional, it is possible to match a string against this pattern without binding the variable \q{I}).
 \end{aside}
 
@@ -357,18 +343,18 @@ Positional constructors must be declared in an algebraic type definition (see Se
 \label{anonTuplePattern}
 
 Anonymous tuple patterns can be used to extract values from tuple values (see Section~\vref{TupleTerms}). For example, the pattern \q{(X,Y)} in the query expression:
-\begin{alltt}
-all of X where (X,Y) in R
-\end{alltt}
+\begin{lstlisting}
+list of {all X where (X,Y) in R}
+\end{lstlisting}
 matches against the elements of \q{R} -- assuming that it is a \q{list} --
 \index{lists}
 and `binds' the local variables \q{X} and \q{Y} to the first and second tuple member of each successive elements of \q{R}.
 
 \begin{aside}
 As noted in Section~\vref{tupleType}, anonymous tuples are essentially syntactic sugar for automatically defined algebraic types. The above query is equivalent to:
-\begin{alltt}
-all of X where \$2(X,Y) in R\footnote{Noting, of course, that \q{\$2} is not a legal \Sr identifier.}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+list of { all X where $2(X,Y)|\footnote{Noting, of course, that \q{\$2} is not a legal \Sr identifier.}| in R}
+\end{lstlisting}
 
 \end{aside}
 
@@ -394,15 +380,15 @@ An enumerated symbol -- as a pattern -- matches the same symbol only. Enumerated
 A record pattern consists of the record label, followed by attribute patterns enclosed in braces.
 
 Each attribute pattern takes the form:
-\begin{alltt}
-\emph{att}=\emph{Pattern}
-\end{alltt}
-where \emph{Pattern} is a pattern that the \q{\emph{att}} attribute must satisfy.
+\begin{lstlisting}[escapechar=|]
+|\ntRef{Identifier}|=|\ntRef{Pattern}|
+\end{lstlisting}
+where \emph{Pattern} is a pattern that the \ntRef{Identifier} attribute must satisfy.
 
 Unlike positional constructor patterns, it is not required for all of the attributes to be mentioned in a record constructor pattern. At its limit, a pattern of the form:
-\begin{alltt}
-label\{\}
-\end{alltt}
+\begin{lstlisting}
+label{}
+\end{lstlisting}
 becomes a test that the \q{label} record literal is present -- with no constraints on the attributes of the record.
 
 \begin{figure}[htbp]
@@ -434,16 +420,16 @@ An anonymous record pattern is written in an analogous form to the regular recor
 
 \noindent
 For example, 
-\begin{alltt}
-\{name=N;address=A\} in R
-\end{alltt}
+\begin{lstlisting}
+{name=N;address=A} in R
+\end{lstlisting}
 uses an anonymous record pattern to match elements of the list \q{R}.
 
 \begin{aside}
 Unlike with most other patterns, the type checker is generally \emph{not} able to reliably infer the type of an anonymous record pattern. As a result, it must \emph{always} be the case that the anonymous record pattern occurs in a context where the type may be inferred. In the above example, the type of the anonymous record pattern:
-\begin{alltt}
-\{name=N;address=A\}
-\end{alltt}
+\begin{lstlisting}
+{name=N;address=A}
+\end{lstlisting}
 can be inferred from the context it occurs in, and the type of \q{R}. However, if \q{R}'s type is not already known by other means, then a syntax error will result.
 
 \begin{aside}
@@ -497,44 +483,6 @@ The \q{matching} pattern allows the same input to be matched against two pattern
 
 \subsubsection{Type Safety}
 The two patterns in a \q{matching} pattern are used to match the same input -- hence they must be of the same type.
-
-\section{Type Cast Pattern}
-\label{typeCastPattern}
-\index{patterns!type cast}
-\index{type cast!pattern}
-\index{cast@\q{cast}!pattern}
-
-A type cast pattern is a form of semantic pattern where the type of the pattern is explicitly marked.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-\ntDef{TypeCastPattern}&\arrow&\ntRef{Pattern}\ \q{cast}\ \ntRef{Type}
-\end{eqnarray*}
-\caption{Type Cast Pattern}
-\label{typeCastPtnFig}
-\end{figure}
-
-A pattern of the form:
-\begin{alltt}
-\emph{Ptn} cast \emph{Type}
-\end{alltt}
-implies a type cast from the type of the matched value to the type of \q{\emph{Ptn}}.
-
-\begin{aside}
-Like \ntRef{TypeCastExpression}s, a type cast pattern can never result in a \emph{value coercion}. In addition, a \ntRef{TypeCastPattern} only `makes sense' in the situation where either the cast type is \q{any} or the type of the value being matched is type \q{any}.
-\end{aside}
-
-%\subsubsection{Type Safety}
-%The type of a type cast pattern is implicitly determined by the expected type of the pattern. The type of the embedded pattern is set by the type cast itself.
-%
-%\begin{prooftree}
-%\AxiomC{\typeprd{E}{P}{T\sub{P}}}
-%\AxiomC{\entail{E,\theta\sub0}{T\sub{P}\subsume T\leadsto\theta\sub{o}}}
-%\BinaryInfC{\typeprd{E}{Ex\q{ cast }T}{T}}
-%\end{prooftree}
-%
-%This rule states that the type of a type cast pattern may be of type $T$, provided that $T\sub{P}\subsume{}T$, i.e., the expected type is at least as general as the actual type of the pattern.
-
 \section{Type Annotated Pattern}
 \label{typeAnnotatedPattern}
 \index{patterns!type annotated}
@@ -552,16 +500,17 @@ A type annotated pattern is a form of semantic pattern where the type of the pat
 \end{figure}
 
 A pattern of the form:
-\begin{alltt}
-(\emph{Ptn} has type \emph{Type})
-\end{alltt}
-implies that \q{\emph{Ptn}} has type \emph{Type}.
+\begin{lstlisting}[escapechar=|]
+(|\ntRef{Pattern}| has type |\ntRef{Type}|)
+\end{lstlisting}
+implies that \ntRef{Pattern} has type \ntRef{Type}.
 
 \begin{aside}
 One important role for \ntRef{TypeAnnotatedPattern}s is to explicitly declare the type of a pattern variable\footnote{Recall that all variable declarations take the form of a pattern.} This specifically permits a variable to be given a higher-ranked type. For example, in:
-\begin{alltt}
-poly((F has type for all t such that (t)=>t)) is (F(1),F("alpha"))
-\end{alltt}
+\begin{lstlisting}
+fn poly((F has type for all t such that (t)=>t)) is
+      (F(1),F("alpha"))
+\end{lstlisting}
 would not be well typed without the explicit type annotation on the argument \q{F} because type inference cannot infer polymorphic types.
 \end{aside}
 \begin{aside}
@@ -595,9 +544,9 @@ A pattern abstraction application is a pattern where a \ntRef{PatternAbstraction
 \end{figure}
 
 A pattern of the form:
-\begin{alltt}
-\emph{PtnAb}(\emph{Ptn\sub1}\sequence{,}\emph{Ptn\subn})
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+|\emph{PtnAb}|(|\emph{Ptn\sub1}\sequence{,}\emph{Ptn\subn}|)
+\end{lstlisting}
 denotes the application of a pattern abstraction -- identified by \q{\emph{PtnAb}} -- to the argument patterns \q{\emph{Ptn\subi}}
 
 \begin{aside}
@@ -606,31 +555,30 @@ The applied pattern abstraction is denoted by \emph{Expression} in Figure~\vref{
 
 \begin{aside}
 It is possible for a pattern abstraction to `return' computed values; i.e., values that are not directly in the original data being matched. For example, the pattern abstraction:
-\begin{alltt}
-parent(P) from C where (P,C) in children;
-\end{alltt}
+\begin{lstlisting}
+ptn parent(P) from C where (P,C) in children;
+\end{lstlisting}
 will match anyone that is known to have a parent -- in the \q{children} collection -- and will return the parent of the child. A match using this:
-\begin{alltt}
+\begin{lstlisting}
 "john" matches parent(PJ)
-\end{alltt}
+\end{lstlisting}
 will result in the variable \q{PJ} being bound to \q{"john"}'s parent -- if it is known. Only one of \q{"john"}'s parents will be found, however.
 \end{aside}
 
-
 The type signature for a pattern abstraction is of the form:
-\begin{alltt}
-(t\sub1\sequence{,}t\subn) <= t
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+(t|\sub1\sequence{,}|t|\subn|) <= t
+\end{lstlisting}
 where the \q{t\subi} are return values from the match and \q{t} is the type of the value being matched.
 
 Where a pattern application is part of a larger pattern the match type refers to a single value being matched. However, in the case of the \q{matches} condition, it is possible to match against multiple values:
-\begin{alltt}
-(E\sub1\sequence{,}E\sub{m}) matches P(V\sub1\sequence{,}V\subn)
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+(E|\sub1\sequence{,}|E|\sub{m}|) matches P(V|\sub1\sequence{,}|V|\subn|)
+\end{lstlisting}
 In this case, the type of the pattern abstract \q{P} would be of the form:
-\begin{alltt}
-(Vt\sub1\sequence{,}Vt\subn) <= (Et\sub1\sequence{,}Et\sub{m})
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+(Vt|\sub1\sequence{,}|Vt|\subn|) <= (Et|\sub1\sequence{,}|Et|\sub{m}|)
+\end{lstlisting}
 
 
 \subsubsection{Type Safety}
@@ -657,7 +605,7 @@ A sequence pattern represents a use of the standard \q{sequence} contract to mat
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{SequencePattern}&\arrow&\ntRef{SequenceType}\ \q{of}\,\q{[}\ntRef{PtnSequence}\q{]}\\
+\ntDef{SequencePattern}&\arrow&\ntRef{SequenceType}\ \q{of}\,\q{[}\ntRef{PtnSequence}\q{]} \ \choice\ \q{[}\ntRef{PtnSequence}\q{]}\\
 \ntDef{PtnSequence}&\arrow&[\ntRef{Pattern}\q{..,}\,]\ntRef{Pattern}\sequence{,}\ntRef{Pattern}[\q{,..}\,\ntRef{Pattern}]
 \end{eqnarray*}
 \caption{Sequence Pattern}
@@ -667,13 +615,13 @@ A sequence pattern represents a use of the standard \q{sequence} contract to mat
 Like \ntRef{SequenceExp}s, a \ntRef{sequencePattern} is syntactic sugar for terms involving the \q{sequence} contract -- which is defined in Program~\vref{sequenceContractDef}.
 
 A pattern of the form:
-\begin{alltt}
-\emph{Label} of [\emph{Ptn\sub1}\sequence{;}\emph{Ptn\subn}\q{]}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+|\emph{Label}| of [|\emph{Ptn\sub1}\sequence{,}\emph{Ptn\subn}|]
+\end{lstlisting}
 is equivalent to the pattern:
-\begin{alltt}
-\_pair(\emph{Ptn\sub1}, \ldots, \_pair(\emph{Ptn\subn},\_empty())\ldots)
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+_pair(|\emph{Ptn\sub1}|, |\ldots|, _pair(|\emph{Ptn\subn}|,_empty())|\ldots|) has type |\emph{Label}| of %_
+\end{lstlisting}
 \emph{provided that \emph{Label} is the label of a type that implements the \q{sequence} contract}. Included in that contract are two pattern abstractions -- denoting the empty sequence (\q{\_empty()}) and a non-empty sequence (\q{\_pair()}).
 
 
@@ -699,25 +647,25 @@ A pattern of the form:
 denotes a pattern of type \q{quoted}\footnote{The \q{quoted} type is defined in Program~\vref{quotedProg}.} where the input must match \q{\emph{SyntacticForm}}.
 
 As with quoted expressions, it is possible to put a `hole' in a quoted pattern by using the \q{unquote} or \q{?} forms. For example, the pattern:
-\begin{alltt}
+\begin{lstlisting}
 <| ?A * 45 |>
-\end{alltt}
+\end{lstlisting}
 will match with a quoted form such as:
-\begin{alltt}
+\begin{lstlisting}
 (Alpha+Beta)*45
-\end{alltt}
+\end{lstlisting}
 by binding the unquoted variable \q{A} with the equivalent of:
-\begin{alltt}
+\begin{lstlisting}
 <| (Alpha+Beta) |>
-\end{alltt}
+\end{lstlisting}
 \begin{aside}
 The parentheses used in the original expression remain explicit in the quoted form. This pattern is equivalent to the pattern:
-\begin{alltt}
-applyAst(\_, nameAst(\_, "\$1"), array of [
-  applyAst(\_, nameAst(\_, "+"),
-    array of [nameAst(\_,"Alpha"), nameAst(\_,"Beta")])
+\begin{lstlisting}
+applyAst(_, nameAst(_, "\$1"), array of [
+  applyAst(_, nameAst(_, "+"),
+    array of [nameAst(_,"Alpha"), nameAst(_,"Beta")])
   ])
-\end{alltt}
+\end{lstlisting}
 \begin{aside}
 The location of the abstract syntax tree terms is \emph{not} matched in a quoted pattern. This is denoted by the use of anonymous variables in the location argument.
 \end{aside}

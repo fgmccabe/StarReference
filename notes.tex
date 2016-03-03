@@ -81,18 +81,8 @@ There is a new, more compact, notation for anonymous functions. Instead of
 \end{alltt}
 one can write
 \begin{alltt}
-fn X => X+1
+(X) => X+1
 \end{alltt}
-
-If the anonymous function has more than one argument, or if it has no arguments, then the argument tuple should be given explicitly:
-\begin{alltt}
-fn(X,Y) is X+Y
-\end{alltt}
-and
-\begin{alltt}
-fn() is X+1
-\end{alltt}
-respectively.
 
 The `old' notation continues to be supported; but we recommend the newer form of lambda expression.
 

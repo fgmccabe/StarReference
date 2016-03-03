@@ -30,15 +30,7 @@ This chapter does not cover all forms of expression. Other chapters that address
 \section{Variables in Expressions}
 \label{varExpression}
 \index{variable}
-A variable as an expression is simply an occurrence of the variable's identifier.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-\ntDef{Variable}&\arrow&\ntRef{Identifier}
-\end{eqnarray*}
-\caption{Variable Expression}
-\label{variableExpressionFig}
-\end{figure}
+A variable as an expression is simply an occurrence of the variable's identifier (see Figure~\vref{variableFig}).
 
 \subsubsection{Type Safety}
 The type associated with a variable expression is derived from the type recorded for the variable in the environment.
@@ -47,9 +39,9 @@ The type associated with a variable expression is derived from the type recorded
 \UnaryInfC{\typeprd{E}{\q{v}}{T\sub{v}'}}
 \end{prooftree}
 where \q{T\sub{v}'} is derived from \q{T\sub{v}} by means of \emph{refreshing}. I.e., if \q{T\sub{v}} takes the form:
-\begin{alltt}
-for all t\subi{} such that T
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+for all t$\subi{}$ such that T
+\end{lstlisting}
 then \q{T\sub{v}'} is \q{T} with all occurrences of type variable \q{t\subi} replaced with new type variables.
 
 
@@ -83,8 +75,7 @@ Integers may be written in a variety of styles (see Section~\vref{numericLiteral
 \begin{eqnarray*}
 \ntDef{Integer}&\arrow&\ntRef{IntegerLiteral}\\
 &\choice&\ntRef{Hexadecimal}\\
-&\choice&\ntRef{CharacterCode}\\
-&\choice&\q{nonInteger}
+&\choice&\ntRef{CharacterCode}
 \end{eqnarray*}
 \caption{Integer Literals}
 \label{integerExpressionFig}
@@ -95,35 +86,34 @@ The \q{integer} type is a so-called boxed type. Underlying the \q{integer} type 
 \index{type!integer@\q{integer}!raw}
 
 The \q{integer} type can be defined using:
-\begin{alltt}
-type integer is integer(_integer) or nonInteger
-\end{alltt}
-where \q{\_integer} type is the raw type used internally to denote the machine representation of a 32-bit integer.
+\begin{lstlisting}
+type integer is integer(integer_)
+\end{lstlisting}
+where \q{integer\_} type is the raw type used internally to denote the machine representation of a 32-bit integer.
 \label{rawInteger}
 \begin{aside}
-A raw \q{\_integer} is written with a trailing underscore:
-\begin{alltt}
-34\_
-\end{alltt}
+A raw \q{integer\_} is written with a trailing underscore:
+\begin{lstlisting}
+34_
+\end{lstlisting}
 In general, for an integer literal:
-\begin{alltt}
+\begin{lstlisting}
 34
-\end{alltt}
+\end{lstlisting}
 is equivalent to the expression:
-\begin{alltt}
-integer(34\_)
-\end{alltt}
+\begin{lstlisting}
+integer(34_)
+\end{lstlisting}
 \end{aside}
-The \q{nonInteger} value is used to denote non-integer \q{integer} values -- such as the result of an overflow in an arithmetic calculation, or more simply an `unknown' integer value.
 
 \subsubsection{Largest and Smallest \q{integer}s}
 The \q{largeSmall} contract is implemented for \q{integer}s. This contract (see Section~\vref{largeSmall}) defines the largest and the smallest \q{integer}s; its implementation is equivalent to
-\begin{alltt}
-implementation largeSmall over integer is \{
-  largest is integer(0x7fffffff\_);
-  smallest is integer(0x80000000\_);
-\}
-\end{alltt}
+\begin{lstlisting}
+implementation largeSmall over integer is {
+  def largest is integer(0x7fffffff_);
+  def smallest is integer(0x80000000_);
+}
+\end{lstlisting}
 
 \subsection{64 bit Integer Literals}
 \label{longType}
@@ -134,29 +124,26 @@ The \q{long} type is used to denote integral values in the range $-2^{63} \mbox{
 \begin{figure}[htbp]
 \begin{eqnarray*}
 \ntDef{Long}&\arrow&\ntRef{Decimal}\,\q{L}\\
-&\choice&\ntRef{Hexadecimal}\,\q{L}\\
-&\choice&\q{nonLong}
+&\choice&\ntRef{Hexadecimal}\,\q{L}
 \end{eqnarray*}
 \caption{Long Literals}
 \label{longExpressionFig}
 \end{figure}
 
 As with \q{integer}s, the \q{long} type is a boxed type; is is defined equivalently to:
-\begin{alltt}
-type long is long(_long) or nonLong
-\end{alltt}
-The \q{\_long} type is a raw type used internally that denotes the machine representation of a 64-bit integer. Raw \q{\_long} literals may be written using the underscore suffix (after the long indicator):
-\begin{alltt}
-45l\_
-\end{alltt}
-
-The \q{nonLong} value is used to denote non-valid \q{long} values -- such as the result of an overflow in an arithmetic calculation.
+\begin{lstlisting}
+type long is long(long_)
+\end{lstlisting}
+The \q{long\_} type is a raw type used internally that denotes the machine representation of a 64-bit integer. Raw \q{long\_} literals may be written using the underscore suffix (after the long indicator):
+\begin{lstlisting}
+45l_
+\end{lstlisting}
 
 \begin{aside}
 There is no automatic conversion between \q{integer} values and \q{long} values. The \ntRef{TypeCoercion} expression may be used to convert between them. If \q{X} is an \q{integer} variable, then
-\begin{alltt}
+\begin{lstlisting}
 X as long
-\end{alltt}
+\end{lstlisting}
 may be used to convert its value to \q{long}.
 \begin{aside}
 Where converting from \q{integer} to \q{long} does not lose any precision, the same cannot be said for other conversions.
@@ -165,12 +152,12 @@ Where converting from \q{integer} to \q{long} does not lose any precision, the s
 
 \subsubsection{Largest and Smallest \q{long}s}
 The \q{largeSmall} contract is implemented for \q{long}s. This contract (see Section~\vref{largeSmall}) defines the largest and the smallest \q{long} integers; its implementation is equivalent to
-\begin{alltt}
-implementation largeSmall over long is \{
-  largest is long(0x7fffffffffffffffL\_);
-  smallest is long(0x8000000000000000L\_);
-\}
-\end{alltt}
+\begin{lstlisting}
+implementation largeSmall over long is {
+  def largest is long(0x7fffffffffffffffL_)
+  def smallest is long(0x8000000000000000L_)
+}
+\end{lstlisting}
 
 
 \subsection{Floating Point Literals}
@@ -181,23 +168,20 @@ The \q{float} type is used to represent fractional values. Floating point number
 
 \begin{figure}[H]
 \begin{eqnarray*}
-\ntDef{Float}&\arrow&\ntRef{FloatingPoint}\\
-&\choice&\q{nonFLoat}
+\ntDef{Float}&\arrow&\ntRef{FloatingPoint}
 \end{eqnarray*}
 \caption{Floating Point Literals}
 \label{floatExpressionFig}
 \end{figure}
 
-The \q{nonFloat} value denotes non-legal floating point values, including the floating point NaN.
-
 \subsubsection{Largest and Smallest \q{float}s}
 The \q{largeSmall} contract is implemented for \q{float}ing point numbers. Its implementation is equivalent to
-\begin{alltt}
-implementation largeSmall over float is \{
-  largest is __bits_float(0x7fefffffffffffffL_);
-  smallest is __bits_float(0x1L_);
-\}
-\end{alltt}
+\begin{lstlisting}
+implementation largeSmall over float is {
+  def largest is __bits_float(0x7fefffffffffffffL_)
+  def smallest is __bits_float(0x1L_)
+}
+\end{lstlisting}
 
 where \q{\_\_bits\_float} is a special function that allows a 64 bit bit string to represent a floating point number (the bit string \emph{is} the bit representation of the floating point number).
 
@@ -209,17 +193,16 @@ The \q{decimal} point type is used to denote arbitrary precision decimal fractio
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{DecimalNumber}&\arrow&\ntRef{Decimal}\\
-&\choice&\q{nonDecimal}
+\ntDef{DecimalNumber}&\arrow&\ntRef{Decimal}
 \end{eqnarray*}
 \caption{Decimal Literals}
 \label{decimalExpressionFig}
 \end{figure}
 
 The \q{decimal} type is defined equivalently to:
-\begin{alltt}
-type decimal is decimal(_decimal) or nonDecimal
-\end{alltt}
+\begin{lstlisting}
+type decimal is decimal(decimal_)
+\end{lstlisting}
 where \q{nonDecimal} is used to denote non-legal decimal values.
 
 \begin{aside}
@@ -236,18 +219,15 @@ The \q{string} type is used to denote string values.
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{String}&\arrow&\ntRef{StringLiteral}\\
-&\choice&\q{nonString}\\
+\ntDef{String}&\arrow&\ntRef{StringLiteral}
 \end{eqnarray*}
 \caption{String Expression}\label{stringInterpolationFig}
 \end{figure}
 
 The \q{string} type is defined equivalently to:
-\begin{alltt}
-type string is string(_string) or nonString
-\end{alltt}
-where \q{nonString} is used to denote non-legal string values and \q{\_string} is the raw string type.
-
+\begin{lstlisting}
+type string is string(string_)
+\end{lstlisting}
 The simplest form of \q{string} literal is a sequence of characters enclosed in double-quotes -- see Section~\vref{string}.
 
 In addition, quoted strings may include \emph{interpolation} expressions -- which are embedded expressions whose values are interpolated into the actual string value.
@@ -258,14 +238,14 @@ In addition, quoted strings may include \emph{interpolation} expressions -- whic
 String interpolation refers to the embedding of variables and expressions in string literals. The actual string value of an interpolated \q{string} literal requires the evaluation of those variables and expressions.
 
 For example, given a variable \q{X} with the value 24, then:
-\begin{alltt}
-"this has the value of X: \$X"
-"\$(X*X) people saw this"
-\end{alltt}
+\begin{lstlisting}
+"this has the value of X: $X"
+"$(X*X) people saw this"
+\end{lstlisting}
 would have values:
-\begin{alltt}
-"this has the value of X: 24" {\rm and} "576 people saw this"
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+"this has the value of X: 24" ${\rm and}$ "576 people saw this"
+\end{lstlisting}
 respectively.
 
 There are two modes of string interpolation: the dollar form corresponds to \q{display}ing a value and the hash form corresponds to \emph{coercing} a value to a \q{string} value (see Section~\vref{typeCoercionExpression}). The former produces a string which is intended to be parseable as the original value. It is also the form that is universally supported by all non-programmatic types.
@@ -274,26 +254,26 @@ There are two modes of string interpolation: the dollar form corresponds to \q{d
 If a \q{string} interpolation expression itself contains a string, the various quoting mechanisms for strings apply to that string also. I.e., it is not necessary to `double-quote' strings within \q{string} interpolation expressions.
 
 For example, the \q{string} expression in:
-\begin{alltt}
-logMsg(info,"The price of cheese is \$(priceOf("cheese"))");
-\end{alltt}
+\begin{lstlisting}
+logMsg(info,"The price of cheese is $(priceOf("cheese"))");
+\end{lstlisting}
 works as expected: the argument to the \q{priceOf} function is the string literal \q{"cheese"}. An even more nested example is:
-\begin{alltt}
-logMsg(info,"The price of \$P is \$(priceOf("SKU\$P"))");
-\end{alltt}
+\begin{lstlisting}
+logMsg(info,"The price of $P is $(priceOf("SKU$P"))");
+\end{lstlisting}
 In this example, we have a \q{string} interpolation expression embedded within another \q{string} interpolation expression.
 \end{aside}
 
 An \ntRef{Interpolation} expression may be followed by a \ntRef{FormattingSpec}. If present, then this specification is used to guide how values are formatted.
 
 For example, the value of
-\begin{alltt}
+\begin{lstlisting}
 "--\$(120345567):999,999,999,999;--"
-\end{alltt}
+\end{lstlisting}
 is the string:
-\begin{alltt}
+\begin{lstlisting}
 "--120,345,567--"
-\end{alltt}
+\end{lstlisting}
 Detailed formatting is controlled by the \q{format} contract -- see Section~\vref{formatContract} -- which in turn means that different types of expression will have type appropriate ways of specifying the formatting.
 
 \subsubsection{Semantics of String Interpolation}
@@ -301,50 +281,50 @@ Detailed formatting is controlled by the \q{format} contract -- see Section~\vre
 String variable interpolation expressions may refer to variables that are in scope at the location of the string literal itself.
 
 The meaning of a string interpolation is slightly different for the two forms of interpolation. An expression of the form:
-\begin{alltt}
-"\emph{prefix}\$(\emph{Exp})\emph{suffix}"
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+"|\emph{prefix}|$(|\emph{Exp}|)|\emph{suffix}|"
+\end{lstlisting}
 is interpreted as:
-\begin{alltt}
-"\emph{prefix}"++display(\emph{Exp})++"\emph{suffix}"
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+"$\emph{prefix}$"++display($\emph{Exp}$)++"$\emph{suffix}$"
+\end{lstlisting}
 whereas the expression:
-\begin{alltt}
-"\emph{prefix}\#(\emph{Exp})\emph{suffix}"
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+"$\emph{prefix}$\#($\emph{Exp}$)$\emph{suffix}$"
+\end{lstlisting}
 is interpreted as being equivalent to:
-\begin{alltt}
-"\emph{prefix}"++(\emph{Exp} as string)++"\emph{suffix}"
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+"$\emph{prefix}$"++($\emph{Exp}$ as string)++"$\emph{suffix}$"
+\end{lstlisting}
 
 \begin{aside}
 The difference between \q{display} and \q{as} becomes most obviously apparent with \q{string}s themselves. Assuming that the variable \q{L} is bound to the \q{string} \q{"hello"}, the value of 
-\begin{alltt}
-"alpha\#(L)beta"
-\end{alltt}
+\begin{lstlisting}
+"alpha#(L)beta"
+\end{lstlisting}
 is the string
-\begin{alltt}
+\begin{lstlisting}
 "alphahellobeta"
-\end{alltt}
+\end{lstlisting}
 whereas the value of 
-\begin{alltt}
-"alpha\$(L)beta"
-\end{alltt}
+\begin{lstlisting}
+"alpha$(L)beta"
+\end{lstlisting}
 is
-\begin{alltt}
-"alpha\bsl"hello\bsl"beta"
-\end{alltt}
+\begin{lstlisting}
+"alpha\"hello\"beta"
+\end{lstlisting}
 But in general, there may be many differences between the two forms of displayed value. 
 \end{aside}
 
 If a \ntRef{FormattingSpec} is present, then the translation takes that into account also. For example, the expression:
-\begin{alltt}
-"\emph{prefix}\$(\emph{Exp}):\emph{Format};\emph{suffix}"
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+"|\emph{prefix}|$(|\emph{Exp}|):|\emph{Format}|;|\emph{suffix}|"
+\end{lstlisting}
 is equivalent to the expression:
-\begin{alltt}
-"\emph{prefix}"++\_format(\emph{Exp},\emph{Format})++"\emph{suffix}"
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+"$\emph{prefix}$"++_format($\emph{Exp}$,$\emph{Format}$)++"$\emph{suffix}$"
+\end{lstlisting}
 where \q{\_format} is part of the \q{format} contract -- see Section~\vref{formatContract}.
 
 \begin{aside}
@@ -356,24 +336,16 @@ Note that this translation is the same for either the \q{\$} or \q{\#} interpola
 \label{enumeratedSymbol}
 \index{expression!enumerated symbol}
 \index{enumerated symbol}
-Enumerated symbols are written using regular identifiers. Such a symbol must first have been declared within a type definition statement -- see Section~\vref{enumSymbol} -- which also determines the type of the symbol.
-
-\begin{figure}[H]
-\begin{eqnarray*}
-\ntDef{EnumeratedSymbol}&\arrow&\ntRef{Identifier}
-\end{eqnarray*}
-\caption{Enumerated Symbol}
-\label{enumeratedSymbolFig}
-\end{figure}
+Enumerated symbols are written using regular identifiers (see Figure~\vref{enumSymbolFig}). Such a symbol must first have been declared within a type definition statement -- see Section~\vref{enumSymbol} -- which also determines the type of the symbol.
 
 For example, the \q{boolean} type definition has two \ntRef{EnumeratedSymbol}s in its definition: \q{true} and \q{false}. Thus
-\begin{alltt}
+\begin{lstlisting}
 true
-\end{alltt}
+\end{lstlisting}
 is an expression consisting of an \ntRef{EnumeratedSymbol} from the definition:
-\begin{alltt}
+\begin{lstlisting}
 type boolean is true or false;
-\end{alltt}
+\end{lstlisting}
 
 \section{Algebraic Constructor Expressions}
 \label{algebraicConstructors}
@@ -410,17 +382,17 @@ Records allow their fields to be addressed individually.
 \label{positionalConstructorFig}
 \end{figure}
 This definition also determines the valid types of the arguments to the constructor. For example, the type definition:
-\begin{alltt}
+\begin{lstlisting}
 type address is noWhere or someWhere(string,integer,string)
-\end{alltt}
+\end{lstlisting}
 defines \q{someWhere} as the identifier of a \ntRef{ConstructorLiteral} and any instance must have exactly three arguments: a \q{string}, an \q{integer} and a \q{string}.
 
 \paragraph{Accessing Elements of a Constructor Literal}
 \index{positional constructor literal!accessing elements}
 The only way that elements of a \ntRef{ConstructorLiteral} can be \emph{accessed} is via a pattern match -- see Section~\vref{posConPattern}. For example, given the definition of \q{address} above, we can `unpack' its argument using a pattern such as in
-\begin{alltt}
-city(someWhere(City,_,_) is City;
-\end{alltt}
+\begin{lstlisting}
+fun city(someWhere(City,_,_)) is City
+\end{lstlisting}
 
 \subsection{Tuples}
 \label{TupleTerms}
@@ -450,9 +422,9 @@ Not a single type, because each arity of anonymous tuple type denotes a differen
 In that tuples can be used to group elements together, they are somewhat similar to arrays. However, unlike arrays, each element of a tuple may be of a different type, and also unlike arrays, tuple elements may not be accessed via an indexing operation: tuples can only be `unwrapped' by some form of pattern matching.
 
 For example, if the \q{split} function splits a list into a front half and back half, it may be used in a statement of the form:
-\begin{alltt}
-(F,B) is split(L)
-\end{alltt}
+\begin{lstlisting}
+def (F,B) is split(L)
+\end{lstlisting}
 which has the effect of unpacking the result of the \q{split} function call and binding the variables \q{F} and \q{B} to the front half and back half of the list \q{L}. 
 
 
@@ -463,9 +435,9 @@ The tuple notation is unremarkable except for two cases: the single element tupl
 \label{zeroTuple}
 \index{tuple!zero-ary}
 Zero-element tuples \emph{are} permitted. A zero-element tuple, which is written
-\begin{alltt}
+\begin{lstlisting}
 ()
-\end{alltt}
+\end{lstlisting}
 is essentially a symbol.
 
 \subsubsection{Singleton Tuples}
@@ -476,15 +448,15 @@ Some special handling is required to represent tuples of one element.
 The principal issue is the potential ambiguity between a tuple with one element and a normal operator override expression.
 
 For example,
-\begin{alltt}
+\begin{lstlisting}
 (a+b)*c
-\end{alltt}
+\end{lstlisting}
 is such a case: the inner term \q{(a+b)} is not intended to denote a tuple but simply the sum of \q{a} and \q{b}.
 
 A singleton tuple \emph{may} be written; by doubly parenthesizing it. An expression of the form:
-\begin{alltt}
+\begin{lstlisting}
 ((34))
-\end{alltt}
+\end{lstlisting}
 denotes a singleton tuple with the integer 34 in it.
 
 \begin{aside}
@@ -515,23 +487,23 @@ Like \ntRef{ConstructorLiteral}s, the \ntRef{RecordLiteral} must have been defin
 There are two variants of the \ntRef{RecordLiteral}: the \ntRef{Record} form and the \ntRef{ThetaRecord} form. This section focuses on the former.
 
 For example, given the type definition:
-\begin{alltt}
-type employee is emp\{
+\begin{lstlisting}
+type employee is emp{
   name has type string;
   hireDate has type date;
   salary has type ref integer;
   dept has type ref string;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 A literal \q{emp} value will look like:
-\begin{alltt}
-E is emp\{
+\begin{lstlisting}
+def E is emp{
   name = "Fred Nice";
   hireDate = today();
   salary := 23000;
   dept := "mail"
-\}
-\end{alltt}
+}
+\end{lstlisting}
 \begin{aside}
 Fields whose type is a \q{ref}erence type -- see Section~\vref{referenceType} -- are defined within the record using the \q{:=} operator. All other fields are defined using the \q{=} operator.
 \end{aside}
@@ -548,20 +520,20 @@ Fields within a \ntRef{RecordLiteral} are identified by name; and may be written
 An anonymous record is one which does not have an explicit label.
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{Record}&\arrow&\q{\{}\,\ntRef{RecordElement}\,\q{;}\ldots\q{;}\,\ntRef{RecordElement}\,\q{\}}\\
+\ntDef{AnonymousRecord}&\arrow&\q{\{}\,\ntRef{RecordElement}\,\q{;}\ldots\q{;}\,\ntRef{RecordElement}\,\q{\}}\\
 &\choice&\q{\{}\,\ntRef{Definition}\sequence{;}\ntRef{Definition}\,\q{\}}
 \end{eqnarray*}
 \caption{Anonymous Record Literal Expression}\label{anonRecordLiteralFig}
 \end{figure}
 
 For example, an anonymous record consisting of a \q{name} and an \q{address} may be written:
-\begin{alltt}
-\{name="Fred; address="1 Main St"\}
-\end{alltt}
+\begin{lstlisting}
+{name="Fred; address="1 Main St"}
+\end{lstlisting}
 Anonymous records have, as their type, a \ntRef{RecordType} (see Section~\vref{recordType}). The type of this record would be represented by:
-\begin{alltt}
-\{ name has type string; address has type string\}
-\end{alltt}
+\begin{lstlisting}
+{ name has type string; address has type string}
+\end{lstlisting}
 
 \subsection{Accessing Fields of a Record}
 \label{dotAccess}
@@ -578,34 +550,34 @@ Record access expressions access the value associated with a field of a record v
 \end{figure}
 
 An expression of the form
-\begin{alltt}
+\begin{lstlisting}
 A.F
-\end{alltt}
+\end{lstlisting}
 where \q{F} is the name of an attribute of the record \q{A} denotes the value of that attribute. For example, given the type definition
-\begin{alltt}
-type person is someone\{
+\begin{lstlisting}
+type person is someone{
   name has type string;
   age has type integer;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 and a \q{person} value bound to \q{P}:
-\begin{alltt}
-P is someone\{ name="fred"; age=32 \}
-\end{alltt}
+\begin{lstlisting}
+def P is someone{ name="fred"; age=32 }
+\end{lstlisting}
 then the expression \q{P.name} has value \q{"fred"}.
 
 The (\q{.}) access operator is also used in cases where an anonymous record is used; for example given the record:
-\begin{alltt}
-R is \{ alpha = "a"; beta=4\}
-\end{alltt}
+\begin{lstlisting}
+def R is { alpha = "a"; beta=4}
+\end{lstlisting}
 then \q{R.alpha} has value \q{"a"}
 \begin{aside}
 The binding of the record access operator (\q{.}) is very strong. Thus, expressions such as 
 \q{A.L[ix]} and \q{A.F(a,b*3)}
 are equivalent to
-\begin{alltt}
-(A.L)[ix] {\rm and} (A.F)(a,b*3)
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+(A.L)[ix] ${\rm and}$ (A.F)(a,b*3)
+\end{lstlisting}
 respectively.
 \end{aside}
 
@@ -618,14 +590,14 @@ The type safety of a record access expression is couched in terms of \ntRef{Attr
 \end{prooftree}
 \begin{aside}
 This formulation of the type safety of record access expressions allows for some quite powerful usages. For example, the function:
-\begin{alltt}
-getName(R) is R.name
-\end{alltt}
+\begin{lstlisting}
+fun getName(R) is R.name
+\end{lstlisting}
 has type:
-\begin{alltt}
+\begin{lstlisting}
 getName has type for all r,f such that
-  (r)=>f where r implements \{name has type f\}
-\end{alltt}
+  (r)=>f where r implements {name has type f}
+\end{lstlisting}
 In effect, we can define programs that depend on particular attributes without having to be concrete about the actual types of the records being accessed.
 \end{aside}
 
@@ -647,26 +619,26 @@ Externally, a \ntRef{ThetaRecord} is the same as a regular \ntRef{Record}; inter
 If the record is labeled, then, as with all labeled records, the definitions within the \ntRef{ThetaEnvironment} must correspond exactly to the type definition.
 
 \ntRef{ThetaRecord}s are especially convenient when the fields of the record are program values. For example, assuming a type definition such as:
-\begin{alltt}
-type onewayQ of t is onewayQ\{
+\begin{lstlisting}
+type onewayQ of t is onewayQ{
   add has type (t)=>();
   take has type ()=>t;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 the literal:
-\begin{alltt}
-onewayQ\{
+\begin{lstlisting}
+onewayQ{
   private var Q := list of [];
-  add(X)\{
+  prc add(X) do {
     Q := list of [Q..,X]
-  \}
-  take() is valof\{
-    H is head(Q);
+  }
+  fun take() is valof{
+    def H is head(Q);
     Q := tail(Q);
     valis H
-  \}
-\}
-\end{alltt}
+  }
+}
+\end{lstlisting}
 defines a \q{onewayQ} record with two exposed program values -- \q{add} and \q{take}.
 
 \begin{aside}
@@ -676,30 +648,6 @@ If there are `extra' definitions, they should be marked \q{private} which will e
 \begin{aside}
 A \ntRef{ThetaRecord} has many of the characteristics of an object in OO languages -- except that there is no concept of inheritance; nor is there a direct equivalence of the \q{self} or \q{this} keyword.
 \end{aside}
-
-%\paragraph{Simulating \q{this}}
-%It is occasionally useful to be able to refer to the record as a whole from functions that are defined within it. There is no direct way of achieving this (sic) in a \ntRef{ThetaRecord}. However, it is possible to construct an analog -- using \q{memo} expressions.
-%
-%Consider the program fragment:
-%\begin{alltt}
-%type stack of t is stack\{
-%  push has type (t)=>stack of t;
-%  pop has type ()=>(t,stack of t)
-%\}
-%
-%S is stack\{
-%  private St is list of [];
-%  push(X) is stack\{ 
-%    private SSt is list of [X,..St]
-%    push(XX) is \ldots
-%\end{alltt}
-%It is clear that it is not straightforward to implement an instance of the \q{stack} record due to infinite regress.
-%
-%However, 
-%\begin{alltt}
-%S is let\{
-%  
-%\end{alltt}
 
 \subsubsection{\q{private} fields}
 \label{privateField}
@@ -713,9 +661,9 @@ A definition within a \ntRef{ThetaRecord} that is marked \q{private} does \emph{
 \index{expressions!substitute@\q{substitute}}
 \index{record values!replacing fields}
 An expression of the form:
-\begin{alltt}
-A substitute \{att\sub1=\ntRef{Expression}\sub1\sequence{;}att\subn=\ntRef{Expression}\subn\}
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+A substitute {att$\sub1$=$\ntRef{Expression}\sub1\sequence{;}$att$\subn$=$\ntRef{Expression}\subn$}
+\end{lstlisting}
 denotes the value obtained by replacing the attributes \q{att}\subi{} in \q{A} with the expressions \ntRef{Expression}\subi.
 
 \begin{figure}[htbp]
@@ -726,22 +674,22 @@ denotes the value obtained by replacing the attributes \q{att}\subi{} in \q{A} w
 \end{figure}
 
 For example, the expression
-\begin{alltt}
-P substitute \{age=33\}
-\end{alltt}
+\begin{lstlisting}
+P substitute {age=33}
+\end{lstlisting}
 has value
-\begin{alltt}
-someone\{name="fred"; age=33\}
-\end{alltt}
+\begin{lstlisting}
+someone{name="fred"; age=33}
+\end{lstlisting}
 \begin{aside}
 This expression has a separate value to that of \q{P} itself; evaluating the \q{substitute} does not side-effect \q{P}.
 \end{aside}
 
 \noindent
 The semantics of \q{substitute} is based on the notion of a `shallow copy'. The value of the expression:
-\begin{alltt}
-P substitute \{ age=33 \}
-\end{alltt}
+\begin{lstlisting}
+P substitute { age=33 }
+\end{lstlisting}
 is a new term whose fields consist of all the fields of \q{P} -- with the exception of the \q{age} field. The \q{substitute} expression does not imply a `deep' or complete copy of its left hand side. 
 \begin{aside}
 \index{expressions!substitute@\q{substitute}!ref fields@\q{ref} fields}
@@ -750,30 +698,30 @@ is a new term whose fields consist of all the fields of \q{P} -- with the except
 This only has significance if the record contains any \q{ref} fields. In particular, the resulting expression \emph{contains} the same \q{ref} fields as the original; and a subsequent assignment to a \q{ref} field will affect both the original and the substituted term.
 
 For example, given this type definition:
-\begin{alltt}
-type account is account\{
+\begin{lstlisting}
+type account is account{
   name has type string;
   balance has type ref float;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 and given the variable bindings:
-\begin{alltt}
-A is account\{ name = "fred"; balance := 0.0 \};
-B is A substitute \{ name = "peter" \}
-\end{alltt}
+\begin{lstlisting}
+def A is account{ name = "fred"; balance := 0.0 };
+def B is A substitute { name = "peter" }
+\end{lstlisting}
 then \q{A} and \q{B} both share the \emph{same} \q{ref} field. An assignment to one:
-\begin{alltt}
+\begin{lstlisting}
 A.balance := 5.9
-\end{alltt}
+\end{lstlisting}
 is an assignment to the other. In this case, the value of \q{B.balance} is also \q{5.9}
 \end{aside}
 \begin{aside}
 Note that if the \emph{right hand side} of a \q{substitute} contains a \q{ref} field, then the result will have the \q{ref} field from the right hand side, not the original.
 
 For example, if we have:
-\begin{alltt}
-C is A substitute \{ balance := 4.5 \}
-\end{alltt}
+\begin{lstlisting}
+def C is A substitute { balance := 4.5 }
+\end{lstlisting}
 then \q{C} \emph{does not} share a \q{ref} with \q{A} and updating either will not affect the other.
 \end{aside}
 
@@ -793,9 +741,9 @@ The implication is that the `substitution' record \q{S} only contains attributes
 An \q{option} expression is used to handle cases where a value is not always guaranteed. The \q{option} type is built-in but is defined as though by the algebraic type definition in Program~\vref{optionTypeProg}.
 
 \begin{program}
-\begin{alltt}
+\begin{lstlisting}
 type option of t is none or some(t)
-\end{alltt}
+\end{lstlisting}
 \caption{The \q{option} Type}
 \label{optionTypeProg}
 \end{program}
@@ -803,18 +751,38 @@ type option of t is none or some(t)
 The \q{option} type is intended to convey one of two possibilities: a given value exists -- in which case the \q{some} constructor is used -- or no value exists -- in which case \q{none} is used.
 
 For example,
-\begin{alltt}
+\begin{lstlisting}
 some("alpha")
-\end{alltt}
+\end{lstlisting}
 signals the definite \q{string} value \q{"alpha"}; whereas 
-\begin{alltt}
+\begin{lstlisting}
 none
-\end{alltt}
+\end{lstlisting}
 signals that there is no value.
 
 The \q{option} type can be used as the return type of functions that must reliably signal whether or not a value exists.
 \begin{aside}
 The \q{option} type serves as a normal `replacement' for \q{null} that one sees in languages like Java.
+\end{aside}
+
+In addition to the \q{someValue} and \q{?.} operators -- described below in Section~\vref{someValue} and Section~\vref{optionChaining} -- two conditions are defined specifically for \q{option} expressions: \q{present} (see Section~\vref{presentCond}) and \q{has value} (see Section~\vref{hasValueCond}).
+
+\subsection{Unwrap Option Value -- \q{someValue}}
+\label{someValue}
+\index{unwrap option value}
+
+The \q{someValue} unwraps a \q{some} value and returns its contents. It is defined by the equation:
+
+\begin{lstlisting}
+fun someValue(some(X)) is X
+\end{lstlisting}
+
+\begin{aside}
+\begin{aside}
+The \q{someValue} function is partial. It is not defined in the case that its argument is not a \q{some} value. If \q{someValue} is invoked with q{none} then the program will terminate.
+
+For this reason, the programmer should consider whether the \q{has value} condition (see Section~\vref{hasValueCond}) is a better fit.
+\end{aside}
 \end{aside}
 
 \subsection{Option Field Access -- \q{?.}}
@@ -827,33 +795,33 @@ The \q{?.} operator can be used similarly to a normal record field access (see \
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{RecordAccess}&\arrowplus&\ntRef{Expression}\ \q{?.}\ \ntRef{Identifier}
+\ntRef{RecordAccess}&\arrowplus&\ntRef{Expression}\ \q{?.}\ \ntRef{Identifier}
 \end{eqnarray*}
 \caption{Optional Record Access Expression}\label{optionAccessFig}
 \end{figure}
 
 The form of a optional field access is also similar to the field access; an expression of the form:
-\begin{alltt}
+\begin{lstlisting}
 A?.F
-\end{alltt}
+\end{lstlisting}
 will access the \q{F} field from the wrapped record value in \q{A}. The result type of a option field access is also an \q{option}al.
 
 For example, suppose that \q{R} has the type given by
-\begin{alltt}
+\begin{lstlisting}
 R has type option of Person
-\end{alltt}
+\end{lstlisting}
 
 Its type can be approximated by (the difference is that field labels are not themselves functions):
-\begin{alltt}
+\begin{lstlisting}
 (?.) has type for all r,s such that 
   (option of r,(r=>s))=>option of s
-\end{alltt}
+\end{lstlisting}
 I.e., it has a similar type to the \q{map} function (see \vref{mapFunction}) in the \q{mappable} contract.
 
 However, it is actually best understood as a macro form. The macro definition of \q{?.} can be given in a single line macro:
-\begin{alltt}
-#?R ?. ?F ==> map(fn RR=>RR.F,R)
-\end{alltt}
+\begin{lstlisting}
+#?R ?. ?F ==> map((RR)=>RR.F,R)
+\end{lstlisting}
 where \q{map} is the implementation of the \q{mappable} contract for the \q{option} type.
 
 \subsection{Default Option Expression -- \q{or else}}
@@ -866,29 +834,29 @@ The \q{or else} operator can be used to unwrap an \q{option}al value -- giving a
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{Expression}&\arrowplus&\ntRef{Expression}\ \q{or else}\ \ntRef{Expression}
+\ntRef{Expression}&\arrowplus&\ntRef{Expression}\ \q{or else}\ \ntRef{Expression}
 \end{eqnarray*}
 \caption{Optional Chaining with Default}\label{optionIndexAccessFig}
 \end{figure}
 
 The form of a optional access is:
-\begin{alltt}
+\begin{lstlisting}
 O or else D
-\end{alltt}
+\end{lstlisting}
 where \q{O} has type \q{option of t} and \q{D} has type \q{t}. If \q{O} has value \q{some(X)} then the value is \q{X}, otherwise it is \q{D}.
 
 Like \q{?.}, \q{or else} can be best understood as a macro:
-\begin{alltt}
-# ?O or else ?D ==> _optionDeflt(O,fn()=>D)
-_optionDeflt(some(X),_) is X
-_optionDeflt(none,D) is D()
-\end{alltt}
+\begin{lstlisting}
+# ?O or else ?D ==> _optionDeflt(O,()=>D)
+fun _optionDeflt(some(X),_) is X
+ |  _optionDeflt(none,D) is D()
+\end{lstlisting}
 Notice that the default expression is not evaluated unless the value of \q{O} is \q{none}.
 
 The \q{or else} operator is right associative. This means that they can be chained  together if more than one default is possible:
-\begin{alltt}
+\begin{lstlisting}
 A or else B or else C
-\end{alltt}
+\end{lstlisting}
 
 \section{Collection and Sequence Expressions}
 \label{sequenceExpression}
@@ -902,64 +870,63 @@ Collection expressions and sequence expressions are a syntactic feature that mak
 A sequence expression represents a use of the standard \q{sequence} contract (see Program~\vref{sequenceContractDef}) to construct sequences of values.
 
 \begin{aside}
-There is a further role of \ntRef{SequenceExpression}s to denote \emph{queries} -- the programmer's analog of set abstractions. \ntRef{Query} expressions are defined in Chapter~\ref{queries}.
+There is a similar form to \ntRef{SequenceExpression} which is used to denote \emph{queries} -- the programmer's analog of set abstractions. \ntRef{Query} expressions are defined in Chapter~\ref{queries}.
 \end{aside}
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\emph{Expression}&\arrowplus&\ntRef{CollectionExp} \choice\ \ntRef{SequenceExp}\\
-\ntDef{CollectionExp}&\arrow&\ntRef{CollectionType}\ \q{of}\,\q{\{}\,\ntRef{Expression}\sequence{;}\ntRef{Expression}\\
-\ntDef{CollectionType}&\arrow&\ntRef{Identifier}\ \choice\ \q{collection}\\
+\emph{Expression}&\arrowplus&\ntRef{SequenceExp}\\
 \ntDef{SequenceExp}&\arrow&\ntRef{SequenceType}\ \q{of}\,\q{[}\ntRef{ExpSequence}\q{]}\\
+&\choice&\q{[}\ntRef{ExpSequence}\q{]}\\
 \ntDef{ExpSequence}&\arrow&[\ntRef{Expression}\q{..,}\,]\ntRef{Expression}\sequence{,}\ntRef{Expression}[\q{,..}\,\ntRef{Expression}]\\
-\ntDef{SequenceType}&\arrow&\ntRef{Identifier}\ \choice\ \q{sequence}
+\ntDef{SequenceType}&\arrow&\ntRef{Identifier}
 \end{eqnarray*}
 \caption{Sequence Expression}
 \label{sequenceExpressionFig}
 \end{figure}
-I.e., a sequence expression consists of a sequence of \ntRef{Expression}s separated by semicolons. In addition, either -- but not both -- the tail or the front of the sequence may be denoted by an expression. Otherwise the sequence is nil-terminated.
+I.e., a sequence expression consists of a sequence of \ntRef{Expression}s separated by commas. In addition, either -- but not both -- the tail or the front of the sequence may be denoted by an expression. Otherwise the sequence is nil-terminated.
 
 An expression of the form:
-\begin{alltt}
-\emph{Label} of [\emph{E\sub1}\sequence{,}\emph{E\subn}\q{]}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+|\emph{Label}| of [|\emph{E\sub1}\sequence{,}\emph{E\subn}|]
+\end{lstlisting}
 is equivalent to the expression:
-\begin{alltt}
-\_cons(\emph{E\sub1}\sequence{,}\_cons(\emph{E\subn},\_nil())\sequence{}) has type \emph{Label} of \%t\sub{new}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+_cons(|\emph{E\sub1}\sequence{,}|_cons(|\emph{E\subn}|,_nil())|\sequence{}|) has type |\emph{Label}| of %t|\sub{new}|
+\end{lstlisting}
 \emph{provided that \emph{Label} is the label of a \ntRef{Type} that implements the \q{sequence}  contract} -- see Section~\vref{sequenceContract} and where \q{\%t\sub{new}} is a new type variable not occurring elsewhere. Included in that contract are two functions -- denoting the empty sequence (\q{\_nil()}) and a non-empty sequence (\q{\_cons()}) -- that are used to build the true value of a sequence expression.
 
 A sequence can be built up from other sequences by prepending to them. An expression of the form:
-\begin{alltt}
-\emph{Label} of [\emph{E\sub1}\sequence{,}\emph{E\sub{n-1}}\q{,..}\emph{E\subn}\q{]}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+|\emph{Label}| of [|\emph{E\sub1}\sequence{,}\emph{E\sub{n-1}}\q{,..}\emph{E\subn}|]
+\end{lstlisting}
 is equivalent to the expression:
-\begin{alltt}
-\_cons(\emph{E\sub1}\sequence{,}\_cons(\emph{E\sub{n-1}},\emph{E\subn})\sequence{})
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+_cons(|\emph{E\sub1}\sequence{,}|_cons(|\emph{E\sub{n-1}}|,|\emph{E\subn}|)|\sequence{}|)
+\end{lstlisting}
 
 Conversely, a sequence may be `front' loaded and be defined by appending elements to a `front' expression:
-\begin{alltt}
-\emph{Label} of [\emph{F}\q{..,}\emph{E\sub1}\sequence{,}\emph{E\subn}\q{]}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+|\emph{Label}| of [|\emph{F}\q{..,}\emph{E\sub1}\sequence{,}\emph{E\subn}|]
+\end{lstlisting}
 is equivalent to the expression:
-\begin{alltt}
-\_apnd(\sequence{}\_apnd(\emph{F},\emph{E\sub1})\sequence{}\emph{E\subn})
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+_apnd(|\sequence{}|_apnd(|\emph{F}|,|\emph{E\sub1}|)|\sequence{}\emph{E\subn}|)
+\end{lstlisting}
 
 \begin{aside}
 It is also possible to have a sequence expression is that is \emph{both} front-loaded and back-loaded:
-\begin{alltt}
-\emph{Label} of [\emph{F}\q{..,}\emph{M}\q{,..}\emph{T}\q{]}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+|\emph{Label}| of [|\emph{F}|..,|\emph{M}|,..|\emph{T}|]
+\end{lstlisting}
 is equivalent to:
-\begin{alltt}
-\_apnd(\_cons(\emph{F},\emph{M}),\emph{T})
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+_apnd(_cons(|\emph{F}|,|\emph{M}|),|\emph{T}|)
+\end{lstlisting}
 which, in turn, is equivalent to:
-\begin{alltt}
-\_cons(\emph{F},\_apnd(\emph{M},\emph{T}))
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+_cons(|\emph{F}|,_apnd(|\emph{M}|,|\emph{T}|))
+\end{lstlisting}
 \end{aside}
 
 \subsubsection{Type Safety}
@@ -977,7 +944,6 @@ In a similar vein to the \ntRef{Sequence} notation, the \ntRef{IndexExp} notatio
 \emph{Expression}&\arrowplus&\ntRef{IndexExp}\\
 \ntDef{IndexExp}&\arrow&\ntRef{Index}\ \choice\ \ntRef{IndexWith}\ \choice\ \ntRef{Slice}\\
 \ntDef{Index}&\arrow&\ntRef{Expression}\ \q{[}\,\ntRef{Expression}\q{]}\\
-&\choice&\q{present}\ \ntRef{Expression}\ \q{[}\,\ntRef{Expression}\q{]}\\
 \ntDef{IndexWith}&\arrow&\ntRef{Expression}\ \q{[}\,\q{with}\ \ntRef{Expression}\,\q{->}\,\ntRef{Expression}\q{]}\\
 &\choice&\ntRef{Expression}\ \q{[}\,\q{without}\ \ntRef{Expression}\,\q{]}\\
 \ntDef{Slice}&\arrow&\ntRef{Expression}\ \q{[}\,\ntRef{Expression}\,\q{:}\,\ntRef{Expression}\,\q{]}\\
@@ -988,17 +954,12 @@ In a similar vein to the \ntRef{Sequence} notation, the \ntRef{IndexExp} notatio
 \end{figure}
 
 \begin{aside}
-There is some subtlety in the interpretation of index expressions; the context in which they occur governs their meaning:
-\begin{itemize}
-\item In a \q{present} condition: \q{present L[Ix]}
-\item In a \q{has value} condition:
-\q{L[Ix] has value V}
-\item As the left hand side of an assignment:
-\q{L[Ix] := E}\item
-Indexed expressions:
-\q{L[Ix]}
-\end{itemize}
-In the sections that follow, and in Section~\vref{sequenceUpdate} and in Section~\vref{memberCondition}, we show the different interpretations of an index expression.
+There is some subtlety in the interpretation of index expressions; depending on whether the \ntRef{IndexExp} is an expression, or whether it is the left hand side of an assignment:
+\begin{lstlisting}
+L[Ix] := E
+\end{lstlisting}
+
+In the sections that follow, and in Section~\vref{sequenceUpdate}, we show the different interpretations of an index expression.
 \end{aside}
 
 \subsection{Accessing Elements of a Collection}
@@ -1006,67 +967,67 @@ In the sections that follow, and in Section~\vref{sequenceUpdate} and in Section
 \index{indexed access to collection}
 \index{access list with index}
 An expression of the form:
-\begin{alltt}
+\begin{lstlisting}
 C[ix]
-\end{alltt}
+\end{lstlisting}
 is equivalent to the expression
-\begin{alltt}
-\_index(C,ix)
-\end{alltt}
+\begin{lstlisting}
+_index(C,ix)
+\end{lstlisting}
 \begin{aside}
-The type of the resulting value from an indexed access is \q{option}al. I.e., since it cannot be guaranteed -- in general -- that the element exists, the resulting type expresses that uncertainty.
+The type of the resulting value from an indexed access is \q{option}al -- see Section~\vref{optionExpression}. I.e., since it cannot be guaranteed -- in general -- that the element exists, the resulting type expresses that uncertainty.
 
-You can extract the underlying value by using the \q{someValue} function -- see Section~\vref{someValue} -- but a safer way is to use a \q{has value} condition (see Section~\vref{optionUnwrap}.
+You can extract the underlying value by using the \q{someValue} function -- see Section~\vref{someValue} -- but a safer way is to use a \q{has value} condition (see Section~\vref{hasValueCond}.
 \end{aside}
 
-The presence of an element can be tested in one of two ways: by using the \q{present} predicate:
-\begin{alltt}
+The presence of an element can be tested in one of two ways: by using the \q{present} predicate -- see Section~\vref{presentCond}:
+\begin{lstlisting}
 present C[Ix]
-\end{alltt}
-which tests whether \q{C} has an element at index \q{Ix}, or using the special condition:
-\begin{alltt}
+\end{lstlisting}
+which tests whether \q{C} has an element at index \q{Ix} or using the special condition:
+\begin{lstlisting}
 C[Ix] has value V
-\end{alltt}
+\end{lstlisting}
 which are equivalent to
-\begin{alltt}
+\begin{lstlisting}
 _index(C,Ix) matches some(_)
-\end{alltt}
+\end{lstlisting}
 and
-\begin{alltt}
+\begin{lstlisting}
 _index(C,Ix) matches some(V)
-\end{alltt}
+\end{lstlisting}
 respectively.
  
 \subsection{Substitutions in a Collection}
 It is possible to denote the collection obtained by \emph{substituting} an element -- or deleting an element -- with expressions such as:
-\begin{alltt}
+\begin{lstlisting}
 C[with Kx->Vx]
-\end{alltt}
+\end{lstlisting}
 and
-\begin{alltt}
+\begin{lstlisting}
 C[without Kx]
-\end{alltt}
+\end{lstlisting}
 which represent
-\begin{alltt}
+\begin{lstlisting}
 _set_indexed(Cx,Kx,Vx)
-\end{alltt}
+\end{lstlisting}
 and
-\begin{alltt}
+\begin{lstlisting}
 _delete_indexed(Cx,Kx)
-\end{alltt}
+\end{lstlisting}
 respectively.
 
 \subsection{Slicing Collections}
 A more powerful form of accessing single elements from a collection is the \emph{slice} notation. A slice expression takes the form:
-\begin{alltt}
-\emph{C}[\emph{From}:\emph{To}]
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+|\emph{C}|[|\emph{From}|:|\emph{To}|]
+\end{lstlisting}
 which denotes the subset of elements `starting' at \q{\emph{From}} and `ending' (but \emph{not} including) with \q{\emph{To}}.
 
 The special variant:
-\begin{alltt}
-\emph{C}[\emph{From}:]
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+|\emph{C}|[|\emph{From}|:]
+\end{lstlisting}
 denotes all the remaining elements of the collection after \q{From}.
 
 \begin{aside}
@@ -1089,19 +1050,19 @@ A function application expression `applies' a function to zero or more arguments
 \end{figure}
 
 It is quite normal for the function expression being applied to arguments itself to be the result of a function application. For example, given the function \q{double}:
-\begin{alltt}
-double has type for all s such that (((s)=>s))=>((s)=>s);
-double(F) is fn X => is F(F(X));
-\end{alltt}
+\begin{lstlisting}
+double has type for all s such that (((s)=>s))=>((s)=>s)
+fun double(F) is (X) => is F(F(X))
+\end{lstlisting}
 we can apply \q{double} to \q{inc}:
-\begin{alltt}
-inc has type (integer)=>integer;
-inc(X) is X+1;
-\end{alltt}
+\begin{lstlisting}
+inc has type (integer)=>integer
+fun inc(X) is X+1;
+\end{lstlisting}
 to get an expression such as:
-\begin{alltt}
+\begin{lstlisting}
 double(inc)(3)
-\end{alltt}
+\end{lstlisting}
 which has value 5.
 
 \subsubsection{Type Safety}
@@ -1128,7 +1089,7 @@ A conditional expression applies a predicate \ntRef{Condition} to decide whether
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{ConditionalExpression}&\arrow&\q{(}\ntRef{Condition}\q{?}\ntRef{Expression}\q{|}\ntRef{Expression}\q{)}
+\ntDef{ConditionalExpression}&\arrow&\q{(}\ntRef{Condition}\q{?}\ntRef{Expression}\q{:}\ntRef{Expression}\q{)}
 \end{eqnarray*}
 \caption{Conditional Expression}
 \label{conditionalExpressionFig}
@@ -1137,13 +1098,13 @@ A conditional expression applies a predicate \ntRef{Condition} to decide whether
 The value of a conditional expression depends on whether the \ntRef{Condition} is satisfiable or not. If the \ntRef{Condition} is satisfiable, then the expression is equivalent to the `then' branch of the conditional expression; otherwise it is equivalent to the `else' branch.
 
 For example, the expression:
-\begin{alltt}
-(P in members ? X>Y | X<Y)
-\end{alltt}
+\begin{lstlisting}
+(P in members ? X>Y : X<Y)
+\end{lstlisting}
 is equivalent to one of \q{X>Y} or \q{X<Y} depending on whether the \ntRef{Condition}:
-\begin{alltt}
+\begin{lstlisting}
 P in members
-\end{alltt}
+\end{lstlisting}
 is satisfiable -- i.e., has at least one solution.
 
 The condition of a conditional expression may introduce variables, depending on the form of the condition -- for example, if the \ntRef{Condition} is a \ntRef{SearchCondition} condition like that above. These variables are `in scope' within the `then' part of the conditional expression but are \emph{not} in scope for the `else' part.
@@ -1162,47 +1123,47 @@ The type safety requirements of a conditional expression are that the types of t
 \AxiomC{\typesat{E}{C}}
 \AxiomC{\typeprd{E}{Th}{t}}
 \AxiomC{\typeprd{E}{El}{t}}
-\TrinaryInfC{\typeprd{E}{\q{(}C\q{?}Th\q{|}El\q{)}}{t}}
+\TrinaryInfC{\typeprd{E}{\q{(}C\q{?}Th\q{:}El\q{)}}{t}}
 \end{prooftree}
 
 
-\subsection{Case Expressions}
+\subsection{Switch Expressions}
 \label{caseExpression}
 \index{expressions!case@\q{case}}
 \index{case expression@\q{case} expression}
 
-A \q{case} expression uses a selector expression and a set of equations to determine which value to return.
+A \q{switch} expression uses a selector expression and a set of equations to determine which value to return.
 \begin{aside}
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{CaseExpression}&\arrow&\q{case}\ \ntRef{Expression}\ \q{in}\ \ntRef{CaseBody}\\
+\ntDef{CaseExpression}&\arrow&\q{switch}\ \ntRef{Expression}\ \q{in}\ \ntRef{CaseBody}\\
 \ntDef{CaseBody}&\arrow&\q{\{}\ntRef{CaseArm}\sequence{\q{;}}\ntRef{CaseArm}\,\q{\}}\\
-\ntDef{CaseArm}&\arrow&\ntRef{Pattern}\ \q{is}\ \ntRef{Expression}\\
-&\choice&\ntRef{Pattern}\ \q{default}\ \q{is}\ \ntRef{Expression}
+\ntDef{CaseArm}&\arrow&\q{case}\ \ntRef{Pattern}\ \q{is}\ \ntRef{Expression}\\
+&\choice&\q{case}\ \ntRef{Pattern}\ \q{default}\ \q{is}\ \ntRef{Expression}
 \end{eqnarray*}
 \caption{Case Expression}
 \label{caseExpressionFig}
 \end{figure}
 
-The `selector' expression is evaluated, and then, at most one of the \ntRef{CaseArm}s is selected based on whether the \ntRef{Pattern} matches or not. If one of these does match, then the corresponding \ntRef{Expression} on the right hand side is evaluated as the value of the \q{case}.
+The `selector' expression is evaluated, and then, at most one of the \ntRef{CaseArm}s is selected based on whether the \ntRef{Pattern} matches or not. If one of these does match, then the corresponding \ntRef{Expression} on the right hand side is evaluated as the value of the \q{switch}.
 
-Program~\vref{dogCaseProg} shows a simple example of a \q{case} expression, in this mapping \q{string}s to \q{integer}s.
+Program~\vref{dogCaseProg} shows a simple example of a \q{switch} expression, in this mapping \q{string}s to \q{integer}s.
 \begin{program}
-\begin{alltt}
-case Alpha in \{
-  "dog" is 1;
-  "pup" is 2;
-  _ default is -1
-\}
-\end{alltt}
+\begin{lstlisting}
+switch Alpha in {
+  case "dog" is 1;
+  case "pup" is 2;
+  case _ default is -1
+}
+\end{lstlisting}
 \caption{A \q{case} of Dogs Program\label{dogCaseProg}}
 \end{program}
 
 
 Each \ntRef{CaseArm}'s pattern may introduce variables; these variables are `in scope' only for the corresponding right hand side expression.
 
-Optionally, a \q{case} expression may have a \q{default} clause. This clause determines the value of the expression if none of the other \ntRef{CaseArm}s match.
+Optionally, a \q{switch} expression may have a \q{default} clause. This clause determines the value of the expression if none of the other \ntRef{CaseArm}s match.
 
 \begin{aside}
 The \ntRef{Pattern} associated with a \q{default} should always apply. If the \q{default} clause does not match then an exception will be raised.
@@ -1220,7 +1181,7 @@ The type safety requirements of a \q{case} expression are that the types of the 
 \AxiomC{\typeprd{E}{S}{T}}
 \AxiomC{\typeprd{E}{P\subi}{T}}
 \AxiomC{\typeprd{E\,$\cup{}$\,varsIn(P\subi)}{E\subi}{T\sub{e}}}
-\TrinaryInfC{\typeprd{E}{\q{case}\ S\ \q{in\{}\sequence{}\q{;}P\subi\ \q{is}\ E\subi\q{;}\sequence{}\q{\}}}{T\sub{e}}}
+\TrinaryInfC{\typeprd{E}{\q{switch}\ S\ \q{in\{}\sequence{}\q{;}\q{case}\ P\subi\ \q{is}\ E\subi\q{;}\sequence{}\q{\}}}{T\sub{e}}}
 \end{prooftree}
 
 In the case that there is a \q{default} clause, then that too must agree:
@@ -1228,10 +1189,10 @@ In the case that there is a \q{default} clause, then that too must agree:
 \AxiomC{\typeprd{E}{S}{T}}
 \AxiomC{\typeprd{E}{P\subi}{T}}
 \AxiomC{\typeprd{E\,$\cup{}$\,varsIn(P\subi)}{E\subi}{T\sub{e}}}
-\TrinaryInfC{\typeprd{E}{\q{case}\ S\ \q{in\{}\sequence{}\q{;}P\subi\ \q{is}\ E\subi\q{;}\sequence{}P\subn\ \q{default}\ \q{is}\ E\subn\q{\}}}{T\sub{e}}}
+\TrinaryInfC{\typeprd{E}{\q{switch}\ S\ \q{in\{}\sequence{}\q{;}\q{case}\ P\subi\ \q{is}\ E\subi\q{;}\sequence{}\q{case}\ P\subn\ \q{default}\ \q{is}\ E\subn\q{\}}}{T\sub{e}}}
 \end{prooftree}
 
-\q{case} expressions may not be used that often explicitly. However, the compiler will often construct \q{case} expressions during the process of compiling functions.
+\q{switch} expressions may not be used that often explicitly. However, the compiler will often construct them during the process of compiling functions.
 \end{aside}
 
 \subsection{Let Expressions}
@@ -1259,19 +1220,19 @@ A \q{let} expression consists of a body -- which is a \ntRef{ThetaEnvironment} -
 \q{let} expressions are an important program structuring tool for programmers. It is worth emphasizing that \q{let} expressions are expressions! They can be used in many, perhaps unexpected, places.
 
 For example, a \q{sort} function may require a comparison predicate in order to operate. This can be supplied as a named function:
-\begin{alltt}
-pComp has type (person,person)=>boolean;
-pComp(someone\{name=N1\},someone\{name=N2\}) is N1<N2;
+\begin{lstlisting}
+pComp has type (person,person)=>boolean
+fun pComp(someone{name=N1},someone{name=N2}) is N1<N2
 
-S is sort(L,myCompare)
-\end{alltt}
+def S is sort(L,myCompare)
+\end{lstlisting}
 Or, the same may be achieved where the call to \q{sort} is not so conveniently close to a theta environment:
-\begin{alltt}
-sort(L, let\{
-  pComp has type (person,person)=>boolean;
-  pComp(someone\{name=N1\},someone\{name=N2\}) is N1<N2;
-\} in pComp)
-\end{alltt}
+\begin{lstlisting}
+fun sort(L, let{
+  fun pComp has type (person,person)=>boolean
+   |  pComp(someone{name=N1},someone{name=N2}) is N1<N2
+} in pComp)
+\end{lstlisting}
 The \q{let} expression has major applications when constructing function-returning functions.
 \end{aside}
 
@@ -1299,17 +1260,23 @@ A \q{memo} function is a function that `remembers' the value it first returned. 
 \end{figure}
 
 Memo functions have an important role in cases where a group of variables is mutually recursive; a situation that is not normally permitted. For example, consider the pair:
-\begin{alltt}
-Jack is someone\{ name is "jack"; spouse() is Jill \};
-Jill is someone\{ name is "jill"; spouse() is Jack \};
-\end{alltt}
+\begin{lstlisting}
+def Jack is someone{
+    def name is "jack";
+    fun spouse() is Jill
+  }
+def Jill is someone{
+    def name is "jill";
+    fun spouse() is Jack
+  }
+\end{lstlisting}
 assuming this type definition:
-\begin{alltt}
-type Person is someone\{
+\begin{lstlisting}
+type Person is someone{
   name has type string;
   spouse has type ()=>Person;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 
 This pair of definitions is not permitted because the value of \q{Jack} depends on the variable \q{Jill}, which in turn depends on \q{Jack}.
 \begin{aside}
@@ -1317,25 +1284,37 @@ The reason it is not permitted is that partially constructed values are not perm
 \end{aside}
 
 However, the very similar pair of definitions:
-\begin{alltt}
-JackF() is someone\{ name is "jack"; spouse() is JillF() \};
-JillF() is someone\{ name is "jill"; spouse() is JackF() \};
-\end{alltt}
+\begin{lstlisting}
+fun JackF() is someone{
+    def name is "jack";
+    fun spouse() is JillF()
+  }
+fun JillF() is someone{
+    def name is "jill";
+    fun spouse() is JackF()
+  }
+\end{lstlisting}
 is permitted -- because mutually recursive functions are permitted. However, in some cases, especially those involving internal state, a call to normal zero-arity function is not equivalent to the result of the function. In this example, each invocation of \q{spouse} results in a new value; whose state is independent of other instances.
 
 To permit this, the \q{memo} function is semantically a function; but since each time it is called it is guaranteed to return the identical result it has the same semantics as a shared variable:
-\begin{alltt}
-JackM is memo someone\{ name is "jack"; spouse() is JillM() \};
-JillM is memo someone\{ name is "jill"; spouse() is JackM() \};
-\end{alltt}
+\begin{lstlisting}
+def JackM is memo someone{
+    def name is "jack";
+    fun spouse() is JillM()
+  }
+def JillM is memo someone{
+    def name is "jill";
+    fun spouse() is JackM()
+  }
+\end{lstlisting}
 
 \subsubsection{Evaluation Semantics}
 As noted above, the primary guarantee that a \q{memo} function offers is that it's expression is only evaluated once.
 
 An expression of the form:
-\begin{alltt}
-memo \ntRef{Expression}
-\end{alltt}
+\begin{lstlisting}[escapechar=|]
+memo |\ntRef{Expression}|
+\end{lstlisting}
 denotes a function value. Each time the \q{memo} expression is evaluated a new function value is `created'. In this regard, a \q{memo} function is no different to an `ordinary' anonymous function.
 
 \begin{aside}
@@ -1386,14 +1365,14 @@ Each \q{valof} expression must contain at least one \q{valis} action. The execut
 
 The \q{valof} expression is useful for those occasions where it is necessary to side-effect some variable as part of evaluation of an expression. The classic example of this is the counter, as illustrated in Program~\vref{counterProg}.
 \begin{program}
-\begin{alltt}
+\begin{lstlisting}
 var Count := 0;
 counter has type ()=>integer;
-counter() is valof\{
+fun counter() is valof{
   Count := Count+1;
   valis Count
-\};
-\end{alltt}
+};
+\end{lstlisting}
 \caption{A Counting Program\label{counterProg}}
 \end{program}
 \begin{aside}
@@ -1437,13 +1416,13 @@ The \q{quote} expression is used to `convert' a fragment of \Sr source text into
 There are two forms of quoted forms: using the \q{quote} keyword -- together with the \q{unquote} keyword -- and special \q{<| |>} brackets -- with embedded \q{?} marks. Semantically they are identical; except that the latter is potentially a little easier to use.
 
 The \q{quote} expression takes the form:
-\begin{alltt}
-quote(\emph{SyntacticForm})
-\end{alltt}
+\begin{lstlisting}[escapechar=$]
+quote($\emph{SyntacticForm}$)
+\end{lstlisting}
 Alternately, the special \q{<|} brackets \q{|>} may be used:
-\begin{alltt}
-<|\emph{SyntacticForm}|>
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+<|$\emph{SyntacticForm}$|>
+\end{lstlisting}
 The type of a \q{quote} expression is \q{quoted} -- whose description is shown in Program~\vref{quotedProg}. 
 
 \emph{SyntacticForm} may be any valid \Sr term; it is \emph{not} checked apart from correct use of operators. It does not have to be syntactically valid -- again, with the exception that operators must balance appropriately.
@@ -1452,13 +1431,13 @@ One of the salient differences between the \q{quote} form of a quoted expression
 \end{aside}
 
 For example, the expression:
-\begin{alltt}
+\begin{lstlisting}
 <|A+45|>
-\end{alltt}
+\end{lstlisting}
 is equivalent to the expression:
-\begin{alltt}
-applyAst(L\sub1,nameAst(L\sub2,"+"),array of [nameAst(L\sub3,"A"), integerAst(L\sub4,45)])
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+applyAst(L$\sub1$,nameAst(L$\sub2$,"+"),[nameAst(L$\sub3$,"A"), integerAst(L$\sub4$,45)])
+\end{lstlisting}
 Note that the various \q{L\subi} refer to \q{astLocation} terms and that no check is made whether the `variable' \q{A} is defined or of the right type.
 
 
@@ -1466,36 +1445,36 @@ Note that the various \q{L\subi} refer to \q{astLocation} terms and that no chec
 Within a \q{quote}d expression, the \q{unquote} term -- or, equivalently, the \q{?} term, can be used to escape the quoting mechanism and insert variable text.
 
 For example, in the expression:
-\begin{alltt}
+\begin{lstlisting}
 <| ?A + 45 |>
-\end{alltt}
+\end{lstlisting}
 the identifier \q{A} now does refer to a normal variable -- whose type must be \q{quoted}. If, say, \q{A} had the value: 
-\begin{alltt}
+\begin{lstlisting}
 <| "fred" |>
-\end{alltt}
+\end{lstlisting}
 then the above expression is equivalent to:
-\begin{alltt}
+\begin{lstlisting}
 <| "fred" + 45 |>
-\end{alltt}
+\end{lstlisting}
 
 \subsection{Automatic Quoting}
 It is possible to mark a type definition in such a way as to automatically construct coercion between the type and \q{quoted}. This is done by adding an \q{implementing} clause to the \ntRef{TypeDefinition}. For example
-\begin{alltt}
-type person is some\{
+\begin{lstlisting}
+type person is some{
   name has type string;
-\} or noOne 
+} or noOne 
   implementing quotable
-\end{alltt}
+\end{lstlisting}
 results in an implementation for coercion between \q{person} values and \q{quoted} representations of \q{person}. I.e., 
-\begin{alltt}
-some\{name = "who"\} as quoted
-\end{alltt}
+\begin{lstlisting}
+some{name = "who"} as quoted
+\end{lstlisting}
 is enabled by the \q{implementing quotable} clause.
 
 \subsection{The Type of Abstract Syntax Terms}
 The foundation of this is the standard \q{quoted} type which defines the structure of quoted fragments. The \q{quoted} type is defined in Program~\vref{quotedProg} and the ancillary type \q{astLocation} is defined in Program~\vref{locationProg}.
 \begin{program}
-\begin{alltt}
+\begin{lstlisting}
 type quoted is nameAst(astLocation,string)
             or boolAst(astLocation,boolean)
             or charAst(astLocation,char)
@@ -1504,24 +1483,24 @@ type quoted is nameAst(astLocation,string)
             or longAst(astLocation,long)
             or floatAst(astLocation,float)
             or decimalAst(astLocation,decimal)
-            or applyAst(astLocation,quoted,array of quoted)
-\end{alltt}
+            or applyAst(astLocation,quoted,list of quoted)
+\end{lstlisting}
 \caption{The \q{quoted} Type\label{quotedProg}}
 \end{program}
 
 \subsection{Locations}
 The \q{quoted} forms include an \q{astLocation} field that indicates where the \q{quoted} term first appeared in a program. This type is defined in Program~\vref{locationProg}.
 \begin{program}[htb]
-\begin{alltt}
-type astLocation is _someWhere\{
+\begin{lstlisting}
+type astLocation is _someWhere{
     source has type uri;
     charCount has type integer;
     lineCount has type integer;
     lineOffset has type integer;
     length has type integer;
-  \}
+  }
   or noWhere;
-\end{alltt}
+\end{lstlisting}
 \caption{The \q{astLocation} Type\label{locationProg}}
 \end{program}
 
@@ -1530,9 +1509,9 @@ type astLocation is _someWhere\{
 \index{Accessing source locations}
 
 The standard keyword \q{\_\_location\_\_} denotes the source location of each of its occurrences. It is a pseudo-variable: it has a type and value; but its value is based on the text of the program that it is embedded in:
-\begin{alltt}
-\_\_location\_\_ has type astLocation;
-\end{alltt}
+\begin{lstlisting}
+__location__ has type astLocation;
+\end{lstlisting}
 \begin{aside}
 The related expression -- \q{\hash{}\_\_location\_\_} -- is used within macro rules to denote the location the term that is reduced by a given macro rule.
 \end{aside}
@@ -1545,8 +1524,8 @@ A type annotation expression is an explicit declaration of the type of an expres
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{TypedExpression}&\arrow&\ntRef{TypeCastExpression}\\
-&\choice&\ntRef{TypeCoercion}\\
+\ntDef{TypedExpression}&\arrow&\ntRef{TypeCoercion}\\
+%&\choice&\ntRef{TypeCastExpression}\\
 &\choice&\ntRef{TypeAnnotationExpression}
 \end{eqnarray*}
 \caption{Type Expression}
@@ -1554,52 +1533,68 @@ A type annotation expression is an explicit declaration of the type of an expres
 \end{figure}
 
 
-\subsection{Type Cast Expression}
-\label{typeCastExpression}
-\index{expressions!type cast}
-\index{type cast!expression}
-\index{as@\q{as}!expression}
-A \ntRef{TypeCastExpression} expression marks an explicit declaration of the type of an expression. It also delays actual type checking of the castee to runtime.
+\subsection{Type Annotation Expression}
+\label{typeAnnotationExpression}
+A \ntRef{TypeAnnotationExpression} is an expression that is annotated with a \ntRef{Type}. The annotation amounts to an assertion that the \ntRef{Type} of the expression is as annotated.
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{TypeCastExpression}&\arrow&\ntRef{Expression}\ \q{cast}\ \ntRef{Type}
+\ntDef{TypeAnnotationExpression}&\arrow&\q{(}\,\ntRef{Expression}\ \q{has type}\ \ntRef{Type}\q{)}
 \end{eqnarray*}
-\caption{Type Cast Expression}
-\label{typeCastExpressionFig}
+\caption{Type Annotation Expression}
+\label{typeAnnotatedExpressionFig}
 \end{figure}
 
-\subsubsection{Type Safety}
-A type cast is an inherently dynamic operation; as far as type consistency is concerned the only constraint on the type of the left hand side is that its value is consistent with the declared type.
-
-In effect, the type consistency check may be delayed until the expression is actually evaluated.
-
-However, the declared type may be assumed to be the type of the cast expression -- a fact that may be used by the type checker.
-
-\begin{prooftree}
-\AxiomC{\typeprd{E}{Ex}{T\sub{Ex}}}
-\AxiomC{\entail{E,\theta\sub0}{T\subsume T\sub{Ex}\leadsto\theta\sub{o}}}
-\BinaryInfC{\typeprd{E}{Ex\q{ cast }T}{T}}
-\end{prooftree}
-
 \begin{aside}
-A type cast expression only `makes sense' in a few situations: for example, if either the cast type is type \q{any} or the type of the castee expression is of type \q{any}.
-
-This is because type consistency is based on type equality and the only legitimate form of type casting is where the value already has the correct type.
-
-However, using type casting with type \q{any} allows so-called \emph{heterogenous} structures where they would not ordinarily be permitted.
-
-For example, the \q{list} expression:
-\begin{alltt}
-list of [1, "alpha", list of []]
-\end{alltt}
-is not valid because the types of the elements of the type are not consistent. But, the expression:
-\begin{alltt}
-list of [1 cast any, "alpha" cast any, list of [] cast any]
-\end{alltt}
-\emph{is} valid, is actually of type \q{list of any}. However, in order to `unwrap' elements of the list it will generally be required to \q{cast} the elements back out of the \q{any} type.
+The \ntRef{TypeAnnotationExpression} should not be confused with \emph{type casting} as is found in some languages. The \ntRef{TypeAnnotationExpression} is a way for the programmer to communicate exactly what the expected type of an expression is; analogously to the \ntRef{TypeAnnotation}s found in \ntRef{ThetaEnvironment}s.
 \end{aside}
 
+%\subsection{Type Cast Expression}
+%\label{typeCastExpression}
+%\index{expressions!type cast}
+%\index{type cast!expression}
+%\index{as@\q{as}!expression}
+%A \ntRef{TypeCastExpression} expression marks an explicit declaration of the type of an expression. It also delays actual type checking of the castee to runtime.
+%
+%\begin{figure}[htbp]
+%\begin{eqnarray*}
+%\ntDef{TypeCastExpression}&\arrow&\ntRef{Expression}\ \q{cast}\ \ntRef{Type}
+%\end{eqnarray*}
+%\caption{Type Cast Expression}
+%\label{typeCastExpressionFig}
+%\end{figure}
+%
+%\subsubsection{Type Safety}
+%A type cast is an inherently dynamic operation; as far as type consistency is concerned the only constraint on the type of the left hand side is that its value is consistent with the declared type.
+%
+%In effect, the type consistency check may be delayed until the expression is actually evaluated.
+%
+%However, the declared type may be assumed to be the type of the cast expression -- a fact that may be used by the type checker.
+%
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{Ex}{T\sub{Ex}}}
+%\AxiomC{\entail{E,\theta\sub0}{T\subsume T\sub{Ex}\leadsto\theta\sub{o}}}
+%\BinaryInfC{\typeprd{E}{Ex\q{ cast }T}{T}}
+%\end{prooftree}
+%
+%\begin{aside}
+%A type cast expression only `makes sense' in a few situations: for example, if either the cast type is type \q{any} or the type of the castee expression is of type \q{any}.
+%
+%This is because type consistency is based on type equality and the only legitimate form of type casting is where the value already has the correct type.
+%
+%However, using type casting with type \q{any} allows so-called \emph{heterogenous} structures where they would not ordinarily be permitted.
+%
+%For example, the \q{list} expression:
+%\begin{lstlisting}
+%list of [1, "alpha", list of []]
+%\end{lstlisting}
+%is not valid because the types of the elements of the type are not consistent. But, the expression:
+%\begin{lstlisting}
+%list of [1 cast any, "alpha" cast any, list of [] cast any]
+%\end{lstlisting}
+%\emph{is} valid, is actually of type \q{list of any}. However, in order to `unwrap' elements of the list it will generally be required to \q{cast} the elements back out of the \q{any} type.
+%\end{aside}
+%
 \subsection{Type Coercion Expression}
 \label{typeCoercionExpression}
 \label{typeCoercionContract}
@@ -1620,24 +1615,24 @@ The primary difference between \emph{type casting} and \emph{type coercion} is t
 Type coercion is supported by a special \q{coercion} \ntRef{Contract} shown in Program~\vref{typeCoercionContractFig}.
 
 \begin{program}
-\begin{alltt}
-contract coercion over (s,t) is \{
+\begin{lstlisting}
+contract coercion over (s,t) is {
   coerce has type (s)=>t
-\};
-\end{alltt}
+};
+\end{lstlisting}
 \label{typeCoercionContractFig}
 \caption{Coercion Contract \q{coercion}}
 \end{program}
 
 \begin{aside}
 Specifically, an expression of the form:
-\begin{alltt}
+\begin{lstlisting}
 X as integer
-\end{alltt}
+\end{lstlisting}
 is equivalent to the expression:
-\begin{alltt}
+\begin{lstlisting}
 (coerce(X) has type integer)
-\end{alltt}
+\end{lstlisting}
 where the \q{\ldots has type integer} has the effect of declaring that the expression has type \q{integer} and the \q{coerce} function is an overloaded function that references a type-specific implementation -- based on the source type of \q{X} and \q{integer}.
 \end{aside}
 
@@ -1681,16 +1676,3 @@ Source Type&Target Type&Source&Target&Source&Target\\
 \end{tabular}
 \end{center}
 \end{table}
-
-\subsection{Type Annotation Expression}
-\label{typeAnnotationExpression}
-A \ntRef{TypeAnnotationExpression} is an expression that is annotated with a \ntRef{Type}. The annotation amounts to an assertion that the \ntRef{Type} of the expression is as annotated.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-\ntDef{TypeAnnotationExpression}&\arrow&\ntRef{Expression}\ \q{has type}\ \ntRef{Type}\q{)}
-\end{eqnarray*}
-\caption{Type Annotation Expression}
-\label{typeAnnotatedExpressionFig}
-\end{figure}
-

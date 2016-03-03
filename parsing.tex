@@ -118,16 +118,16 @@ type abstract is id(string)
 
 term(P) is pattern(T) from left(P)((L,LP), right(P,L,LP)(T);
 
-left(P)((app(Op,seq([L])),PP) from prefix((Op,PP,RP), \{PP<=P\},
+left(P)((app(Op,seq([L])),PP) from prefix((Op,PP,RP), \{PP=<P\},
        term(R)(L;
 left(_)((L,0) from term0(L;
 
 right(P,L,LP)(T from 
-       infix((Op,LLP,IP,RP), \{ LLP>=LP and IP<=P \},
+       infix((Op,LLP,IP,RP), \{ LLP>=LP and IP=<P \},
        term(RP)(R,
        right(RP,app(Op,seq([L,R])),IP)(T;
 right(P,L,LP)(T from    
-       postfix((Op,LLP,PP), \{ LLP>=LP and PP<=P \},
+       postfix((Op,LLP,PP), \{ LLP>=LP and PP=<P \},
        right(P,app(Op,seq([L])),PP);
 right(P,T,_)(T;
 

@@ -119,7 +119,7 @@ are all hexadecimals.
 \label{hexadecimalFig}
 \end{figure}
 
-Like \ntRef{Natural} numbers, \emph{HexaDecimal}s may be suffixed by a \q{L} or \q{l} to indicate a \q{long} value.
+Like \ntRef{IntegerLiteral} numbers, \emph{HexaDecimal}s may be suffixed by a \q{L} or \q{l} to indicate a \q{long} value.
 
 \subsection{Floating Point Numbers}
 \index{floating point}
@@ -254,7 +254,7 @@ This notation accommodates the Unicode's varying width of character codes -- fro
 
 \subsection{Quoted Strings}
 \label{quotedString}
-A string is a sequence of character references (see Section~\vref{CharacterReference}) enclosed in double quotes; alternately a string may take the form of a \ntRef{StringBlob}.
+A string is a sequence of character references (see Section~\vref{CharacterReference}) enclosed in double quotes; alternately a string may take the form of a \ntRef{BlockString}.
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
@@ -304,29 +304,6 @@ uninterpreted # characters"""
 This form of string literal can be a convenient method for including block text into a program source.
 \end{aside}
 
-%\subsection{String Blobs}
-%\label{stringBlob}
-%\index{strings!block form of}
-%\index{block of data}
-%In addition to the `normal' notation for strings, there is a blob form of string that permits raw character data to be processed as a string.
-%
-%\begin{figure}[htbp]
-%\begin{eqnarray*}
-%\ntDef{StringBlob}&\arrow&\q{0'}\,\emph{Digit}\ldots\emph{Digit}\plus\q{"}\,\emph{Char}\ldots\emph{Char}
-%\end{eqnarray*}
-%\caption{String Blob Literal}
-%\label{blockStringFig}
-%\end{figure}
-%
-%A blob form of string allows any characters in the text, and performs no interpretation of those characters. Blob strings are written with a special prefix that indicates the length of the blob in characters:\footnote{In an input which is encoded in UTF-8, the blob form still refers to the number of characters -- which may be significantly different to the number of bytes in the string.}
-%\begin{alltt}
-%0'33"This is a string of 33 characters
-%\end{alltt}
-%
-%\begin{aside}
-%This form of string literal is especially useful for machine generated strings -- since the blob characters are guaranteed to be uninterpreted. However, you do have to count the characters!
-%\end{aside}
-
 \section{Regular Expressions}
 \label{regexps}
 \index{regular expression}
@@ -357,7 +334,7 @@ Identifiers are used to denote operators, keywords and variables.
 \subsection{Alphanumeric Identifiers}
 \index{alpha numeric identifier}
 \label{alphaIdentifier}
-Identifiers in \Sr are based on the Unicode definition of identifier. For the ASCII subset of characters, the definition corresponds to the common form of identifier -- a letter followed by a sequence of digits and letters. However, non-ASCII characters are also permitted in an identifier. Figure~\vref{identifierFig} shows the basic structure of an identifier.
+Identifiers in \Sr are based on the Unicode definition of identifier. For the ASCII subset of characters, the definition corresponds to the common form of identifier -- a letter followed by a sequence of digits and letters. However, non-ASCII characters are also permitted in an identifier.
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
@@ -389,13 +366,13 @@ This definition of \emph{Identifier} closely follows the standard definition of 
 
 \subsection{Punctuation Symbols and Graphic Identifiers}
 \label{punctuation}
-The standard operators often have a graphic form -- such as \q{+}, and \q{<=}. Table~\vref{standardGraphicsTable} contains a complete listing of all the standard graphic-form identifiers.
+The standard operators often have a graphic form -- such as \q{+}, and \q{=<}. Table~\vref{standardGraphicsTable} contains a complete listing of all the standard graphic-form identifiers.
 
 \begin{figure}[htbp]
-\begin{align*}
-\ntDef{GraphicIdentifier}\ &\arrow\ \ntRef{SymbolicChar}\sequence{}\ntRef{SymbolicChar}\\
-\ntDef{SymbolicChar}\ &\arrow\ \emph{Char} &\text{\emph{excepting} \ntRef{BodyChar}}
-\end{align*}
+\begin{eqnarray*}
+\ntDef{GraphicIdentifier}\ &\arrow&\ \ntRef{SymbolicChar}\sequence{}\ntRef{SymbolicChar}\\
+\ntDef{SymbolicChar}\ &\arrow&\ \emph{Char}\ \text{{excepting}}\ \ntRef{BodyChar}
+\end{eqnarray*}
 \caption{Graphic Identifiers}
 \label{graphicIdentifierFig}
 \end{figure}
@@ -406,14 +383,14 @@ The standard operators often have a graphic form -- such as \q{+}, and \q{<=}. T
 \caption{Standard Graphic-form Identifiers}\label{standardGraphicsTable}
 \begin{tabular}{|llllllll|}
 \hline
-\tt !&\tt \#<&\tt \%\%&\tt ->&\tt :\&&\tt ;*&\tt ==>&\tt \_\\
-\tt !=&\tt \#<>&\tt *&\tt .&\tt :*&\tt ;..&\tt =>&\tt |\\
-\tt \#&\tt \#@&\tt **&\tt ..;&\tt :+&\tt <&\tt >&\tt |>\\
-\tt \#\#&\tt \#\tlda{}&\tt +&\tt ./&\tt :-&\tt <=&\tt >\#&\tt |\_|\\
-\tt \#\$&\tt \$&\tt ++&\tt /&\tt ::&\tt <=>&\tt >=&\tt \tlda{}\\
-\tt \#*&\tt \$\$&\tt ,&\tt //&\tt :=&\tt <>&\tt ?&\\
-\tt \#+&\tt \$=>&\tt -&\tt :&\tt :|&\tt <|&\tt @&\\
-\tt \#:&\tt \%&\tt -->&\tt :!&\tt ;&\tt =&\tt @@&\\
+\tt !&\tt \#<&\tt \%\%&\tt -->&\tt :!&\tt ;&\tt =>&\tt |\\
+\tt !=&\tt \#<>&\tt *&\tt ->&\tt :\&&\tt ;*&\tt >&\tt |*\\
+\tt \#&\tt \#@&\tt **&\tt .&\tt :*&\tt <&\tt >\#&\tt |>\\
+\tt \#\#&\tt \#\tlda{}&\tt +&\tt ..,&\tt :+&\tt <=&\tt >=&\tt \tlda{}\\
+\tt \#\$&\tt \$&\tt ++&\tt ./&\tt :-&\tt <=>&\tt ?&\tt \#*\\
+\tt \$\$&\tt ,&\tt /&\tt ::&\tt <|&\tt @&\tt \#+&\tt \$=>\\
+\tt ,..&\tt //&\tt :=&\tt =&\tt @@&\tt \#:&\tt \%&\tt -\\
+\tt :&\tt :|&\tt ==>&\tt \_&\tt ?.&&&\\
 \hline
 \end{tabular}
 \end{center}
@@ -441,32 +418,33 @@ Table~\vref{keywordTable} lists the standard keywords in the language.
 \endfoot
 \hline
 \endlastfoot
-\tt 'n&\tt extend&\tt matching&\tt spawn\\
-\tt 's&\tt fn&\tt memo&\tt substitute\\
-\tt alias&\tt for&\tt merge&\tt such\spce{}that\\
-\tt all&\tt for\spce{}all&\tt not&\tt suchthat\\
-\tt and&\tt forall&\tt nothing&\tt sync\\
-\tt any&\tt from&\tt notify&\tt then\\
-\tt any\spce{}of&\tt function&\tt of&\tt to\\
-\tt anyof&\tt has&\tt on&\tt try\\
-\tt as&\tt has\spce{}kind&\tt on\spce{}abort&\tt tuple\\
-\tt assert&\tt has\spce{}type&\tt open&\tt type\\
-\tt bound\spce{}to&\tt hastype&\tt or&\tt unique\\
-\tt by&\tt identifier&\tt order&\tt unquote\\
-\tt case&\tt if&\tt otherwise&\tt update\\
-\tt cast&\tt ignore&\tt over&\tt using\\
-\tt catch&\tt implementation&\tt package&\tt valis\\
-\tt computation&\tt implements&\tt pattern&\tt valof\\
-\tt contract&\tt implies&\tt perform&\tt var\\
-\tt counts\spce{}as&\tt import&\tt private&\tt waitfor\\
-\tt default&\tt in&\tt procedure&\tt when\\
-\tt delete&\tt instance\spce{}of&\tt query&\tt where\\
-\tt descending&\tt is&\tt quote&\tt while\\
-\tt determines&\tt is\spce{}tuple&\tt raise&\tt with\\
-\tt do&\tt java&\tt reduction&\tt without\\
-\tt down&\tt kind&\tt ref&\tt yield\\
-\tt else&\tt let&\tt remove&\\
-\tt exists&\tt matches&\tt request&\\
+\tt 'n&\tt fn&\tt memo&\tt request\\
+\tt 's&\tt for&\tt merge&\tt spawn\\
+\tt alias&\tt for\spce{}all&\tt not&\tt substitute\\
+\tt all&\tt forall&\tt nothing&\tt such\spce{}that\\
+\tt and&\tt from&\tt notify&\tt suchthat\\
+\tt any&\tt fun&\tt of&\tt switch\\
+\tt any\spce{}of&\tt function&\tt on&\tt sync\\
+\tt anyof&\tt has&\tt on\spce{}abort&\tt then\\
+\tt as&\tt has\spce{}kind&\tt open&\tt to\\
+\tt assert&\tt has\spce{}type&\tt or&\tt try\\
+\tt bound\spce{}to&\tt hastype&\tt order\spce{}by&\tt tuple\\
+\tt case&\tt identifier&\tt order\spce{}descending\spce{}by&\tt type\\
+\tt cast&\tt if&\tt otherwise&\tt unique\\
+\tt catch&\tt ignore&\tt over&\tt unquote\\
+\tt computation&\tt implementation&\tt package&\tt update\\
+\tt contract&\tt implements&\tt pattern&\tt using\\
+\tt counts\spce{}as&\tt implies&\tt perform&\tt valis\\
+\tt def&\tt import&\tt prc&\tt valof\\
+\tt default&\tt in&\tt private&\tt var\\
+\tt delete&\tt instance\spce{}of&\tt procedure&\tt waitfor\\
+\tt descending\spce{}by&\tt is&\tt ptn&\tt when\\
+\tt determines&\tt is\spce{}tuple&\tt query&\tt where\\
+\tt do&\tt java&\tt quote&\tt while\\
+\tt down&\tt kind&\tt raise&\tt with\\
+\tt else&\tt let&\tt reduction&\tt without\\
+\tt exists&\tt matches&\tt ref&\tt yield\\
+\tt extend&\tt matching&\tt remove&\\
 \hline
 \end{longtable}
 
@@ -499,22 +477,19 @@ is logically a single multi-word identifier whose name is ``\q{such\spce{}that}'
 
 There are a few standard \ntRef{MultiWordIdentifier}s, as outlined in Table~\vref{multiWords}. In addition, \ntRef{MultiWordIdentifier}s can be defined as operators (see Section~\vref{multiWordOperators}).
 
-\begin{longtable}[htbp]{|llll|}
-\caption{Multi-Word Keywords\label{multiWords}}\\ 
+\begin{table}
+\begin{center}
+\begin{tabular}[htbp]{|llll|}
 \hline
-\endfirsthead
-\multicolumn{4}{c}{
-{Table \ref{multiWords} Multi-Word Keywords (cont.)}}\\
+\tt any\spce{}of&\tt is\spce{}tuple&\tt group\spce{}by&\tt has\spce{}value\\
+\tt such\spce{}that&\tt counts\spce{}as&\tt for\spce{}all&\tt order\spce{}by\\
+\tt order\spce{}descending\spce{}by&\tt has\spce{}kind&\tt instance\spce{}of&\tt descending\spce{}by\\
+\tt has\spce{}type&\tt bound\spce{}to&\tt or\spce{}else&\tt on\spce{}abort\\
 \hline
-\endhead
-\hline\multicolumn{4}{r}{\small\emph{continued\ldots}}\
-\endfoot
-\hline
-\endlastfoot
-\tt any\spce{}of&\tt such\spce{}that&\tt for\spce{}all&\tt has\spce{}kind\\
-\tt has\spce{}type&\tt on\spce{}abort&\tt counts\spce{}as&\tt on\spce{}abort\\
-\hline
-\end{longtable}
+\end{tabular}
+\caption{Multi-Word Keywords\label{multiWords}}
+\end{center}
+\end{table}
 
 Parts of a \ntRef{MultiWordIdentifier} may be separated by spaces and/or comments.
 

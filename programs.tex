@@ -1,5 +1,5 @@
 %!TEX root = reference.tex
-\chapter{Functions}
+\chapter{Programs}
 \label{programs}
 
 This chapter focuses on the organization of programs using functions, procedures and other computational forms. Apart from program values themselves, a key concept is the \ntRef{ThetaEnvironment}. This is where many programs, types etc. are defined. \ntRef{ThetaEnvironment}s are also first-class values -- showing up as \ntRef{AnonymousRecord}s.
@@ -86,17 +86,21 @@ Normal type inference is not able to infer anything about the type of the \q{ope
 \end{aside}
 
 For example, given the definition:
-\begin{alltt}
-R is \{ type integer counts as elem; op(X,Y) is X+Y; zero is 0 \}
-\end{alltt}
+\begin{lstlisting}
+def R is {
+  type integer counts as elem
+  fun op(X,Y) is X+Y
+  def zero is 0
+}
+\end{lstlisting}
 then we can \q{open} \q{R} in a \ntRef{LetExpression}:
-\begin{alltt}
-let\{
-  open R;
-  Z has type elem;
-  Z is zero
-\} in Z
-\end{alltt}
+\begin{lstlisting}
+let{
+  open R
+  Z has type elem
+  def Z is zero
+} in Z
+\end{lstlisting}
 \begin{aside}
 Although the \q{open} statement makes available the types and fields embedded in a record; existential abstraction still applies. In particular, in this case the fact that the \q{elem} type is manifest as \q{integer} within the record expression \q{R} is hidden.
 
@@ -109,22 +113,22 @@ The \q{elem} type (and the \q{zero} and \q{op} fields) are available within the 
 A local action is a sequence of actions -- enclosed in braces -- that are performed when the theta environment is first entered and before any dependent bound expressions are evaluated.
 
 For example, in:
-\begin{alltt}
+\begin{lstlisting}
 traceF has type (integer)=>integer;
-traceF(X) is 
-  let\{
-    f(0) is 1;
-    f(XX) is XX*f(XX-1);
-    \{
+fun traceF(X) is 
+  let{
+    fun f(0) is 1
+     |  f(XX) is XX*f(XX-1)
+    {
       logMsg(info,"in theta environment");
-    \}
-  \} in f(X)
-\end{alltt}
+    }
+  } in f(X)
+\end{lstlisting}
 The action
-\begin{alltt}
+\begin{lstlisting}
 logMsg(info,"in theta environment")
-\end{alltt}
-is executed prior to the function \q{f} being evaluated.
+\end{lstlisting}
+is executed as part of `establishing' the \ntRef{ThetaEnvironment} prior to the function \q{f} being evaluated.
 
 Local actions are useful for situations where proper initialization of the entries in the theta environment are more extensive than binding a variable to a value.
 \begin{aside}
@@ -138,7 +142,7 @@ A function is a program for computing values; organized as a set of equations.
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{Function}&\arrow&\ntRef{Equation}\sequence{;}\ntRef{Equation}\\
+\ntDef{Function}&\arrow&\q{fun}\ \ntRef{Equation}\sequence{|}\ntRef{Equation}\\
 \ntDef{Equation}&\arrow&\ntRef{EquationHead}\ [\ntRef{RuleGuard}\,]\ \q{is}\ \ntRef{Expression}\\
 \ntDef{EquationHead}&\arrow&\ntRef{Identifier}\q{(}\,\ntRef{Pattern}\sequence{,}\ntRef{Pattern}\,\q{)}\\
 \ntDef{RuleGuard}&\arrow&\q{default}\\
@@ -228,11 +232,11 @@ In general, the programmer should make the fewest possible assumptions about ord
 \label{patternCoverage}
 \index{patterns!coverage of}
 Any given equation in a function definition need not completely cover the possible arguments to the function. For example, in
-\begin{alltt}
+\begin{lstlisting}
 F has type (integer)=>integer;
-F(0) is 1;
-F(X) is X*F(X-1);
-\end{alltt}
+fun F(0) is 1
+ |  F(X) is X*F(X-1)
+\end{lstlisting}
 the first equation only applies if the actual argument is the number \q{0}; which is certainly not all the \q{integer}s.
 
 The set of equations that define a function also define a coverage of the potential values of the actual arguments. In general, the coverage of a set of equations is smaller than the possible values as determined by the type of the function.
@@ -244,11 +248,11 @@ The programmer is advised to make functions \emph{total} by supplying an appropr
 \end{aside}
 
 \begin{program}
-\begin{alltt}
-fact has type (integer)=>integer;
-fact(X) where X>0 is X*fact(X-1)
-fact(X) default is 1;
-\end{alltt}
+\begin{lstlisting}
+fact has type (integer)=>integer
+fun fact(X) where X>0 is X*fact(X-1)
+ |  fact(X) default is 1
+\end{lstlisting}
 \caption{Factorial Function\label{factorialFun}}
 \end{program}
 
@@ -258,46 +262,36 @@ fact(X) default is 1;
 \index{expressions!function}
 
 Anonymous functions are expressions of the form:
-\begin{alltt}
-fn X => X+Y
-\end{alltt}
-or, in case that the anonymous function takes multiple arguments:
-\begin{alltt}
-fn(X,Y) => X+Y
-\end{alltt}
+\begin{lstlisting}
+(X) => X+Y
+\end{lstlisting}
 Anonymous functions may appear anywhere a function value is permitted.
-
-The first version of the anonymous function is shorthand for
-\begin{alltt}
-fn(X)=>X+Y
-\end{alltt}
 
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{AnonymousFunction}&\arrow&\q{fn}\ \ntRef{Variable}\ \q{=>}\ \ntRef{Expression}\\
-&\choice&\q{fn}\q{(}\ntRef{Pattern}\,\sequence{,}\ntRef{Pattern}\q{)}\q{=>}\ \ntRef{Expression}
+\ntDef{AnonymousFunction}&\arrow&\ntRef{TuplePattern}\ \q{=>}\ \ntRef{Expression}
 \end{eqnarray*}
 \caption{Anonymous Function}
 \label{anonymousFunctionFig}
 \end{figure}
 
 \begin{aside}
-The default assumption for a tuple following the \q{fn} keyword is that it represents a tuple of argument patterns. If it desired to have a single-argument anonymous function that takes a tuple pattern then use double parentheses:
-\begin{alltt}
-fn((X,Y)) => X+Y
-\end{alltt}
+If it desired to have a single-argument anonymous function that takes a tuple pattern then use double parentheses:
+\begin{lstlisting}
+((X,Y)) => X+Y
+\end{lstlisting}
 \end{aside}
 
 For example, an anonymous function to add 1 to its single argument would be:
-\begin{alltt}
-fn X => X+1
-\end{alltt}
+\begin{lstlisting}
+(X) => X+1
+\end{lstlisting}
 Anonymous functions are often used in function-valued functions. For example in:
-\begin{alltt}
+\begin{lstlisting}
 addX has type (integer)=>((integer)=>integer);
-addX(X) is fn Y => X+Y;
-\end{alltt}
+fun addX(X) is (Y) => X+Y;
+\end{lstlisting}
 the value returned by \q{addX} is another function -- a single argument function that adds a fixed number to its argument.
 
 \begin{aside}
@@ -311,7 +305,7 @@ The type of an anonymous function is determined by the types of the argument pat
 \begin{prooftree}
 \AxiomC{\typeprd{E}{A\sub1}{T\sub1}\sequence{\quad}\typeprd{E}{A\subn}{T\subn}}
 \AxiomC{\typeprd{E}{R}{T\sub{R}}}
-\BinaryInfC{\typeprd{E}{\q{fn(}A\sub1\sequence{,}{A\subn}\q{) => }R}{\q{(}T\sub1\sequence{,}T\subn\q{)=>}T\sub{R}}}
+\BinaryInfC{\typeprd{E}{\q{(}A\sub1\sequence{,}{A\subn}\q{) => }R}{\q{(}T\sub1\sequence{,}T\subn\q{)=>}T\sub{R}}}
 \end{prooftree}
 
 
@@ -320,24 +314,24 @@ The type of an anonymous function is determined by the types of the argument pat
 The type of an overloaded function has a characteristic signature: it's type is universally quantified but with a constraint on the bound type variables.
 
 For example, given the definition:
-\begin{alltt}
-dble(X) is X+X
-\end{alltt}
+\begin{lstlisting}
+fun dble(X) is X+X
+\end{lstlisting}
 the generalized type assigned to the \q{dble} variable is:
-\begin{alltt}
+\begin{lstlisting}
 for all t such that (t)=>t where arithmetic over t
-\end{alltt}
+\end{lstlisting}
 
 As noted in Section~\vref{overloading}, the \q{dble} function is converted to a function with an explicit `dictionary' argument that carries the implementation of the \q{arithmetic} contract:
-\begin{alltt}
-dble(A) is let\{
-  dble'(X) is (A.+)(X,X)
-\} in dble'
-\end{alltt}
+\begin{lstlisting}
+fun dble(A) is let{
+  fun dble'(X) is (A.+)(X,X)
+} in dble'
+\end{lstlisting}
 In effect, this means that the \q{dble} has \emph{two} types assigned to it: the constrained type above that is inferred through type inference and an overloaded type that results from its translation.
-\begin{alltt}
-for all t such that (arithmetic of t) \$=> (t)=>t
-\end{alltt}
+\begin{lstlisting}
+for all t such that (arithmetic of t) $=> (t)=>t
+\end{lstlisting}
 \begin{aside}
 Overloaded types are function types, but we use a different types symbol -- \q{\$=>} -- to help distinguish the special role that overloaded types have.
 \end{aside}
@@ -351,33 +345,33 @@ When an overloaded function variable is referenced the normal type of the variab
 However, the existence of the overloaded type associated with the variable acts as a signal that the overloading must be resolved.
 
 For example, in the function:
-\begin{alltt}
-quad(X) is dble(dble(X))
-\end{alltt}
+\begin{lstlisting}
+fun quad(X) is dble(dble(X))
+\end{lstlisting}
 the type of each \q{dble} variable expression is determined to be:
-\begin{alltt}
-(\%t)=>\%t where arithmetic over \%t
-\end{alltt}
+\begin{lstlisting}
+(%t)=>%t where arithmetic over %t
+\end{lstlisting}
 \begin{aside}
 They are the same type in this case because of the calling pattern for \q{dble}.
 \end{aside}
 
 Since \q{dble} originally had a constrained type -- together with its associated overloaded type -- both references must be resolved by supplying an implementation of \q{arithmetic}. I.e., both \q{dble} expressions are interpreted as:
-\begin{alltt}
+\begin{lstlisting}
 dble[A](dble[A](X))
-\end{alltt}
-where we use \q{dble[A]} as a special form function call that denoted a use of the overloaded function.
+\end{lstlisting}
+where we use \q{dble[A]} as a special form function call\footnote{We use this notation for exposition purposes only -- it is not normal `\Sr syntax'.} that denotes a use of the overloaded function.
 
 The \q{quad} function is generic, and so its type is also a generalized constrained type:
-\begin{alltt}
+\begin{lstlisting}
 for all t such that (t)=>t where arithmetic over t
-\end{alltt}
+\end{lstlisting}
 and is also transformed into the overloaded definition:
-\begin{alltt}
-quad(A) is let\{
-  quad'(X) is dble[A](dble[A](X))
-\} in quad'
-\end{alltt}
+\begin{lstlisting}
+fun quad(A) is let{
+  fun quad'(X) is dble[A](dble[A](X))
+} in quad'
+\end{lstlisting}
 In effect, the resolved dictionary for \q{arithmetic} is `pulled out' to a larger scope. 
 
 In all cases, for overloaded functions to be invoked correctly, there must be some outermost point where an overloaded function is invoked with a concrete implementation value. 
@@ -394,7 +388,7 @@ An action procedure is an action script -- a program for performing actions. Ana
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{Procedure}&\arrow&\ntRef{ActionRule}\sequence{;}\ntRef{ActionRule}\\
+\ntDef{Procedure}&\arrow&\q{prc}\ \ntRef{ActionRule}\sequence{|}\ntRef{ActionRule}\\
 \ntDef{ActionRule}&\arrow&\ntRef{Identifier}\q{(}\,\ntRef{Pattern}\sequence{,}\ntRef{Pattern}\,\q{)}\ [\ntRef{RuleGuard}\,]\ \q{do}\ \ntRef{Action}\\
 \ntDef{RuleGuard}&\arrow&\q{default}\\
 &\choice&\q{where}\ \ntRef{Condition}
@@ -405,15 +399,15 @@ An action procedure is an action script -- a program for performing actions. Ana
 Action rules are analogous to the use of equations for defining functions; except that an action is being specified.
 
 The equivalent of `Hello World' as a procedure would be:
-\begin{alltt}
-hello() do logMsg(info,"Hello World");
-\end{alltt}
+\begin{lstlisting}
+prc hello() do logMsg(info,"Hello World");
+\end{lstlisting}
 
 The left hand side of an action rule may contain patterns other than variables, it may also include \emph{guard} conditions:
-\begin{alltt}
-displaySigned(X) where X>0 do logMsg(info,"\$X is positive");
-displaySigned(X) default do logMsg(info,"\$X is not positive");
-\end{alltt}
+\begin{lstlisting}
+prc displaySigned(X) where X>0 do logMsg(info,"\$X is positive")
+ |  displaySigned(X) default do logMsg(info,"\$X is not positive")
+\end{lstlisting}
 
 \subsubsection{Type Safety}
 
@@ -422,7 +416,7 @@ A procedure is type safe if the action(s) in the body are type safe -- in the en
 \begin{prooftree}
 \AxiomC{\typeprd{E}{P}{\q{(}T\sub1,\ldots,T\subn\q{)=>()}}}
 \AxiomC{\typesafe{E\minsert{\cup}H\sub1:T\sub1\minsert{\cup}\ldots\minsert{\cup}H\subn:T\subn}{A}}
-\BinaryInfC{\typesafe{E}{P\q{(}H\sub1,\ldots,H\subn\q{) \q{do} A}}}
+\BinaryInfC{\typesafe{E}{\q{prc }P\q{(}H\sub1,\ldots,H\subn\q{) \q{do} A}}}
 \end{prooftree}
 
 
@@ -435,16 +429,20 @@ A procedure is a `first class value' and can be assigned to variables, passed in
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{AnonProcedure}&\arrow&\q{(procedure}\q{(}\ntRef{Identifier}\sequence{,}\ntRef{Identifier}\q{)}\ \q{do}\ \ntRef{Action}\q{)}
+\ntDef{AnonProcedure}&\arrow&\q{(}\ntRef{TuplePattern}\ \q{do}\ \ntRef{Action}\q{)}
 \end{eqnarray*}
 \caption{Anonymous Action Procedure}
 \label{anonymousProcedureFig}
 \end{figure}
 
 For example, to use the `tree walk' as defined in Program~\vref{treeWalkProg} to display all the leaf nodes, we pass in to \q{walk} an anonymous procedure to display the leaf:
-\begin{alltt}
-walk(Tr,(procedure(X) do logMsg(info,"\$X")))
-\end{alltt}
+\begin{lstlisting}
+walk(Tr,((X) do logMsg(info,"$X")))
+\end{lstlisting}
+
+\begin{aside}
+Unlike anonymous functions, it nearly always is necessary to enclose an anonymous procedure in parentheses. This is due to the operator precedence of the \q{do} operator.
+\end{aside}
 
 Anonymous procedures may access free variables; but may not be directly recursive (see Section~\vref{anonymousFunction}).
 
@@ -457,72 +455,74 @@ A \q{pattern} abstraction allows patterns to be treated as first class values; i
 \begin{figure}[htbp]
 \begin{eqnarray*}
 \emph{Expression}&\arrowplus&\ntRef{AnonymousPattern}\\
-\ntDef{AnonymousPattern}&\arrow&\q{pattern(}\ntRef{Identifier}\sequence{,}\ntRef{Identifier}\q{) from } \ntRef{Pattern}\\
-\ntDef{PatternAbstraction}&\arrow&\ntRef{Identifier}\q{(}\ntRef{Identifier}\sequence{,}\ntRef{Identifier}\q{) from } \ntRef{Pattern}
+\ntDef{AnonymousPattern}&\arrow&\q{(}\ntRef{TupleLiteral}\q{ from } \ntRef{Pattern}\q{)}\\
+\ntDef{PatternAbstraction}&\arrow&\q{ptn}\ \ntRef{PatternRule}\sequence{|}\ntRef{PatternRule}\\
+\ntDef{PatternRule}&\arrow&\ntRef{Identifier}\q{(}\ntRef{Expression}\sequence{,}\ntRef{Expression}\q{) from } \ntRef{Pattern}
 \end{eqnarray*}
 \caption{Pattern Abstraction Definitions}
 \label{tauPtnFig}
 \end{figure}
 
 A pattern of the form
-\begin{alltt}
-\emph{Ab}(\emph{Ptn\sub1}\sequence{,}\emph{Ptn})
-\end{alltt}
+\begin{lstlisting}[mathescape=true]
+$\emph{Ab}$($\emph{Ptn\sub1}\sequence{,}\emph{Ptn}$)
+\end{lstlisting}
 represents an application of the pattern abstraction \q{\emph{Ab}}; i.e., the pattern matches if the abstracted pattern within the definition \q{\emph{Ab}} matches \emph{and} that \q{\emph{Ptn\subi}} match the `returned' values from the pattern.
 
 For example, the definition:
-\begin{alltt}
-TM(X) from ("fred",X)
-\end{alltt}
+\begin{lstlisting}
+ptn TM(X) from ("fred",X)
+\end{lstlisting}
 defines \q{TM} as a pattern that will match binary tuples -- of which the first element is the string \q{"fred"} and returns the second element of the tuple.
 
 We can use \q{TM} to match such tuples, as in:
-\begin{alltt}
+\begin{lstlisting}[mathescape=true]
 for TM(Y) in R do
-  \ldots
-\end{alltt}
+  $\ldots$
+\end{lstlisting}
 assuming that the type of \q{R} was appropriately a \q{list} of 2-tuples.
 
 The application argument of a pattern abstraction is also a pattern; so we can look for special forms of \q{TM} patterns in \q{R}:
-\begin{alltt}
+\begin{lstlisting}[mathescape=true]
 if TM(3) in R then
-  \ldots
-\end{alltt}
+  $\ldots$
+\end{lstlisting}
 The pattern application \q{TM(3)} is equivalent to the pattern 
-\begin{alltt}
+\begin{lstlisting}
 ("fred",3)
-\end{alltt}
+\end{lstlisting}
 Program~\vref{filterProg} is a more elaborate example that uses a pattern abstraction to filter elements of a \q{list}, removing elements that are less than zero.
 \index{filtering elements of a \q{list} with pattern abstractions}
 \index{list!filtering with pattern abstractions}
 \index{pattern abstractions!using to filtering lists}
 \begin{program}
-\begin{alltt}
-positive has type (integer) <= integer;
-positive(I) from I where I>=0;
+\begin{lstlisting}
+positive has type (integer) <= integer
+ptn positive(I) from I where I>=0
   
-filter has type for all s,t such that (list of t, (s)<=t) => list of s;
-filter(L,P) is let\{
-  flt(list of []) is list of [];
-  flt(list of [P(I),..More]) is list of [I,..flt(More)];
-  flt(list of [_,..More]) default is flt(More);
-\} in flt(L);
-\end{alltt}
+filter has type for all s,t such that
+    (list of t, (s)<=t) => list of s
+fun filter(L,P) is let{
+  fun flt(list of []) is list of []
+   |  flt(list of [P(I),..More]) is list of [I,..flt(More)]
+   |  flt(list of [_,..More]) default is flt(More)
+} in flt(L)
+\end{lstlisting}
 \caption{Filtering \q{list}s with Pattern Abstractions\label{filterProg}}
 \end{program}
 The result of evaluating the expression
-\begin{alltt}
+\begin{lstlisting}
 filter(list of [1,3,-2,0,10,-20],positive)
-\end{alltt}
+\end{lstlisting}
 is
-\begin{alltt}
+\begin{lstlisting}
 list of [1,3,0,10]
-\end{alltt}
+\end{lstlisting}
 
 \subsubsection{Type Safety}
 The type of a pattern abstraction is determined by the type of pattern matched by the abstraction:
 \begin{prooftree}
 \AxiomC{\typeprd{E}{P}{T}}
 \AxiomC{\typeprd{E}{X\sub1}{t\sub1}\sequence{\quad}\typeprd{E}{X\subn}{t\subn}}
-\BinaryInfC{\typeprd{E}{\q{pattern(}{X\sub1}\sequence{,}{X\subn}\q{) from }P}{\q{(}t\sub1}\sequence{,}{t\subn}\q{)<=}T}
+\BinaryInfC{\typeprd{E}{\q{(}{X\sub1}\sequence{,}{X\subn}\q{) from }P}{\q{(}t\sub1}\sequence{,}{t\subn}\q{)<=}T}
 \end{prooftree}

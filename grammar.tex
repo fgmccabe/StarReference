@@ -10,27 +10,27 @@ However, it also makes certain other aspects more challenging. In particular, an
 
 \section{Operator Precedence Grammar}
 An operator grammar allows us to write expressions like:
-\begin{alltt}
+\begin{lstlisting}
 X * Y + X / Y
-\end{alltt}
+\end{lstlisting}
 and to know that this means the equivalent of:
-\begin{alltt}
+\begin{lstlisting}
 (X * Y) + (X / Y)
-\end{alltt}
+\end{lstlisting}
 or more specifically:
-\begin{alltt}
+\begin{lstlisting}
 +(*(X, Y), /(X, Y))
-\end{alltt}
+\end{lstlisting}
 Operator precedence grammars are often used to capture arithm\-etic-style expressions. In \Sr we extend the concept to cover the entire language.
 
 For example, an equation such as:
-\begin{alltt}
-double(X) is X*X
-\end{alltt}
-can be interpreted -- by treating \function{is} as an operator -- as:
-\begin{alltt}
-is(double(X),*(X,X))
-\end{alltt}
+\begin{lstlisting}
+fun double(X) is X*X
+\end{lstlisting}
+can be interpreted -- by treating \q{fun} and \q{is} as operators -- as:
+\begin{lstlisting}
+fun(is(double(X),*(X,X)))
+\end{lstlisting}
 Of course, this is merely a \emph{parse} of the equation. The real task of the compiler is to interpret this abstract syntax as an equation rather than as an attempt to apply the \q{is} function.
 
 %The entire operator precedence grammar (not including tokenization) is very succinct, as can be seen in Program~\vref{srOpPrecGrammar}. 
@@ -60,82 +60,83 @@ Operator&Priority&Assoc.&Operator&Priority&Assoc.\\
 \endfoot
 \hline
 \endlastfoot
-\tt |\_|&2000&right&\tt ;&2000&postfix\\
-\tt ;&2000&right&\tt ;..&1999&infix\\
-\tt ..;&1998&infix&\tt \#&1350&prefix\\
-\tt -->&1347&infix&\tt :-&1347&infix\\
-\tt ==>&1347&infix&\tt :|&1345&right\\
-\tt :\&&1344&right&\tt :!&1343&prefix\\
-\tt \#\#&1342&infix&\tt ::&1341&infix\\
-\tt ;*&1340&infix&\tt :+&1340&infix\\
-\tt :*&1340&infix&\tt private&1320&assoc prefix\\
-\tt open&1300&prefix&\tt on&1300&prefix\\
-\tt has&1300&right&\tt contract&1300&prefix\\
-\tt var&1300&prefix&\tt implementation&1300&prefix\\
-\tt java&1300&prefix&\tt type&1250&prefix\\
-\tt else&1200&right&\tt remove&1200&prefix\\
-\tt do&1200&right&\tt counts\spce{}as&1200&infix\\
-\tt is&1200&infix&\tt then&1180&infix\\
-\tt for&1175&prefix&\tt while&1175&prefix\\
-\tt if&1175&prefix&\tt yield&1150&prefix\\
+\tt ;&2000&right&\tt ;&2000&postfix\\
+\tt \#&1350&prefix&\tt :-&1347&infix\\
+\tt -->&1347&infix&\tt ==>&1347&infix\\
+\tt :|&1345&right&\tt :\&&1344&right\\
+\tt :!&1343&prefix&\tt \#\#&1342&infix\\
+\tt ::&1341&infix&\tt |*&1340&infix\\
+\tt :*&1340&infix&\tt :+&1340&infix\\
+\tt ;*&1340&infix&\tt private&1320&assoc prefix\\
+\tt def&1300&prefix&\tt java&1300&prefix\\
+\tt var&1300&prefix&\tt contract&1300&prefix\\
+\tt fun&1300&prefix&\tt open&1300&prefix\\
+\tt prc&1300&prefix&\tt on&1300&prefix\\
+\tt implementation&1300&prefix&\tt ptn&1300&prefix\\
+\tt case&1290&prefix&\tt |&1290&right\\
+\tt type&1250&prefix&\tt counts\spce{}as&1200&infix\\
+\tt else&1200&right&\tt is&1200&infix\\
+\tt do&1200&right&\tt remove&1200&prefix\\
+\tt then&1180&infix&\tt if&1175&prefix\\
+\tt while&1175&prefix&\tt for&1175&prefix\\
 \tt to&1130&infix&\tt from&1130&infix\\
 \tt :=&1120&infix&\tt perform&1120&prefix\\
-\tt try&1100&prefix&\tt merge&1100&prefix\\
+\tt merge&1100&prefix&\tt extend&1100&prefix\\
+\tt notify&1100&prefix&\tt default&1100&postfix\\
+\tt assert&1100&prefix&\tt valis&1100&prefix\\
+\tt try&1100&prefix&\tt update&1100&prefix\\
 \tt delete&1100&prefix&\tt ignore&1100&prefix\\
-\tt assert&1100&prefix&\tt default&1100&postfix\\
-\tt //&1100&infix&\tt update&1100&prefix\\
-\tt notify&1100&prefix&\tt extend&1100&prefix\\
-\tt valis&1100&prefix&\tt request&1050&prefix\\
-\tt catch&1050&infix&\tt with&1050&infix\\
-\tt hastype&1020&infix&\tt case&1020&prefix\\
-\tt has\spce{}type&1020&infix&\tt suchthat&1010&right\\
-\tt such\spce{}that&1010&right&\tt for\spce{}all&1005&assoc prefix\\
-\tt exists&1005&assoc prefix&\tt forall&1005&assoc prefix\\
-\tt import&1000&prefix&\tt ,&1000&right\\
-\tt raise&1000&prefix&\tt query&1000&prefix\\
-\tt default&1000&infix&\tt without&999&prefix\\
-\tt computation&999&infix&\tt memo&999&prefix\\
-\tt ./&999&infix&\tt with&999&prefix\\
-\tt |&980&right&\tt spawn&950&prefix\\
-\tt ?&950&infix&\tt \tlda{}&950&right\\
-\tt by&950&infix&\tt when&950&prefix\\
-\tt waitfor&950&prefix&\tt order&945&infix\\
-\tt order&945&postfix&\tt where&940&infix\\
-\tt otherwise&930&right&\tt or&930&right\\
-\tt and&920&right&\tt implies&920&right\\
-\tt not&910&prefix&\tt using&908&left\\
-\tt down&908&infix&\tt in&908&infix\\
+\tt //&1100&infix&\tt ,..&1099&infix\\
+\tt ..,&1098&infix&\tt catch&1050&infix\\
+\tt request&1050&prefix&\tt with&1050&infix\\
+\tt switch&1020&prefix&\tt has\spce{}type&1020&infix\\
+\tt such\spce{}that&1010&right&\tt exists&1005&assoc prefix\\
+\tt for\spce{}all&1005&assoc prefix&\tt ,&1000&right\\
+\tt default&1000&infix&\tt raise&1000&prefix\\
+\tt query&1000&prefix&\tt import&1000&prefix\\
+\tt memo&999&prefix&\tt without&999&prefix\\
+\tt computation&999&infix&\tt ./&999&infix\\
+\tt with&999&prefix&\tt :&960&right\\
+\tt :&960&postfix&\tt group\spce{}by&960&left\\
+\tt when&950&prefix&\tt ?&950&right\\
+\tt \tlda{}&950&right&\tt order\spce{}descending\spce{}by&950&infix\\
+\tt waitfor&950&prefix&\tt spawn&950&prefix\\
+\tt order\spce{}by&950&infix&\tt descending\spce{}by&950&infix\\
+\tt where&940&infix&\tt any\spce{}of&935&prefix\\
+\tt all&935&prefix&\tt otherwise&930&right\\
+\tt or&930&right&\tt implies&920&right\\
+\tt and&920&right&\tt =>&910&right\\
+\tt \$=>&910&right&\tt not&910&prefix\\
+\tt <=>&910&right&\tt let&909&prefix\\
+\tt using&908&left&\tt in&908&infix\\
 \tt 's&907&infix&\tt 'n&906&right\\
-\tt \$=>&905&right&\tt <=>&905&right\\
-\tt =>&905&right&\tt over&900&right\\
-\tt matches&900&infix&\tt on&900&infix\\
-\tt fn&900&prefix&\tt has\spce{}kind&900&infix\\
-\tt bound\spce{}to&900&infix&\tt >&900&infix\\
-\tt =&900&infix&\tt <&900&infix\\
-\tt kind&900&prefix&\tt ref&900&prefix\\
-\tt !=&900&infix&\tt implements&900&right\\
-\tt is\spce{}tuple&900&postfix&\tt substitute&900&infix\\
-\tt instance\spce{}of&900&infix&\tt >=&900&infix\\
-\tt ->&900&infix&\tt <=&900&infix\\
+\tt or\spce{}else&900&right&\tt matches&900&infix\\
+\tt !=&900&infix&\tt <&900&infix\\
+\tt =&900&infix&\tt >&900&infix\\
+\tt substitute&900&infix&\tt <=&900&infix\\
+\tt ref&900&prefix&\tt =<&900&infix\\
+\tt kind&900&prefix&\tt is\spce{}tuple&900&postfix\\
+\tt ->&900&infix&\tt has\spce{}kind&900&infix\\
+\tt bound\spce{}to&900&infix&\tt has\spce{}value&900&infix\\
+\tt >=&900&infix&\tt implements&900&right\\
+\tt fn&900&prefix&\tt on&900&infix\\
+\tt over&900&right&\tt instance\spce{}of&900&infix\\
 \tt determines&895&infix&\tt ++&850&right\\
-\tt <>&850&right&\tt of&840&right\\
-\tt reduction&830&prefix&\tt matching&800&infix\\
-\tt +&720&left&\tt -&720&left\\
-\tt \%&700&left&\tt *&700&left\\
-\tt /&700&left&\tt **&650&infix\\
-\tt valof&500&prefix&\tt on\spce{}abort&475&infix\\
-\tt cast&420&infix&\tt as&420&infix\\
-\tt :&400&right&\tt :&400&postfix\\
-\tt unique&400&prefix&\tt any\spce{}of&400&prefix\\
-\tt anyof&400&prefix&\tt all&400&prefix\\
-\tt \#@&200&infix&\tt @&200&infix\\
-\tt @@&200&infix&\tt .&175&left\\
-\tt !&150&prefix&\tt +&100&prefix\\
-\tt -&100&prefix&\tt \$&75&prefix\\
-\tt \%&75&prefix&\tt ?&75&prefix\\
-\tt \%\%&75&prefix&\tt \#+&50&right\\
-\tt \#*&50&prefix&\tt \#\$&50&prefix\\
-\tt \#\spce{}explode&50&prefix&\tt \#:&50&prefix\\
+\tt of&840&right&\tt reduction&830&prefix\\
+\tt matching&800&infix&\tt +&720&left\\
+\tt -&720&left&\tt \%&700&left\\
+\tt *&700&left&\tt /&700&left\\
+\tt **&650&infix&\tt valof&500&prefix\\
+\tt on\spce{}abort&475&infix&\tt cast&420&infix\\
+\tt as&420&infix&\tt unique&400&prefix\\
+\tt @@&200&infix&\tt @&200&infix\\
+\tt \#@&200&infix&\tt .&175&left\\
+\tt ?.&175&left&\tt !&150&prefix\\
+\tt +&100&prefix&\tt -&100&prefix\\
+\tt \$&75&prefix&\tt \%&75&prefix\\
+\tt ?&75&prefix&\tt \%\%&75&prefix\\
+\tt \#\$&50&prefix&\tt \#*&50&prefix\\
+\tt \#+&50&right&\tt \#:&50&prefix\\
 \tt \$\$&50&prefix&\tt \$\$&50&right\\
 \tt \#\tlda{}&50&prefix&&&\\
 \end{longtable}
@@ -169,82 +170,82 @@ A new operator is defined using an operator definition statements:
 \begin{description}
 \item[\tt infix]
 A statement of the form:
-\begin{alltt}
+\begin{lstlisting}
 #infix("myOp",730);
-\end{alltt}
+\end{lstlisting}
 defines the operator \q{myOp} to be an infix operator, with priority 730. 
 \begin{aside}
 Defining an operator does \emph{not} define anything about its semantics -- except that in the case of an \q{infix} operator, it has two arguments.
 \end{aside}
 \item[\tt left]
 A statement of the form:
-\begin{alltt}
+\begin{lstlisting}
 #left("lftOp",730);
-\end{alltt}
+\end{lstlisting}
 defines the operator \q{lftOp} to be a left-associative infix operator, with priority 730. That means that expression such as
-\begin{alltt}
+\begin{lstlisting}
 A lftOp B lftOp C lftOp D
-\end{alltt}
+\end{lstlisting}
 will be parsed as though written:
-\begin{alltt}
+\begin{lstlisting}
 ((A lftOp B) lftOp C) lftOp D
-\end{alltt}
+\end{lstlisting}
 
 \item[\tt right]
 A statement of the form:
-\begin{alltt}
+\begin{lstlisting}
 #right("rgtOp",730);
-\end{alltt}
+\end{lstlisting}
 defines the operator \q{rgtOp} to be a right associate infix operator, with priority 730. Exressions such as
-\begin{alltt}
+\begin{lstlisting}
 A rgtOp B rgtOp C rgtOp D
-\end{alltt}
+\end{lstlisting}
 will be parsed as though written:
-\begin{alltt}
+\begin{lstlisting}
 (A rgtOp (B rgtOp (C rgtOp D)))
-\end{alltt}
+\end{lstlisting}
 
 \item[\tt prefix]
 A statement of the form:
-\begin{alltt}
+\begin{lstlisting}
 #prefix("prOp",730);
-\end{alltt}
+\end{lstlisting}
 defines the operator \q{prOp} to be a prefix operator, with priority 730. 
 
 \item[\tt prefixAssoc]
 A statement of the form:
-\begin{alltt}
+\begin{lstlisting}
 #prefixAssoc("prOp",730);
-\end{alltt}
+\end{lstlisting}
 defines the operator \q{prOp} to be an \emph{associative} prefix operator, with priority 730. That means that expressions such as:
-\begin{alltt}
+\begin{lstlisting}
 prOp prOp prOp A
-\end{alltt}
+\end{lstlisting}
 are permitted, and have interpretation:
-\begin{alltt}
+\begin{lstlisting}
 (prOp (prOp (prOp A)))
-\end{alltt}
+\end{lstlisting}
 
 \item[\tt postfix]
 A statement of the form:
-\begin{alltt}
+\begin{lstlisting}
 #postfix("psOp",730);
-\end{alltt}
+\end{lstlisting}
 defines the operator \q{psOp} to be a postfix operator, with priority 730. 
 
 \item[\tt postfixAssoc]
 A statement of the form:
-\begin{alltt}
+\begin{lstlisting}
 #postfixAssoc("psOp",730);
-\end{alltt}
+\end{lstlisting}
 defines the operator \q{psOp} to be an \emph{associative} postfix operator, with priority 730. That means that expressions such as:
-\begin{alltt}
+\begin{lstlisting}
 A psOp psOp psOp
-\end{alltt}
+\end{lstlisting}
 are permitted, and have interpretation:
-\begin{alltt}
+\begin{lstlisting}
 (((A psOp) psOp) psOp)
-\end{alltt}
+\end{lstlisting}
 
 \end{description}
 An operator declaration may only take place in a \q{package} body. Its scope is from the declaration statement to the end of the \q{package} body. In the latter case, when a \q{profile} is imported via the \q{use} statement, any operator definitions are also made available to the importing context.
@@ -256,9 +257,9 @@ Note that a given symbol may be defined as a prefix operator, an infix operator 
 \end{aside}
 
 The \q{force} directive is used in this situation:
-\begin{alltt}
+\begin{lstlisting}
 #force(infix("as",200));
-\end{alltt}
+\end{lstlisting}
 has the effect of \emph{changing} the existing operator priority of the \q{as} operator as an infix operator to 200 -- whatever its previous priority was.
 
 \subsection{Symbolic Operators}
@@ -271,9 +272,9 @@ For the sake of programmers' sanity we strongly suggest not using characters tha
 \end{aside}
 
 For example, the declaration:
-\begin{alltt}
-\#infix("**",700)
-\end{alltt}
+\begin{lstlisting}
+#infix("**",700)
+\end{lstlisting}
 declares \q{**} to be a new infix operator.
 
 The lexical analyzer is able to incorporate the newly declared operator as a distinct token. Thus, for example, with the \q{**} declaration above, \q{**} becomes a distinct token to the normal symbol for multiplication.
@@ -285,30 +286,30 @@ The lexical analyzer is able to incorporate the newly declared operator as a dis
 A multi-word operator defines a new \ntRef{MultiWordIdentifier}; i.e., a special combination of alpha numeric words that form a single logical identifier.
 
 Multi-word operators are defined like regular operators, except that their names contain spaces. For example, the operator declaration:
-\begin{alltt}
+\begin{lstlisting}
 #infix("no more",500);
-\end{alltt}
+\end{lstlisting}
 defines the combination of words ``\q{no}'' followed by ``\q{more}'' as a single operator of priority 500.
 
 A multi-word operator is only an operator when all of its constituent words are present. If one or more of the constituent words are not present (or have other tokens intervening) then the sequence is not interpreted as a single operator but is parsed separately. For example, in the text:
-\begin{alltt}
+\begin{lstlisting}
 5 no more 10
-\end{alltt}
+\end{lstlisting}
 is interpreted as the equivalent of:
 \begin{alltt}
 no\spce{}more(5,10)
 \end{alltt}
 but the text
-\begin{alltt}
+\begin{lstlisting}
 5 no (more) 10
-\end{alltt}
+\end{lstlisting}
 is not, and, in this case, will be reported as a syntax error. 
 
 \begin{aside}
 It \emph{is} permissible to interpose comments between the words of a multi-word operator. Thus:
-\begin{alltt}
+\begin{lstlisting}
 5 no /* way */ more 10
-\end{alltt}
+\end{lstlisting}
 is legal.
 \end{aside}
 
@@ -316,10 +317,10 @@ is legal.
 A given word can be an operator in its own right, as well as participating in a multi-word operator. The combination may have different priorities to the individual pieces.
 
 For example, in the standard operator declarations:
-\begin{alltt}
+\begin{lstlisting}
 #prefix("type",1250);
 #infix("has type",1020);
-\end{alltt}
+\end{lstlisting}
 the word \q{type} is a prefix operator when it appears by itself, and is part of the infix operator \q{has\spce{}type} in combination.
 \end{aside}
 
@@ -329,15 +330,15 @@ In some circumstances, it becomes important to control the extent to which a nam
 When an operator is defined, it is possible to also specify a \emph{minimum} priority as well as a maximum priority for the operator. Specifying a minimum priority for an operator has the effect of suppressing the operator definition when the expected priority of a fragment is lower than the minimum.
 
 For example, the \q{type} standard operator is defined to be a prefix operator with priority 1250 and a minimum priority of 1200:
-\begin{alltt}
-\#prefix("type",1250,1200)
-\end{alltt}
+\begin{lstlisting}
+#prefix("type",1250,1200)
+\end{lstlisting}
 This means that \q{type} is an operator of priority 1250 -- unless the expected priority is less than 1200 in which case it is not an operator.
 
 Thus, in the fragment:
-\begin{alltt}
+\begin{lstlisting}
 type foo has kind type
-\end{alltt}
+\end{lstlisting}
 the first occurrence of \q{type} is as a prefix operator, but the second occurrence is as a simple identifier -- because the priority of \q{kind} is 900 which is lower than \q{type}'s minimum priority.
 
 By default, the minimum priority of an operator is zero, which means that it is always an operator.
@@ -350,25 +351,24 @@ Setting a minimum priority on an operator should be done sparingly.
 The \Sr grammar also permits a special feature that may be used to support language extensions -- \emph{defined bracket pairs}.
 
 A regular bracket pair is a pair of tokens such as \q{()} which are used to 'protect' expressions where there may be an operator precedence clash -- the classic example being 
-\begin{alltt}
+\begin{lstlisting}
 (2+3)*4
-\end{alltt}
+\end{lstlisting}
 which has a different meaning to
-\begin{alltt}
+\begin{lstlisting}
 2+3*5
-\end{alltt}
+\end{lstlisting}
 
 Declaring bracket operators allows new forms of syntax. For example, the statement:
-\begin{alltt}
-\#pair("begin","end",2000)
-\end{alltt}
+\begin{lstlisting}
+#pair("begin","end",2000)
+\end{lstlisting}
 can be used to all programmers to use Algol-style \q{begin}\ldots\q{end} statements. 
 
 Program~\vref{beginEndProgram} shows a collection of macro definitions
 that permits a pascal-style form of procedure definition, such as:
-\begin{alltt}
+\begin{lstlisting}[language=Pascal]
 procedure iFact(N)
-begin
   var F := 1;
   var Ix := 1;
   while Ix < N do 
@@ -378,25 +378,25 @@ begin
   end;
   return F;
 end;
-\end{alltt}
+\end{lstlisting}
 
 \begin{program}
-\begin{alltt}
-\#prefix("procedure",1200);
-\#prefix("return",1200);
-\#pair("begin","end",2000);
+\begin{lstlisting}
+#prefix("return",1200);
+#pair("procedure","end",2000);
+#pair("begin","end",2000);
   
-\#procedure #(?Tmpl #@ ?body)# :: statement :- body::action;
-\#begin ?B end :: action :- B;*action;
-\#begin end :: action;
-  
-\#procedure #( #(?Tmpl)# begin ?body./#(return ?E)# end )#==> 
-   Tmpl is valof \{body./#(valis E)# \}; 
-\#procedure #( #(?Tmpl)# begin ?body end)# ==> Tmpl do body ; 
+#procedure ?Tmpl ; ?body end :: statement :- body;*action;
+#begin ?B end :: action :- B;*action;
+#begin end :: action;
 
-\#begin ?B end ==> \{B\};
-\#begin end ==> \{\};
-\end{alltt}
+#procedure ?Tmpl ; ?body./#(return ?E)# end ==> 
+  fun Tmpl is valof {body./#(valis E)#};
+#procedure ?Tmpl ; ?body end ==> prc Tmpl do body ;
+
+#begin ?B end ==> {B};
+#begin end ==> {};
+\end{lstlisting}
 \caption{Macros that implement Pascal-style programs\label{beginEndProgram}}
 \end{program}
 

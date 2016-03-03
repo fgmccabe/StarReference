@@ -1,23 +1,21 @@
-%!TEX root = reference.tex
-\chapter{Introduction}
-\label{Introduction}
+# Introduction {#introduction}
 
-\Sr is a high-level symbolic programming language oriented to the needs of large-scale high performance processing in modern parallel and distributed computing environments.
+*Star* is a high-level symbolic programming language oriented to the needs of large-scale high performance processing in modern parallel and distributed computing environments.
 
-\Sr is a `functional-first' language -- in that functions and other programs are first class values. However, it is explicitly not a `pure' language: it has support for updatable variables and structures. However, its bias is definitely in favor of functional programming and in order to get the best value from programming in \Sr, such side-effecting features should be used sparingly.
+*Star* is a `functional-first' language -- in that functions and other programs are first class values. However, it is explicitly not a `pure' language: it has support for updatable variables and structures. However, its bias is definitely in favor of functional programming and in order to get the best value from programming in *Star*, such side-effecting features should be used sparingly.
 
-\Sr is strongly, statically, typed. What this means is that all programs and all values have a single type that is determined by a combination of type inference and explicit type annotations.
+*Star* is strongly, statically, typed. What this means is that all programs and all values have a single type that is determined by a combination of type inference and explicit type annotations.
 
 While this definitely increases the initial burden of the programmer; we believe that correctness of programs is a long-term productivity gain -- especially for large programs developed by teams of programmers.
 
 The type language is very rich; including polymorphic types, type constraints and higher-rank and higher kinded types. Furthermore, except in cases where higher-ranked types are required, type inference is used extensively to reduce the burden of `type bureaucracy' on programmers.
 
-\Sr is extensible; there are many mechanisms designed to allow extensions to the language to be designed simply and effectively. Using such techniques can significantly ease the burden of writing applications.
+*Star* is extensible; there are many mechanisms designed to allow extensions to the language to be designed simply and effectively. Using such techniques can significantly ease the burden of writing applications.
 
-\section{About this Reference}
-This reference is the language definition of the \Sr language. It is intended to be thorough and as precise as possible in the features discussed. However, where appropriate, we give simple examples as illustrative background to the specification itself.
+## About this Reference
+This reference is the language definition of the *Star* language. It is intended to be thorough and as precise as possible in the features discussed. However, where appropriate, we give simple examples as illustrative background to the specification itself.
 
-\subsection{Syntax Rules}
+### Syntax Rules
 \index{grammar notation}
 \index{bnf grammars}
 
@@ -56,7 +54,7 @@ Occasionally, where a non-terminal is not conveniently captured in a single prod
 \end{eqnarray*}
 which signals that, in addition to previously defined expressions, a \emph{ListLiteral} is also an \emph{Expression}.
 
-\subsection{Typographical Conventions}
+### Typographical Conventions
 \index{typographical conventions}
 Any text on a programming language often has a significant number of examples of programs and program fragments. In this reference, we show these using a \q{typewriter}-like font, often broken out in a display form:
 \begin{alltt}

@@ -20,7 +20,7 @@ Macro rules take the form:
 \begin{figure}[htbp]
 \begin{eqnarray*}
 \ntDef{MacroRule}&\arrow&\q{\#}\ntRef{MacroPattern}\ \q{==>}\ \ntRef{MacroReplace}\\
-&\choice&\q{\#} \ntRef{Equation}
+&\choice&\q{\#} \q{fun} \ntRef{Equation}\\
 \end{eqnarray*}
 \caption{Macro Rule}
 \label{macroRuleFig}
@@ -353,7 +353,7 @@ Typically this string indicates the file name and the line number of the term.
 \label{ScopedMacros}
 A replacement pattern of the form:
 \begin{alltt}
-\emph{Rep} ## \{ \emph{Rules} \}
+\emph{Rep} ## \{ \ntRef{MacroRule}\sequence{;}\ntRef{MacroRule} \}
 \end{alltt}
 acts as though the replacement were just \q{\emph{Rep}}. However, in the continued processing of \q{\emph{Rep}}, there may be additional macro substitution. The locally defined rules take precedence over other rules.
 
@@ -379,12 +379,12 @@ Code macros use a prefix \q{\#} to mark them as being macro functions rather tha
 For example, the macro definition:
 \begin{alltt}
 \#glom(?AA,?BB) ==> glue(AA,BB) ## \{
-    \#glue(X,Y) is glm(X,Y);
+    \#fun glue(X,Y) is glm(X,Y)
     
-    glm(A,<|()|>) is A;
-    glm(<|()|>,A) is A;
-    glm(<|?L;?R|>,A) is <|?L;?glm(R,A)|>;
-    glm(A,B) is <|?A;?B|>;
+    fun glm(A,<|()|>) is A
+     |  glm(<|()|>,A) is A
+     |  glm(<|?L;?R|>,A) is <|?L;?glm(R,A)|>
+     |  glm(A,B) is <|?A;?B|>
   \};
 \end{alltt}
 is part of the standard macro library that `glues' two macro terms together.

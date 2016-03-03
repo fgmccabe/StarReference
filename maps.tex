@@ -17,7 +17,7 @@ An important property of dictionaries is that there can be at most \emph{one} va
 The \q{dictionary} type takes the form of a type expression with two type arguments: the type of the key and the type of the value.
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\emph{Type}&\arrowplus&\q{dictionary of (}\,\emph{Type}\q{,}\emph{Type}\,\q{)}
+\emph{Type}&\arrowplus&\q{dictionary of (}\emph{Type}\q{,}\emph{Type}\,\q{)}
 \end{eqnarray*}
 \caption{Dictionary Type}
 \label{mapTypeFig}
@@ -51,7 +51,7 @@ A \q{dictionary} literal consists of a \q{dictionary} brace term with each eleme
 Figure~\vref{mapLiteralFig} defines the syntax of dictionary literals.
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\emph{Expression}&\arrowplus&\q{dictionary of }\q{\{}\,\emph{MapElement}\sequence{;}\emph{MapElement}\,\q{\}}\\
+\emph{Expression}&\arrowplus&\q{dictionary of }\q{[}\,\emph{MapElement}\sequence{,}\emph{MapElement}\,\q{]}\\
 \emph{MapElement}&\arrow&\emph{Expression}\ \q{->}\ \emph{Expression}
 \end{eqnarray*}
 \caption{Dictionary Literal}
@@ -59,14 +59,14 @@ Figure~\vref{mapLiteralFig} defines the syntax of dictionary literals.
 \end{figure}
 For example,
 \begin{alltt}
-dictionary of \{"alpha" -> 1; "beta"->2\}
+dictionary of ["alpha" -> 1, "beta"->2]
 \end{alltt}
 is a dictionary consisting of \q{string} keys to \q{integer} literals.
 An associative \q{dictionary} literal may not have more than one value associated with any given key.
 
 An empty \q{dictionary} literal is written:
 \begin{alltt}
-dictionary of \{\}
+dictionary of []
 \end{alltt}
 
 \begin{aside}
@@ -91,7 +91,7 @@ Note that the related contracts \q{sequence} (see Program~\vref{sequenceContract
 \index{indexable contract@\q{indexable} contract!_index@\q{\_index}}
 The \q{\_index} function, which is part of the \q{indexable} contract (see Program~\vref{indexableContractDef}), is used to access elements of a dictionary -- by providing a key.
 \begin{alltt}
-_index has type for all k,v such that (dictionary of (k,v),k)=>v
+_index has type for all k,v such that (dictionary of (k,v),k)=>option of v
                 where equality over k
 \end{alltt}
 \begin{aside}
@@ -113,15 +113,15 @@ is equivalent to the expression
 \end{alltt}
 For example, given a dictionary:
 \begin{alltt}
-M is dictionary of \{ "alpha"->1; "beta"->2 \}
+M is dictionary of [ "alpha"->1, "beta"->2 ]
 \end{alltt}
 we can access the value associated with the key \q{"alpha"} using:
 \begin{alltt}
 M["alpha"]
 \end{alltt}
-If we were not absolutely sure that \q{M} had an entry corresponding to a particular key, we can use:
+Since the values accessed from a \q{dictionary} are always \q{option}al, we can unwrap them conditionally using a \q{has value} condition (see Section~\vref{hasValueCond}):
 \begin{alltt}
-M[Key] default nonInteger
+get(Key) where M[Key] has value V is V
 \end{alltt}
 
 \subsection{\q{\_set\_indexed} -- Replace Element of Map}
@@ -146,7 +146,7 @@ C := \_set\_indexed(C,Ky,E)
 \end{alltt}
 For example, given the variable declaration:
 \begin{alltt}
-var M := dictionary of \{ "alpha"->1; "beta"->2 \}
+var M := dictionary of [ "alpha"->1, "beta"->2 ]
 \end{alltt}
 we can add a new key associated with \q{"gamma"} using the action:
 \begin{alltt}
@@ -195,37 +195,6 @@ remove M["alpha"]
 \end{alltt}
 
 The `expression variant' of the \q{remove} notation -- \q{C[without ky]} -- is more pleasant for functional programs where the dictionary is not held in an updateable variable.
-
-\subsection{\q{\_index\_member} -- Test for Presence of Element}
-\label{mapIndexPresent}
-\index{indexable contract@\q{indexable} contract!_index_member@\q{\_index\_member}}
-\index{test for presence of an element in collection}
-The \q{\_index\_member} pattern is part of the \q{indexable} contract -- see Program~\vref{indexableContractDef}.
-\begin{alltt}
-\_index\_member has type for all k,v such that (v)<=(dictionary of (k,v),k)
-                          where equality over k
-\end{alltt}
-The \q{\_index\_member} pattern is used to test if an element exists within the dictionary. 
-
-There are two special forms of syntax that involve the \q{\_index\_member} pattern:
-\begin{alltt}
-present C[ix]
-\end{alltt}
-which is equivalent to the condition
-\begin{alltt}
-(C,ix) matches \_index\_member(_)
-\end{alltt}
-If there is an element of \q{C} corresponding to \q{ix} then the value is \q{true}.
-If the index is out of range, i.e., if there is no element in the collection that corresponds to the requested index, then the value is \q{false}.
-
-In addition, the \ntRef{MemberCondition} allows conditions of the form:
-\begin{alltt}
-L[Ix] matches V and V>0
-\end{alltt}
-which is equivalent to the condition:
-\begin{alltt}
-(L,Ix) matches _index_member(V) and V>0
-\end{alltt}
 
 \subsection{Searching a Dictionary}
 \label{searchMap}
