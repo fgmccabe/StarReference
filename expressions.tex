@@ -358,7 +358,8 @@ Records allow their fields to be addressed individually.
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{AlgebraicConstructor}&\arrow&\ntRef{ConstructorLiteral}\\
+\ntDef{AlgebraicConstructor}&\arrow&\ntRef{EnumeratedSymbol}\\
+&\choice&\ntRef{ConstructorLiteral}\\
 &\choice&\ntRef{TupleLiteral}\\
 &\choice&\ntRef{RecordLiteral}\\
 &\choice&\ntRef{AnonymousRecord}\\
@@ -368,6 +369,28 @@ Records allow their fields to be addressed individually.
 \caption{Algebraic Constructor Expressions}
 \label{algebraicExpressionFig}
 \end{figure}
+
+
+\subsection{Enumerated Symbol}
+\label{enumeratedSymbol}
+\index{expression!enumerated symbol}
+\index{enumerated symbol literal}
+\ntRef{EnumeratedSymbol}s denote symbolic values. In particular, it refers to symbols that are introduced in an algebraic \ntRef{TypeDefinition}.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+\ntDef{EnumeratedSymbol}&\arrow&\ntRef{Identifier}
+\end{eqnarray*}
+\caption{Enumerated Symbol Expression}
+\label{enumeratedSymbolFig}
+\end{figure}
+Enumerated symbols have no internal structure; they are often used to define enumerations or for sentinels. For example, the \ntRef{Boolean} standard type can be defined 
+\begin{lstlisting}
+type boolean is false or true
+\end{lstlisting}
+and the standard cons-list type uses \q{nil} to mark the empty list:
+\begin{lstlisting}
+type cons of t is cons(t,cons of t) or nil
+\end{lstlisting}
 
 \subsection{Constructor Literals}
 \label{positionalConstructor}
@@ -1477,7 +1500,6 @@ The foundation of this is the standard \q{quoted} type which defines the structu
 \begin{lstlisting}
 type quoted is nameAst(astLocation,string)
             or boolAst(astLocation,boolean)
-            or charAst(astLocation,char)
             or stringAst(astLocation,string)
             or integerAst(astLocation,integer)
             or longAst(astLocation,long)

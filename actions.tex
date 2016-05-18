@@ -13,7 +13,7 @@ An action is the performance of an operation in a particular context.
 &\choice&\ntRef{ForLoop}\ \choice\ \ntRef{WhileLoop}\ \choice\ \ntRef{ConditionAction}\\
 &\choice&\ntRef{SwitchAction}\ \choice\ \ntRef{LetAction}\\
 &\choice&\ntRef{ValisAction}\ \choice\ \ntRef{AssertAction}\\
-&\choice&\ntRef{RaiseAction}\ \choice\ \ntRef{TryAction}
+&\choice&\ntRef{AbortAction}\ \choice\ \ntRef{TryAction}
 \end{eqnarray*}
 \caption{Action}
 \label{actionFig}
@@ -670,52 +670,37 @@ The second element of the \q{exception} constructor is an arbitrary exception si
 
 The third element of the \q{exception} constructor is a \q{location} value. This is typically the source location within the program that gave rise to the exception.
 
-\subsection{Raise Exception}
+\subsection{Abort Action}
 \label{raiseAction}
 \index{raise an exception}
-\index{actions!raise exception@\q{raise} exception}
-The \q{raise} action is used to cause an exception to be raised.
+\index{abort computation}
+\index{actions!abort with\q{abort with}}
+The \q{abort with} action is used to signal that the current computation should terminate abnormally. The form of the \q{abort with} is given in Figure~\vref{abortWithFig}.
+
 
 \begin{figure}[htbp]
 \begin{eqnarray*}
-\ntDef{RaiseAction}&\arrow&\q{raise}\ \ntRef{Expression}\\
-&\choice&\q{raise}\ \ntRef{Expression}\,\q{:}\,\ntRef{Expression}
+\ntDef{AbortAction}&\arrow&\q{abort with}\ \ntRef{Expression}\\
 \end{eqnarray*}
 \caption{Raise Expression Action}
-\label{raiseActionFig}
+\label{abortWithFig}
 \end{figure}
-There are two forms to the \q{raise} action's argument: in the first form only the  exception signal is determined. The type of this signal may be any type -- it is represented as an \q{any} value within the \q{exception} value.
 
-In the second form, a \q{string} `code' is given also. This form permits programs to communicate a short flag to the handling mechanism as well as a value. If the code is not given then \q{nonString} is assumed.
+The type of the `abort expression' depends on the context. In the case of a computation expression (see Chapter~\vref{computation}), the argument must have a type consistent with the error type of the governing monad.
 
-A \q{raise} action is equivalent to a call to the standard builtin-function \q{\_raise}. For example, the \q{raise} action:
+In the case of an \q{abort with} occurring outside of computation expressions, the type should be \q{exception}.
+
+For example, in the context:
 \begin{lstlisting}
-raise "An exceptional raise"
+good computation {
+  abort with "A message"
+}
 \end{lstlisting}
-is equivalent to a call to 
+The type of the expression associated with the \q{abort with} should be \q{string}. This is because the implementation signature for the \q{good} monad is:
+
 \begin{lstlisting}
-_raise(exception(nonString,"An exceptional raise" cast any,__location__))
+implementation (computation) over good determines string is ...
 \end{lstlisting}
-where \q{\_\_location\_\_} is a special \q{location}-valued variable that denotes the source location of the expression itself; see Section~\vref{locationVar}.
-
-The action:
-\begin{lstlisting}
-raise "error":34
-\end{lstlisting}
-denotes the call:
-\begin{lstlisting}
-_raise(exception("error",34 cast any,__location__))
-\end{lstlisting}
-
-A \q{raise} action will cause the current action to abort. If the \q{raise} action is in the dynamic scope of a \ntRef{TryAction} then the protected \ntRef{Action} of that \ntRef{TryAction} is aborted and the recovery \ntRef{Action} is entered.
-
-\begin{aside}
-If the \q{raise} action occurs within a computation expression (see Chapter~\vref{computation}, then a \q{raise} action is equivalent to a call to the contract function \q{\_abort}.
-\end{aside}
-
-\begin{aside}
-The `code' portion of the \q{exception} value is useful in situations where programs must be internationalized. The code may represent an internal code value where the exception value itself is in the form of a presentation \q{string}.
-\end{aside}
 
 \subsection{Abort Handling Action}
 \label{except}

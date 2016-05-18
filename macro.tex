@@ -52,7 +52,7 @@ See Section~\vref{macroParentheses}. In effect,  macro patterns are not sensitiv
 \begin{eqnarray*}
 \ntDef{MacroPattern}&\arrow&\ntRef{Identifier}\ \choice\ \ntRef{String}\ \choice\ \ntRef{Integer}\ \choice\ \ntRef{FloatingPoint}\ \choice\ \ntRef{CharRef}\\
 &\choice&\q{integer}\ \choice\ \q{long}\ \choice\ \q{float}\ \choice\ \q{decimal}\\
-&\choice&\q{identifier}\ \choice\ \q{char}\ \choice\ \q{string}\\
+&\choice&\q{identifier}\  \choice\ \q{string}\\
 &\choice&\ntRef{MacroPattern}\q{(}\ntRef{MacroPattern}\sequence{,}\ntRef{MacroPattern}\q{)}\\
 &\choice&\ntRef{MacroPattern}\q{\{}\ntRef{MacroPattern}\sequence{,}\ntRef{MacroPattern}\q{\}}\\
 &\choice&\ntRef{MacroPattern}\ \q{@}\ \ntRef{MacroPattern}\\
@@ -179,9 +179,7 @@ identifier
 \end{alltt}
 matches any identifier. Note that the \q{identifier} pattern will \emph{not} match any keywords of the language.
 
-\subsection{The \q{char} and \q{string} Macro Patterns}
-The \q{char} macro pattern matches any literal character value.
-
+\subsection{The \q{string} Macro Pattern}
 The \q{string} macro pattern matches any literal string value.
 \begin{aside}
 A \q{string} pattern will not match a string literal that includes any \ntRef{StringIterpolation} expressions. Although it could be used to match parts of such a string literal.

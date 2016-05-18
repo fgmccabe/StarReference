@@ -296,9 +296,9 @@ The \q{>=} predicate is satisfied if the left argument is lexicographically grea
 \label{indexString}
 \q{\_index} is part of the standard \q{indexable} contract -- see Program~\vref{indexableContractDef}.
 \begin{lstlisting}
-_index has type (string,integer)=>option of char
+_index has type (string,integer)=>option of integer
 \end{lstlisting}
-The \q{\_index} function returns a character from a \q{string} value.
+The \q{\_index} function returns a character from a \q{string} value. Note that the character is returned as an \q{integer} value -- representing the unicode code point representation of the character.
 
 There is special syntax for indexing characters from a \q{string} -- as with indexing other kinds of \q{indexable} types -- one can use:
 \begin{lstlisting}
@@ -367,23 +367,23 @@ is shorthand for
 "Count ="++display(count)++", Sum="++display(sum)
 \end{lstlisting}
 
-\subsection{\q{explode} -- Explode a string to chars}
+\subsection{\q{explode} -- Explode a string to code points}
 \label{stringExplodeFunction}
 The \q{explode} function is part of the \q{explosion} contract.
 \begin{lstlisting}
-explode has type (string)=>cons of char;
+explode has type (string)=>cons of integer;
 \end{lstlisting}
 \begin{aside}
 This version of the \q{explode} function is useful when performing complex operations over \q{string} values. For example, it can be more efficient to first of all \q{explode} a \q{string} before tokenizing the string.
 \end{aside}
 
-\subsection{\q{implode} -- Implode a cons list of chars to a string}
+\subsection{\q{implode} -- Implode a cons list of code points to a string}
 \label{stringImplodeFunction}
 The \q{implode} function is part of the \q{explosion} contract.
 \begin{lstlisting}
-implode has type (cons of char)=>string;
+implode has type (cons of integer)=>string;
 \end{lstlisting}
-The \q{implode} function takes a \q{cons} list of \q{char}s and constructs a \q{string} value from it.
+The \q{implode} function takes a \q{cons} list of \q{integer} code points and constructs a \q{string} value from it.
 
 \subsection{\q{reverse} -- Reverse the characters in a string}
 \label{stringReverseFunction}

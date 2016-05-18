@@ -208,6 +208,9 @@ The handle law expresses how aborted computations may be recovered from:
 \]
 `Handling' an encapsulated computation -- i.e., a normal non-aborted computation -- has no effect.
 
+\section{Computation Expression Semantics}
+
+
 \section{The \q{action} Monad}
 \label{actionMonad}
 
@@ -374,6 +377,7 @@ The normal overloading rules will ensure that the appropriate implementation of 
 \subsection{Handling Failure}
 \label{failAction}
 
+When a computation should \emph{fail} instead of succeeding normally, the \ntRef{AbortAction} is used to signal the failure. The failure itself is handled using an 
 The \ntRef{OnAbort} action is used to handle a failed (i.e., \q{\_abort}ed) computation -- while continuing the \ntRef{ComputationExpression} itself.
 
 \begin{figure}[hbtp]
@@ -385,7 +389,7 @@ The \ntRef{OnAbort} action is used to handle a failed (i.e., \q{\_abort}ed) comp
 \label{failHandleFig}
 \end{figure}
 
-The \q{on abort} action is used to recover from a failed computation. The \ntRef{ActionCaseBody} is a rule that matches the failure and performs appropriate recovery action. For example, the action in:
+The \q{on abort} action is used to recover from a failed computation, specifically from an \ntRef{AbortAction}. The \ntRef{ActionCaseBody} is a rule that matches the failure and performs appropriate recovery action. For example, the action in:
 \begin{alltt}
 task\{
   try P(X) on abort \{ E do logMsg(info,"exceptional \$E") \}
@@ -393,7 +397,7 @@ task\{
 \end{alltt}
 calls the procedure \q{P}; but if that results in an abort, then the abort handler is entered with the variable \q{E} being matched against the exception. 
 
-The type of the exception variable is the standard type \q{exception}.
+The type of the exception variable is the determined type from the \q{computation} contract.
 
 It is equivalent to a call of the contract function \q{\_handle}. I.e., the above action is equivalent to:
 \begin{alltt}

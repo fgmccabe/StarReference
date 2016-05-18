@@ -986,15 +986,21 @@ The macro that defines the \q{delete} notation in terms of \q{\_delete} is:
 
 \section{The \q{explosion} Contract}
 \label{explosionContract}
-The \q{explosion} contract defines what it means to `pack' or 'unpack' a collection. Many sequences have a dual nature: for example \q{string}s can be viewed as compact entities that are effectively atomic, or as sequences of \q{char}. The latter form is useful when the contents of the \q{string} needs to be processed and the former is useful when \q{string}s are processed as a whole.
+The \q{explosion} contract defines what it means to `pack' or 'unpack' a collection. Many sequences have a dual nature: for example \q{string}s can be viewed as compact entities that are effectively atomic, or as sequences of characters. 
 
-The explosion contract is defined in Program~\vref{explosionContractProg}. Notice that this contract defines \q{coll} as a higher-kinder type -- specifically, it must have kind \q{type of type}.
+When exploding a \q{string}, the result is a sequence of \q{integer}s -- each representing a separate \emph{code point} in the string. This form is useful when the contents of the \q{string} needs to be processed and the former is useful when \q{string}s are processed as a whole.
+
+\begin{aside}
+Exploding a string into code points does not guarantee a unique decomposition. Some unicode characters have multiple representations as codepoints. However, alternate decompositions are guaranteed to be semantically equivalent.
+\end{aside}
+
+The explosion contract is defined in Program~\vref{explosionContractProg}.
 
 \begin{program}[H]
 \begin{lstlisting}
-contract explosion over (coll,packed) determines el is {
-  implode has type (coll of el)=>packed;
-  explode has type (packed) => coll of el;
+contract explosion over (coll,packed) is {
+  implode has type (coll)=>packed;
+  explode has type (packed) => coll;
 }
 \end{lstlisting}
 \caption{The \q{explosion} Contract\label{explosionContractProg}}
@@ -1006,16 +1012,15 @@ contract explosion over (coll,packed) determines el is {
 \index{pack a collection}
 
 \begin{lstlisting}
-implode has type for all coll, el, packed such that 
-  (coll of el)=>packed where
-    explosion over (coll,packed) determines el
+implode has type for all coll, packed such that 
+  (coll)=>packed where explosion over (coll,packed)
 \end{lstlisting}
 
 \noindent
 The \q{implode} function takes a collection and packs it into a suitably compressed form -- whose type depends on the implementation.
 
 \begin{aside}
-One typical use is to implode a \q{cons} list of \q{char}s into a \q{string}.\end{aside}
+One typical use is to implode a \q{cons} list of \q{integer}s (which are interpreted as unicode code points) into a \q{string}.\end{aside}
 
 \subsection{\q{explode} -- Explode a Packed Entity into a Collection}
 \label{explodeFunction}
@@ -1023,16 +1028,15 @@ One typical use is to implode a \q{cons} list of \q{char}s into a \q{string}.\en
 \index{un a collection}
 
 \begin{lstlisting}
-explode has type has type for all coll, el, packed such that 
-  (packed) => coll of el where
-    explosion over (coll,packed) determines el
+explode has type has type for all coll, packed such that 
+  (packed) => coll of el where explosion over (coll,packed) 
 \end{lstlisting}
 
 \noindent
 The \q{explode} function takes a packed object and expands it into a suitable collection.
 
 \begin{aside}
-One typical use is to explode a \q{string} into a \q{cons} list of \q{char}s.\end{aside}
+One typical use is to explode a \q{string} into a \q{cons} list of \q{integer} code points.\end{aside}
 
 \section{The \q{list} Type}
 \label{arrayType}

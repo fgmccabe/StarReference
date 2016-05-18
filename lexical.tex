@@ -197,17 +197,12 @@ A \ntRef{CharacterCode} has type \q{integer}. If necessary, it can be coerced to
 \index{character reference}
 \index{syntax! string literal}
 
-\subsection{Characters}
-\label{character}
-A \q{char}acter consists of a single \ntRef{CharRef} enclosed in single quotes.
+A \q{string} consists of a sequence of characters. There is no specific type in \Sr for the characters themselves.
 
-\begin{figure}[htbp]
-\begin{eqnarray*}
-\emph{Character}&\arrow&\q{'}\ntRef{CharRef}\q{'}\\
-\end{eqnarray*}
-\caption{Character Literal}
-\label{characterFig}
-\end{figure}
+\begin{aside}
+The reasons for this are due to the fact that Unicode \q{string} values cannot be easily represented as a unique sequence.
+\end{aside}
+
 
 \label{CharacterReference}
 \index{character reference}
@@ -221,7 +216,7 @@ A \ntRef{CharRef} is a denotation of a single character.
 \end{eqnarray*}
 \caption{Character Reference}
 \end{figure}
-For most characters, the character reference for that character is the character itself. For example, the string \q{"T"} contains the character \q{'T'}. However, certain standard characters are normally referenced by escape sequences consisting of a backslash character followed by other characters; for example, the new-line character is typically written \q{\bsl{}n}. The standard character references are shown in Table~\vref{CharRef}.
+For most characters, the character reference for that character is the character itself. For example, the string \q{"T"} contains the character \q{T}. However, certain standard characters are normally referenced by escape sequences consisting of a backslash character followed by other characters; for example, the new-line character is typically written \q{\bsl{}n}. The standard character references are shown in Table~\vref{CharRef}.
 
 \begin{table}
 \caption{\Sr Character References}\label{CharRef}

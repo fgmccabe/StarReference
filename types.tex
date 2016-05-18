@@ -976,13 +976,13 @@ For example, the type definition:
 type person is someone(string,integer) 
             or noone
 \end{lstlisting}
-induces the constructor functions:
+induces the constructor function for \q{someone}:
 \begin{lstlisting}
 someone has type (string,integer) <=> person;
 \end{lstlisting}
-and
+The enumerated symbol has a simpler type:
 \begin{lstlisting}
-noone has type ()<=>person;
+noone has type person;
 \end{lstlisting}
 The complete set of constructor functions introduced within an algebraic type definition is complete: i.e., they define all the possible values of the type.
 \end{aside}
@@ -1331,7 +1331,11 @@ contract iterable over coll determines el is {
 \end{lstlisting}
 The intention of the \q{iterable} contract is to support processing collections of elements in a sequential manner. The type parameter \q{coll} identifies the collection to be iterated over; and the type parameter \q{el} identifies the type of each element.
 
-However, the collection's type uniquely determines the type of each element: the element type is not independent of the collection. For example, to iterate over a \q{cons of \pcent{}t}, each element will be of type \q{\pcent{}t}; and to iterate over a \q{string} each element will be a \q{char} (even though the \q{string} type does not mention \q{char}).
+However, the collection's type uniquely determines the type of each element: the element type is not independent of the collection. For example, to iterate over a \q{cons of \pcent{}t}, each element will be of type \q{\pcent{}t}; and to iterate over a \q{string} each element will be a \q{integer} even though the \q{string} type does not mention \q{integer}.
+
+\begin{aside}
+Each \q{integer} represents a unicode code point in the \q{string}.
+\end{aside}
 
 Using a \q{determines} clause in a \q{contract} -- and in corresponding contract \q{implementation} statements -- allows the contract designer to signal this relationship.
 
